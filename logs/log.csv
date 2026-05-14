@@ -1,0 +1,15 @@
+date,book,chapter_slug,word_count,sources_count,verify_flag_count,pantry_notes_found,pantry_lib_files_used,thin_pantry,mechanism_explained,contested_claims_flagged
+2026-05-14,quantum-mechanics-with-llms,00-how-to-use-the-simulations,5900,6,0,yes,0,no,Brutalist apparatus (CLAUDE.md/DESIGN.md/PROJECT.md) + four-move prompt + free-particle Gaussian wave packet as first sim,0
+2026-05-14,quantum-mechanics-with-llms,01-the-wave-function,5400,10,2,yes,0,no,Schrodinger evolution preserves normalization; probability current and continuity equation derived as byproduct,0
+2026-05-14,quantum-mechanics-with-llms,02-the-time-independent-schrodinger-equation,6200,7,0,yes,0,no,Full 8-step infinite-well derivation showing quantization falls out of boundary continuity,0
+2026-05-14,quantum-mechanics-with-llms,03-the-harmonic-oscillator,5200,5,4,yes,0,no,Full ladder-operator derivation from [a_-,a_+]=1 alone; ground state from a_-|0>=0; inductive spectrum,0
+2026-05-14,quantum-mechanics-with-llms,04-formalism-dirac-notation-and-operators,7400,12,5,yes,0,no,Robertson uncertainty derived from Cauchy-Schwarz on shifted Hermitian operators; commutator term isolated,0
+2026-05-14,quantum-mechanics-with-llms,05-quantum-mechanics-in-three-dimensions,6400,10,5,yes,0,no,u(r)=rR(r) trick reducing 3D central-potential problem to 1D-with-centrifugal-barrier plus angular-momentum commutators,0
+2026-05-14,quantum-mechanics-with-llms,06-spin,5200,6,5,yes,0,no,Half-angle eigenstate parameterization yielding Born rule cos^2(gamma/2) and Larmor precession omega_L = gamma B,0
+2026-05-14,quantum-mechanics-with-llms,07-the-hydrogen-atom,6400,11,10,yes,0,no,1s radial-equation ansatz u=Ar exp(-r/a) forcing a=a_0 and E_1=-13.6 eV; r_mp vs <r> contrast,0
+2026-05-14,quantum-mechanics-with-llms,08-identical-particles,6200,13,13,yes,0,no,Helium singlet-triplet splitting = 2K from antisymmetry; Hund's rule as a corollary,0
+2026-05-14,quantum-mechanics-with-llms,09-time-independent-perturbation-theory,5600,7,6,yes,0,no,Order-by-order lambda-expansion deriving first/second-order energy corrections plus degenerate-PT subspace diagonalization,1
+2026-05-14,quantum-mechanics-with-llms,10-time-dependent-perturbation-theory-and-transitions,6200,8,4,yes,0,no,Interaction-picture derivation of c_f(t); sin^2/Delta-omega^2 to delta-function limit giving Fermi's Golden Rule (with Dirac 1927 historical correction),0
+2026-05-14,quantum-mechanics-with-llms,11-the-wkb-approximation-and-tunneling,6500,13,7,yes,0,no,WKB ansatz from hbar expansion of exp(iS/hbar); Gamow factor derivation reproducing Geiger-Nuttall law,0
+2026-05-14,quantum-mechanics-with-llms,12-entanglement-and-quantum-information,6200,14,3,yes,1,no,CHSH inequality LHV bound (|S|=2 for every lambda) plus QM violation at optimal angles giving 2 sqrt 2,0
+2026-05-14,quantum-mechanics-with-llms,13-capstone-quantum-mechanics-in-research,7300,16,5,yes,1,no,Lindblad equation for a qubit yielding Bloch equations with 1/T2 = 1/(2T1) + 1/T_phi and the spiraling-inward signature,1
