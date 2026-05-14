@@ -1,295 +1,221 @@
 # Chapter 3 — The Harmonic Oscillator
-
-> The most important exactly solvable system in quantum mechanics — the one that appears wherever something vibrates near equilibrium, and the gateway to the operator formalism that takes over in Chapter 4.
+*The one problem that hides inside every other problem.*
 
 ---
 
-## 1. What this chapter is doing
+Here is something that should bother you. You can write down the potential for a pendulum, a diatomic molecule, a tuning fork, a bridge cable vibrating in the wind, an electromagnetic field mode in a laser cavity, a crystal lattice vibrating at low temperature — and in every single case, if you expand that potential around its minimum and keep only the first non-trivial term, you get the same equation. One equation. The same one every time. Either physics is conspiring against variety, or something deep is going on.
 
-You have already solved the infinite square well. That problem had hard walls, oscillating eigenfunctions, and a tidy $n^2$ spectrum. The chapter you are reading now does something different. It takes the *smoothest possible* confining potential — a parabola — and shows that the spectrum becomes evenly spaced, that the eigenfunctions are Gaussian-damped oscillations, and that a single piece of algebra ($[\hat{a}_-, \hat{a}_+] = 1$) generates the entire structure without solving a differential equation. Then it shows you the wave packet that *does* oscillate the way you wanted it to — the coherent state — and lets you watch it slosh.
+Something deep is going on. Near a stable equilibrium, *any* smooth potential looks like a parabola. That is just calculus: the first derivative vanishes at a minimum, so the quadratic term is what survives. Set $m\omega^2 = V''(x_0)$ and you have the harmonic oscillator every time, for any system, for any potential, as long as the oscillation is small. This is why the harmonic oscillator is not just an example in quantum mechanics. It is the universal model for small vibrations everywhere in physics.
 
-We are closing Act One here. After this chapter, the book pivots from concrete wave-function calculations to the abstract operator formalism. The harmonic oscillator is the bridge. Its ladder operators are the first encounter with the kind of algebraic move that, in Chapter 4, becomes a worldview.
+<!-- → [INFOGRAPHIC: Grid of six physical systems — pendulum, diatomic molecule, tuning fork, bridge cable, laser cavity mode, crystal lattice — each with a sketch of its potential V(x); arrows pointing from each to a single shared quadratic V(x) ≈ (1/2)kx² at the bottom, with caption "Near any minimum, every smooth potential reduces to the same equation"] -->
 
-## 2. Learning objectives
+The Hamiltonian is
 
-By the end of this chapter you should be able to:
+$$\hat{H} = \frac{\hat{p}^2}{2m} + \frac{1}{2}m\omega^2\hat{x}^2.$$
 
-- Write down the harmonic-oscillator Hamiltonian and explain why it shows up in almost every physical system.
-- Derive $[\hat{a}_-, \hat{a}_+] = 1$ from $[\hat{x}, \hat{p}] = i\hbar$ explicitly.
-- Use the commutator $[\hat{H}, \hat{a}_\pm] = \pm\hbar\omega\,\hat{a}_\pm$ to climb and descend the energy ladder.
-- Construct the ground-state wave function $\psi_0(x)$ by solving $\hat{a}_-|0\rangle = 0$ as a first-order ODE.
-- Recognize the Hermite-polynomial form of the eigenstates and identify nodes, classical turning points, and tunneling into the classically forbidden region.
-- Distinguish a stationary eigenstate (static probability density) from a coherent state (Gaussian sloshing without spreading).
-- Build a D3 simulation that displays $\psi_n(x)$, $|\psi_n|^2$, and the time evolution of a coherent state.
+Two terms. One kinetic, one quadratic in position. We are going to find every energy level, every eigenstate, and the classical-looking oscillation — without solving a single differential equation. Well, almost: one first-order ODE at the end, which takes twenty seconds. Everything else falls out of algebra.
 
-## 3. Motivating problem
+---
 
-A diatomic molecule — say hydrogen chloride — sits in a vibrational mode. The bond stretches and contracts. Infrared spectroscopy measures the energy required to bump the molecule from one vibrational state to the next, and the answer is a single, sharply defined photon energy: for HCl, transitions cluster near 2886 cm$^{-1}$ in the gas phase [verify against NIST WebBook]. Not a continuous spectrum. A line.
+## The trick
 
-Classical mechanics is comfortable with this much: a mass on a spring oscillates at $\omega = \sqrt{k/m}$ regardless of amplitude. Quantum mechanics is *not* comfortable. A quantum system that can only absorb photons of one energy must have an evenly spaced ladder of levels separated by $\hbar\omega$. Where does that ladder come from? Why is the lowest rung *not* at zero — why is the molecule moving even at absolute zero, when classical physics says it should be sitting still at the bottom of the well? And once we have the spectrum, can we make it slosh, like a classical oscillator?
+Let me factor the Hamiltonian. Not approximately. Exactly.
 
-These three questions are the chapter. The Hamiltonian:
+Define two operators:
 
-$$\hat{H} = \frac{\hat{p}^2}{2m} + \frac{1}{2}m\omega^2\hat{x}^2$$
+$$\hat{a}_\pm = \frac{1}{\sqrt{2\hbar m\omega}}\bigl(\mp i\hat{p} + m\omega\hat{x}\bigr).$$
 
-is the simplest non-trivial expression in quantum mechanics. Two terms. One kinetic, one quadratic in position. Nothing fancy. And yet this object is everywhere — molecular vibrations, lattice phonons, photons in a cavity, every small-oscillation problem near equilibrium. The reason is simple. Expand any smooth potential $V(x)$ about a stable minimum $x_0$:
+These look like someone concatenated two formulas that don't belong together. Bear with it. Compute $\hat{a}_-\hat{a}_+$:
 
-$$V(x) \approx V(x_0) + \tfrac{1}{2}V''(x_0)(x - x_0)^2 + \cdots$$
+$$\hat{a}_-\hat{a}_+ = \frac{1}{2\hbar m\omega}\bigl(i\hat{p} + m\omega\hat{x}\bigr)\bigl(-i\hat{p} + m\omega\hat{x}\bigr).$$
 
-The linear term vanishes at a minimum. The quadratic term is what is left. Set $m\omega^2 = V''(x_0)$ and you have the harmonic oscillator. That is why this Hamiltonian governs a generic system held near equilibrium. Feynman called it "the most important problem"; he was not exaggerating. The harmonic approximation is the *reason* small oscillations are tractable in any physical system you will meet for the rest of your career.
+Expand the product. You get $\hat{p}^2 + m^2\omega^2\hat{x}^2$ plus the cross terms $im\omega(\hat{p}\hat{x} - \hat{x}\hat{p})$. Those cross terms are $im\omega$ times a commutator. And we know that commutator: $[\hat{x},\hat{p}] = i\hbar$, so $\hat{p}\hat{x} - \hat{x}\hat{p} = -i\hbar$. The cross terms become $m\omega\hbar$. Clean up:
 
-## 4. Concept block — the algebraic move
+$$\hat{a}_-\hat{a}_+ = \frac{\hat{H}}{\hbar\omega} + \frac{1}{2}.$$
 
-### 4.1 Factor the Hamiltonian
+Or equivalently,
 
-Here is the trick. Define two operators:
+$$\hat{H} = \hbar\omega\!\left(\hat{a}_-\hat{a}_+ - \frac{1}{2}\right) = \hbar\omega\!\left(\hat{a}_+\hat{a}_- + \frac{1}{2}\right).$$
 
-$$\hat{a}_\pm = \frac{1}{\sqrt{2\hbar m\omega}}\bigl(\mp i\hat{p} + m\omega\hat{x}\bigr)$$
+The two forms differ because $\hat{a}_-$ and $\hat{a}_+$ do not commute. Subtract:
 
-These look ugly. Bear with the bookkeeping. We are going to multiply them out and discover something clean.
+$$[\hat{a}_-, \hat{a}_+] = 1.$$
 
-Compute $\hat{a}_-\hat{a}_+$:
+That is the whole thing. Every energy level, every eigenstate, every expectation value in this chapter is a consequence of that one commutator. From $[\hat{a}_-, \hat{a}_+] = 1$, the entire spectrum of the harmonic oscillator drops out without any further differential equations.
 
-$$\hat{a}_-\hat{a}_+ = \frac{1}{2\hbar m\omega}\bigl(i\hat{p} + m\omega\hat{x}\bigr)\bigl(-i\hat{p} + m\omega\hat{x}\bigr)$$
+---
 
-$$= \frac{1}{2\hbar m\omega}\bigl(\hat{p}^2 + m^2\omega^2\hat{x}^2 + im\omega(\hat{p}\hat{x} - \hat{x}\hat{p})\bigr)$$
+## Climbing the ladder
 
-$$= \frac{1}{2\hbar m\omega}\bigl(\hat{p}^2 + m^2\omega^2\hat{x}^2 - im\omega \cdot i\hbar\bigr)$$
+Suppose $|n\rangle$ is an energy eigenstate with energy $E_n$. Ask what energy $\hat{a}_+|n\rangle$ has. Compute $\hat{H}(\hat{a}_+|n\rangle)$ using the commutator $[\hat{H}, \hat{a}_+] = \hbar\omega\,\hat{a}_+$, which follows directly from $[\hat{a}_-, \hat{a}_+] = 1$:
 
-where the last step used $[\hat{x}, \hat{p}] = i\hbar$, so $\hat{p}\hat{x} - \hat{x}\hat{p} = -i\hbar$. Clean up:
+$$\hat{H}(\hat{a}_+|n\rangle) = (\hat{a}_+\hat{H} + [\hat{H}, \hat{a}_+])|n\rangle = (E_n + \hbar\omega)\,\hat{a}_+|n\rangle.$$
 
-$$\hat{a}_-\hat{a}_+ = \frac{\hat{H}}{\hbar\omega} + \tfrac{1}{2}$$
+So $\hat{a}_+|n\rangle$ is an eigenstate with energy $E_n + \hbar\omega$. The operator $\hat{a}_+$ climbs up by exactly one quantum of energy. The same argument with $\hat{a}_-$ gives energy $E_n - \hbar\omega$. They are a raising operator and a lowering operator. A ladder.
 
-Equivalently,
+<!-- → [DIAGRAM: Vertical energy ladder with evenly spaced rungs labeled E_0 = ℏω/2, E_1 = 3ℏω/2, E_2 = 5ℏω/2, ..., E_n = (n+½)ℏω — upward arrow labeled â₊ "raises by ℏω", downward arrow labeled â₋ "lowers by ℏω"; ground rung marked with a barrier below it labeled "â₋|0⟩ = 0 — cannot descend further"] -->
 
-$$\hat{H} = \hbar\omega\bigl(\hat{a}_-\hat{a}_+ - \tfrac{1}{2}\bigr) = \hbar\omega\bigl(\hat{a}_+\hat{a}_- + \tfrac{1}{2}\bigr)$$
+---
 
-The two forms differ because $\hat{a}_-$ and $\hat{a}_+$ do not commute. Subtract them:
+## Why the ladder terminates downward
 
-$$[\hat{a}_-, \hat{a}_+] = \hat{a}_-\hat{a}_+ - \hat{a}_+\hat{a}_- = 1$$
+Here is the constraint that gives us the ground state. The Hamiltonian $\hat{H} = \hat{p}^2/2m + (1/2)m\omega^2\hat{x}^2$ is a sum of squares of Hermitian operators. Its expectation value in any state is non-negative. Energies cannot go below zero.
 
-This is the *only* algebraic input we need. The entire spectrum of the harmonic oscillator falls out of this single commutator. (Griffiths §2.3.1; Liboff §7.3.)
+But the lowering operator $\hat{a}_-$ subtracts $\hbar\omega$ each time you apply it. Something has to stop. The only way the descent terminates is if there exists a state $|0\rangle$ that $\hat{a}_-$ kills:
 
-### 4.2 The ladder
+$$\hat{a}_-|0\rangle = 0.$$
 
-Compute $[\hat{H}, \hat{a}_+]$. Use $\hat{H} = \hbar\omega(\hat{a}_+\hat{a}_- + 1/2)$:
+This is the ground state. Its energy: apply $\hat{a}_+$ to both sides, use $\hat{H} = \hbar\omega(\hat{a}_+\hat{a}_- + 1/2)$:
 
-$$[\hat{H}, \hat{a}_+] = \hbar\omega[\hat{a}_+\hat{a}_-, \hat{a}_+] = \hbar\omega\,\hat{a}_+[\hat{a}_-, \hat{a}_+] = \hbar\omega\,\hat{a}_+$$
+$$\hat{H}|0\rangle = \hbar\omega\!\left(\hat{a}_+\hat{a}_- + \frac{1}{2}\right)|0\rangle = \frac{1}{2}\hbar\omega\,|0\rangle.$$
 
-Similarly $[\hat{H}, \hat{a}_-] = -\hbar\omega\,\hat{a}_-$. Now suppose $|n\rangle$ is an eigenstate of $\hat{H}$ with energy $E_n$: $\hat{H}|n\rangle = E_n|n\rangle$. What is $\hat{H}(\hat{a}_+|n\rangle)$? Use the commutator:
+The ground-state energy is $E_0 = \hbar\omega/2$.
 
-$$\hat{H}\hat{a}_+|n\rangle = (\hat{a}_+\hat{H} + [\hat{H}, \hat{a}_+])|n\rangle = \hat{a}_+E_n|n\rangle + \hbar\omega\,\hat{a}_+|n\rangle = (E_n + \hbar\omega)\hat{a}_+|n\rangle$$
+This is not zero. The classical minimum-energy state is the particle sitting at rest at the bottom of the well — kinetic energy zero, potential energy zero, total energy zero. The quantum ground state has energy $\hbar\omega/2$, and it cannot be reduced. Try to make it zero: that would require $\sigma_x = 0$ and $\sigma_p = 0$ simultaneously, which the uncertainty principle forbids. The zero-point energy is the cost of confinement. Squeeze the particle into the well and it fights back with kinetic energy it cannot shed.
 
-So $\hat{a}_+|n\rangle$ is an eigenstate of $\hat{H}$ with energy $E_n + \hbar\omega$. The operator $\hat{a}_+$ raises the energy by one quantum. By the same argument $\hat{a}_-$ lowers it by one quantum. They are *ladder operators*: a raising operator and a lowering operator.
+This is not a theoretical artifact. The Casimir force between two conducting plates — an attractive force measured in the lab, explained by the difference between zero-point energies of electromagnetic modes with and without the plates — is a macroscopic consequence of exactly this machinery. Lamoreaux measured it in 1997 to within roughly 5% of the theoretical prediction. Liquid helium does not solidify at atmospheric pressure even at temperatures near absolute zero because zero-point vibrational energy of the helium atoms is enough to prevent crystallization. Zero-point energy is real and it has a bill you can read.
 
-### 4.3 The ground state — why the ladder terminates downward
+---
 
-The descent cannot go on forever. The Hamiltonian $\hat{H} = \hat{p}^2/2m + (1/2)m\omega^2\hat{x}^2$ is a sum of squares of Hermitian operators, so $\langle\psi|\hat{H}|\psi\rangle \geq 0$ for any state. Energies cannot be negative. The lowering must stop somewhere. The only way it stops is if some state $|0\rangle$ exists with
+## The whole spectrum
 
-$$\hat{a}_-|0\rangle = 0$$
+From $|0\rangle$, apply $\hat{a}_+$ once to get $|1\rangle$ with energy $\hbar\omega/2 + \hbar\omega = 3\hbar\omega/2$. Apply it again: $|2\rangle$ with $5\hbar\omega/2$. The pattern:
 
-Apply $\hat{a}_+$ to both sides and use $\hat{H} = \hbar\omega(\hat{a}_+\hat{a}_- + 1/2)$:
+$$E_n = \left(n + \frac{1}{2}\right)\hbar\omega, \quad n = 0, 1, 2, \ldots$$
 
-$$\hat{H}|0\rangle = \hbar\omega\bigl(\hat{a}_+\hat{a}_- + \tfrac{1}{2}\bigr)|0\rangle = \tfrac{1}{2}\hbar\omega|0\rangle$$
+Equally spaced. The spacing is exactly $\hbar\omega$ — one quantum at a time. This is why an infrared spectrum of HCl shows a single sharp line: the molecule is a near-harmonic oscillator, all adjacent vibrational levels are equally spaced, and a photon can only drive a single transition. The spectrum is a ruler.
 
-The ground-state energy is $E_0 = \hbar\omega/2$. This is the **zero-point energy** — and it is not an artifact. Try to set $E_0 = 0$ by demanding a state with $\sigma_x = 0$ and $\sigma_p = 0$ simultaneously: the uncertainty principle forbids it. The ground state is the minimum-uncertainty compromise — a Gaussian wide enough in $x$ to spread $p$ just enough to satisfy $\sigma_x\sigma_p \geq \hbar/2$, with $\langle\hat{H}\rangle = \hbar\omega/2$ as the price.
+<!-- → [IMAGE: Schematic infrared absorption spectrum of HCl — a single dominant peak near 2886 cm⁻¹ against a flat baseline, with annotation showing the spacing ΔE = ℏω and a note that the equal spacing is a direct consequence of the ladder algebra] -->
 
-This is not a calculation you can argue with. The Casimir force between conducting plates, measured by Lamoreaux in 1997 ([*Phys. Rev. Lett.* 78, 5](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.78.5)) to within roughly 5% of theory, is a macroscopic consequence of summed zero-point energies. Liquid helium does not freeze at atmospheric pressure even as $T \to 0$ because zero-point motion is enough to keep it fluid. Zero-point energy is real, and it has a bill you can read.
+Normalize the ladder relations — the prefactors that keep $|n\rangle$ unit-normalized as you climb:
 
-### 4.4 The whole ladder
+$$\hat{a}_+|n\rangle = \sqrt{n+1}\,|n+1\rangle, \quad \hat{a}_-|n\rangle = \sqrt{n}\,|n-1\rangle.$$
 
-From $|0\rangle$, apply $\hat{a}_+$ repeatedly. Each application raises the energy by $\hbar\omega$:
+Notice what we did not do: solve a differential equation, impose boundary conditions, guess a series form, match coefficients. We wrote down one commutator, used the non-negativity of $\hat{H}$, and the entire spectrum fell out. The algebra carried everything.
 
-$$E_n = \bigl(n + \tfrac{1}{2}\bigr)\hbar\omega, \quad n = 0, 1, 2, \ldots$$
+---
 
-The normalized ladder relations (which we will not derive in full but you can verify) are:
+## What the eigenstates look like
 
-$$\hat{a}_+|n\rangle = \sqrt{n+1}\,|n+1\rangle, \quad \hat{a}_-|n\rangle = \sqrt{n}\,|n-1\rangle$$
+The spectrum is clean. The wave functions are worth seeing explicitly. In the position representation, the condition $\hat{a}_-|0\rangle = 0$ becomes a first-order ODE. Substituting $\hat{p} = -i\hbar\,\partial_x$:
 
-Notice what just happened. We did no differential equations. We solved no boundary-value problem. From $[\hat{a}_-, \hat{a}_+] = 1$ and the non-negativity of $\hat{H}$, the entire spectrum dropped out. This is the algebraic method.
+$$\bigl(\hbar\,\partial_x + m\omega x\bigr)\psi_0(x) = 0.$$
 
-**Misconception 1.** *"Ladder operators are a slick trick. The real way to solve this is power series."* No. The algebra generalizes. In quantum field theory, $\hat{a}_+$ and $\hat{a}_-$ become creation and annihilation operators for photons; a state with $n$ excitations of a mode is a state with $n$ photons. In Chapter 6 the same algebra reappears as $\hat{J}_\pm$ for angular momentum. The Hamiltonian $\hat{H} = \hbar\omega(\hat{a}_+\hat{a}_- + 1/2)$ is the same expression — number operator plus zero-point — in every context where harmonic structure appears. The trick is the structure.
+Separate:
 
-**Misconception 2.** *"$E_0 = \hbar\omega/2$ is a convention; you can subtract it off."* Sometimes you do, when only energy *differences* matter. But the absolute value is real and observable in the cases listed above. Subtraction is bookkeeping, not physics.
+$$\frac{d\psi_0}{\psi_0} = -\frac{m\omega}{\hbar}x\,dx.$$
 
-## 5. Concept block — the analytic confirmation
+Integrate, normalize:
 
-### 5.1 The ground state explicitly
+$$\psi_0(x) = \left(\frac{m\omega}{\pi\hbar}\right)^{1/4}\exp\!\left(-\frac{m\omega x^2}{2\hbar}\right).$$
 
-Solve $\hat{a}_-|0\rangle = 0$ in the position representation. Substituting $\hat{p} = -i\hbar\,\partial_x$:
+A Gaussian. The ground state of the harmonic oscillator is just the minimum-uncertainty Gaussian from Chapter 1 — same shape, same saturation of $\sigma_x\sigma_p = \hbar/2$. That is not a coincidence. The coherent state discussion at the end of this chapter will make the connection explicit.
 
-$$\hat{a}_-\psi_0(x) = \frac{1}{\sqrt{2\hbar m\omega}}\bigl(\hbar\,\partial_x + m\omega x\bigr)\psi_0(x) = 0$$
+Higher states follow by applying $\hat{a}_+$ repeatedly. Each application multiplies the Gaussian by a polynomial one degree higher. Those polynomials are the Hermite polynomials $H_n(\xi)$, where $\xi = \sqrt{m\omega/\hbar}\,x$:
 
-This is a first-order ODE: $\psi_0'(x) = -(m\omega/\hbar)x\,\psi_0(x)$. Separate variables:
+$$\psi_n(x) = \left(\frac{m\omega}{\pi\hbar}\right)^{1/4}\frac{1}{\sqrt{2^n n!}}\,H_n(\xi)\,e^{-\xi^2/2}$$
 
-$$\frac{d\psi_0}{\psi_0} = -\frac{m\omega}{\hbar}x\,dx \;\Longrightarrow\; \psi_0(x) = A\,e^{-m\omega x^2/(2\hbar)}$$
+with $H_0 = 1$, $H_1 = 2\xi$, $H_2 = 4\xi^2 - 2$, $H_3 = 8\xi^3 - 12\xi$, and the recursion $H_{n+1}(\xi) = 2\xi H_n(\xi) - 2n H_{n-1}(\xi)$.
 
-A Gaussian. Normalize $\int|\psi_0|^2\,dx = 1$ to fix $A = (m\omega/\pi\hbar)^{1/4}$. The ground state of the harmonic oscillator is just a Gaussian — the simplest non-trivial wave function you have seen.
+<!-- → [IMAGE: Six stacked panels showing ψ_n(x) for n = 0..5 plotted inside the parabolic well V(x) — each eigenfunction drawn at its energy level E_n, classical turning points marked with vertical ticks, node count labeled for each; student should see that ψ_n has exactly n nodes and that the wave function tunnels visibly beyond the turning points] -->
 
-### 5.2 Excited states by ladder
+Two things to notice:
 
-Higher states follow by applying $\hat{a}_+$. The first excited state:
+The $n$-th eigenstate has exactly $n$ nodes — zero crossings, not counting the tails at $\pm\infty$. The ground state has none. The first excited state has one. This is the same counting rule as the infinite square well.
 
-$$\psi_1(x) = \hat{a}_+\psi_0(x) = \frac{1}{\sqrt{2\hbar m\omega}}\bigl(-\hbar\,\partial_x + m\omega x\bigr)\,A\,e^{-m\omega x^2/(2\hbar)} = A\sqrt{\frac{2m\omega}{\hbar}}\,x\,e^{-m\omega x^2/(2\hbar)}$$
+The probability density $|\psi_n|^2$ is a stranger thing than its classical cousin. A classical harmonic oscillator spends most of its time near the turning points, where it slows down, and least time at the bottom, where it moves fastest. The quantum ground state is the opposite: $|\psi_0|^2$ peaks at $x = 0$ and falls off. It takes a large quantum number — large $n$ — for the oscillating density to begin averaging out to the classical distribution. That convergence, the quantum probability washing out to the classical one as $n \to \infty$, is the correspondence principle in this system.
 
-Each application of $\hat{a}_+$ multiplies the Gaussian by a polynomial of degree one higher. Those polynomials are the **Hermite polynomials**. Introducing $\xi = \sqrt{m\omega/\hbar}\,x$, the eigenstates take the form:
+<!-- → [CHART: Side-by-side comparison of |ψ_n(x)|² for n = 1 and n = 20 — left panel shows quantum density peaking at center; right panel shows the oscillating density for n=20 with the classical turning-point distribution overlaid as a smooth curve, demonstrating convergence; caption: "The correspondence principle: at large n, quantum averages to classical"] -->
 
-$$\psi_n(x) = \biggl(\frac{m\omega}{\pi\hbar}\biggr)^{1/4}\frac{1}{\sqrt{2^n n!}}\,H_n(\xi)\,e^{-\xi^2/2}$$
+One more fact: roughly 16% of the ground-state probability density sits outside the classical turning points. The classical particle with energy $\hbar\omega/2$ cannot go beyond $x = \pm\sqrt{\hbar/m\omega}$ — it would need kinetic energy it does not have. The quantum ground state ignores this and tunnels anyway. Quantum tunneling is not exotic; it begins with the very first eigenstate.
 
-with $H_0 = 1$, $H_1 = 2\xi$, $H_2 = 4\xi^2 - 2$, $H_3 = 8\xi^3 - 12\xi$, generated by the recursion $H_{n+1}(\xi) = 2\xi H_n(\xi) - 2n H_{n-1}(\xi)$. (Griffiths §2.3.2; Liboff §7.3.)
+---
 
-### 5.3 What the eigenstates look like
+## Expectation values without integrals
 
-Two facts to internalize:
+Here is a demonstration of what the ladder algebra buys you. Express position and momentum in terms of the ladder operators:
 
-1. The $n$-th eigenstate has exactly $n$ nodes (zero crossings, not counting $\pm\infty$). The ground state has none. The first excited state crosses zero once at $x = 0$.
+$$\hat{x} = \sqrt{\frac{\hbar}{2m\omega}}\,(\hat{a}_+ + \hat{a}_-), \quad \hat{p} = i\sqrt{\frac{m\hbar\omega}{2}}\,(\hat{a}_+ - \hat{a}_-).$$
 
-2. The classical turning points for energy $E_n = (n+1/2)\hbar\omega$ sit at $\xi_n = \sqrt{2n+1}$. For small $n$, $|\psi_n|^2$ piles up at the center — the *opposite* of where a classical particle spends most of its time (a classical particle moves fastest at the bottom of the well and spends most of its time near the turning points). For large $n$, the probability density oscillates rapidly and *averages* to the classical distribution. That is the **correspondence principle** in action: the quantum description, smoothed, recovers the classical one in the high-$n$ limit.
+Now $\langle n|\hat{x}|n\rangle$: $\hat{a}_+|n\rangle = \sqrt{n+1}\,|n+1\rangle$ and $\hat{a}_-|n\rangle = \sqrt{n}\,|n-1\rangle$, both orthogonal to $|n\rangle$, so the inner product is zero. No integral needed. Same for $\langle n|\hat{p}|n\rangle = 0$.
 
-About 16% [verify against Griffiths Problem 2.15] of the ground-state probability sits *outside* the classical turning points — the wave function tunnels into the classically forbidden region. The classical particle of energy $\hbar\omega/2$ is rigorously confined; the quantum particle is not.
+For the variance, compute $\langle n|\hat{x}^2|n\rangle$. Write $\hat{x}^2 = (\hbar/2m\omega)(\hat{a}_+ + \hat{a}_-)^2$ and expand. The terms $\hat{a}_+^2$ and $\hat{a}_-^2$ shift by two levels and drop from the diagonal; the remaining terms $\hat{a}_+\hat{a}_-$ and $\hat{a}_-\hat{a}_+$ give $n$ and $n+1$ respectively:
 
-### 5.4 Eigenstates do not oscillate
+$$\langle n|\hat{x}^2|n\rangle = \frac{\hbar}{2m\omega}(2n+1).$$
 
-This is the single biggest source of confusion fresh from classical mechanics, and the simulation must make it visible immediately. The time-dependent eigenstate is:
+Similarly for $\hat{p}^2$. The uncertainty product:
 
-$$\Psi_n(x,t) = \psi_n(x)\,e^{-iE_n t/\hbar}$$
+$$\sigma_x\sigma_p = \left(n + \frac{1}{2}\right)\hbar.$$
 
-so
+For $n = 0$: exactly $\hbar/2$, the minimum. For higher $n$: the product grows. The ground state is the only eigenstate that saturates the uncertainty bound. For every excited state, the position and momentum distributions are less tightly correlated than they could be.
 
-$$|\Psi_n(x,t)|^2 = |\psi_n(x)|^2$$
+<!-- → [CHART: σ_x · σ_p / (ℏ/2) plotted vs. n for n = 0..10 — a straight line starting at 1.0 for n=0 and rising linearly; horizontal dashed line at 1.0 labeled "Heisenberg minimum"; annotation showing the ground state is the only eigenstate that saturates the bound] -->
 
-The probability density is *static*. The phase rotates in the complex plane, but the magnitude does not. An energy eigenstate of the harmonic oscillator is, in every observable way, sitting still. Nothing sloshes. If the harmonic oscillator were only its eigenstates, classical oscillation would never emerge.
+No integrals. No Hermite polynomials needed. The algebra carried everything.
 
-## 6. Concept block — coherent states, the bridge to classical motion
+---
 
-### 6.1 What does oscillate?
+## Eigenstates do not oscillate — and this is crucial to understand
 
-If eigenstates do not, what does? *Superpositions* of eigenstates do. The simplest demonstration: take $\Psi(x,0) = (\psi_0 + \psi_1)/\sqrt{2}$. Then
+Here is the misconception this chapter must kill before the simulation is built, because if you do not kill it now it will come back to haunt you.
 
-$$\Psi(x,t) = \frac{1}{\sqrt{2}}\bigl(\psi_0\,e^{-iE_0t/\hbar} + \psi_1\,e^{-iE_1t/\hbar}\bigr)$$
+A harmonic oscillator is, classically, an oscillator. The position of the particle oscillates back and forth at frequency $\omega$. You expect the quantum version to do the same. Build the time-dependent eigenstate:
 
-and
+$$\Psi_n(x,t) = \psi_n(x)\,e^{-iE_n t/\hbar}.$$
 
-$$|\Psi(x,t)|^2 = \tfrac{1}{2}\bigl(|\psi_0|^2 + |\psi_1|^2\bigr) + \mathrm{Re}\bigl[\psi_0\psi_1^*\,e^{-i(E_0 - E_1)t/\hbar}\bigr]$$
+The time dependence is a phase factor. Compute the probability density:
 
-The cross-term beats at frequency $(E_1 - E_0)/\hbar = \omega$. The probability density sloshes back and forth. But — and this is the catch — it also distorts. A general two-state superposition does not maintain its shape.
+$$|\Psi_n(x,t)|^2 = |\psi_n(x)|^2\,|e^{-iE_n t/\hbar}|^2 = |\psi_n(x)|^2.$$
 
-### 6.2 The coherent state
+Static. The phase rotates in the complex plane, but $|\psi_n(x)|^2$ does not change at all. An energy eigenstate of the harmonic oscillator is, in every observable respect, sitting still. Nothing sloshes. If quantum mechanics only had eigenstates, classical oscillation would never emerge from it.
 
-A **coherent state** $|\alpha\rangle$ is defined by being an eigenstate of $\hat{a}_-$:
+This is not a problem with the formalism. It is a feature. The eigenstates are stationary states; that is their definition. The oscillation is a property of *superpositions* of eigenstates, where the different phase factors beat against each other. Take $\Psi = (\psi_0 + \psi_1)/\sqrt{2}$:
+
+$$|\Psi(x,t)|^2 = \frac{1}{2}\bigl(|\psi_0|^2 + |\psi_1|^2\bigr) + \mathrm{Re}\!\left[\psi_0\psi_1^*\,e^{-i(E_0-E_1)t/\hbar}\right].$$
+
+The cross-term beats at $(E_1 - E_0)/\hbar = \omega$. The probability density sloshes at exactly the classical frequency. But it also distorts — a two-state superposition does not maintain its shape. This is where coherent states come in.
+
+<!-- → [IMAGE: Three-frame time sequence showing |Ψ(x,t)|² for the equal superposition (ψ₀ + ψ₁)/√2 at t = 0, T/4, T/2 — student should see the density shifting left and right while also visibly distorting in shape, motivating why a two-state superposition is not a clean classical oscillator] -->
+
+---
+
+## The quantum state that sloshes cleanly
+
+A **coherent state** $|\alpha\rangle$ is an eigenstate of the lowering operator:
 
 $$\hat{a}_-|\alpha\rangle = \alpha\,|\alpha\rangle$$
 
-for any complex number $\alpha$. Expanded in the energy basis:
+for any complex number $\alpha$. It is not an energy eigenstate. Its energy is uncertain — the probability of finding $n$ quanta is Poisson-distributed with mean $\langle n \rangle = |\alpha|^2$. But its time evolution is controlled:
 
-$$|\alpha\rangle = e^{-|\alpha|^2/2}\sum_{n=0}^\infty \frac{\alpha^n}{\sqrt{n!}}\,|n\rangle$$
+$$\langle\hat{x}(t)\rangle = \sqrt{\frac{2\hbar}{m\omega}}\,|\alpha|\cos(\omega t - \arg\alpha), \quad \langle\hat{p}(t)\rangle = -\sqrt{2m\hbar\omega}\,|\alpha|\sin(\omega t - \arg\alpha).$$
 
-This is *not* an eigenstate of $\hat{H}$. Its energy is uncertain — the probability of finding $n$ quanta is Poisson with mean $\langle n\rangle = |\alpha|^2$. But:
+Position and momentum oscillate sinusoidally at frequency $\omega$, exactly as a classical oscillator would. And the wave-packet shape: $\sigma_x\sigma_p = \hbar/2$ at all times. The packet stays a Gaussian with the same width as the ground state, riding its classical orbit without spreading or distorting. It just oscillates.
 
-- $\langle\hat{x}(t)\rangle = \sqrt{2\hbar/m\omega}\,|\alpha|\cos(\omega t - \arg\alpha)$
-- $\langle\hat{p}(t)\rangle = -\sqrt{2m\hbar\omega}\,|\alpha|\sin(\omega t - \arg\alpha)$
-- $\sigma_x\sigma_p = \hbar/2$ at all times — the coherent state saturates the uncertainty principle.
-- The wave-packet shape is a Gaussian with the *same width as the ground state, forever*.
+The coherent state in the energy basis is
 
-The packet just orbits. Position oscillates classically, momentum oscillates classically, and the wave packet rides the orbit without spreading. This is the quantum state that most resembles a classical particle in a harmonic well.
+$$|\alpha\rangle = e^{-|\alpha|^2/2}\sum_{n=0}^\infty \frac{\alpha^n}{\sqrt{n!}}\,|n\rangle.$$
 
-Roy Glauber introduced these in his 1963 paper "[Coherent and Incoherent States of the Radiation Field](https://journals.aps.org/pr/abstract/10.1103/PhysRev.131.2766)" (*Physical Review* 131, 2766), in the context of laser light. He shared the 2005 Nobel for this work. Coherent states are the *physical* states of the electromagnetic field that interact with classical detectors. The output of an ideal laser is a coherent state of the cavity mode.
+Two limiting cases: $|\alpha| = 0$ gives $|0\rangle$, the ground state. $|\alpha| \to \infty$ gives a state with a large, well-defined energy that oscillates with large amplitude. The classical oscillator is the $|\alpha| \to \infty$ limit of the coherent state.
 
-**Misconception.** *"Coherent states are classical states."* They are quantum states with classical-like expectation values. They still carry quantum signatures — the Poisson photon-number distribution is the giveaway. Squeezed light, used by LIGO to push below the standard quantum limit [verify exact 2019 *PRL* citation], is a *different* minimum-uncertainty state that trades reduced noise in one quadrature for increased noise in the other. The classical limit is not "coherent state"; it is a hierarchy of nearly-classical objects, of which coherent states are the most symmetric.
+<!-- → [IMAGE: Phase-space diagram showing the coherent state orbit — a circle of radius |α| centered at the origin in the (⟨x⟩, ⟨p⟩) plane, with a filled Gaussian blob riding the circle; a second smaller circle at |α| = 0 collapsed to a point (the ground state); arrows indicating clockwise rotation at frequency ω] -->
 
-## 7. Worked examples
+Roy Glauber introduced coherent states in their modern form in a 1963 paper on the theory of laser light. The physical point: a laser, ideally, produces electromagnetic field modes in coherent states. The intensity fluctuations of ideal laser light follow a Poisson distribution — not because the light is classical, but because that is what coherent states predict. Glauber won the Nobel Prize in 2005 for this work. The connection between this simple harmonic oscillator algebra and the quantum theory of light is not a metaphor; it is the same mathematics, with $\hat{a}_\pm$ reinterpreted as photon creation and annihilation operators.
 
-### 7.1 Building $\psi_0$ from $\hat{a}_-|0\rangle = 0$ — start to finish
+One thing coherent states are not: classical states. They are minimum-uncertainty quantum states with classical-like expectation values. The difference matters when you squeeze them — reduce the uncertainty in one quadrature at the cost of the other — which is what LIGO does to push below the standard quantum limit in gravitational-wave detection. Squeezed light is a different minimum-uncertainty state, not a coherent state. The hierarchy is: coherent states are the most classical-like quantum states of the harmonic oscillator; squeezed states push further at a price.
 
-The defining condition:
+---
 
-$$\bigl(\hbar\,\partial_x + m\omega x\bigr)\psi_0(x) = 0$$
+## The ladder again, differently
 
-This is separable:
+Before the simulation, a moment to see what just happened across this chapter.
 
-$$\frac{d\psi_0}{\psi_0} = -\frac{m\omega}{\hbar}x\,dx$$
+The harmonic oscillator has an evenly spaced energy spectrum $E_n = (n+1/2)\hbar\omega$. That spacing is not a coincidence of the Gaussian; it is a consequence of the single commutator $[\hat{a}_-,\hat{a}_+]=1$, which follows from $[\hat{x},\hat{p}]=i\hbar$. The ground-state energy is $\hbar\omega/2$ because the uncertainty principle will not allow zero energy in a confined space.
 
-Integrate:
+The algebraic method here — factor the Hamiltonian into ladder operators, derive everything from a commutator — is not a trick specific to this problem. In Chapter 4 it becomes the standard language for quantum mechanics. In quantum field theory $\hat{a}_\pm$ become creation and annihilation operators for particles; the vacuum is the state annihilated by all lowering operators; a state of $n$ particles is $(\hat{a}_+)^n$ applied to the vacuum. The harmonic oscillator algebra is the skeleton on which quantum field theory is built. This chapter is not a special case. It is the template.
 
-$$\ln\psi_0 = -\frac{m\omega}{2\hbar}x^2 + \mathrm{const} \;\Longrightarrow\; \psi_0(x) = A\exp\!\biggl(-\frac{m\omega x^2}{2\hbar}\biggr)$$
+---
 
-Normalize using $\int_{-\infty}^\infty e^{-x^2/\sigma^2}\,dx = \sigma\sqrt{\pi}$ with $\sigma = \sqrt{\hbar/m\omega}$:
-
-$$1 = |A|^2\sigma\sqrt{\pi} \;\Longrightarrow\; A = (m\omega/\pi\hbar)^{1/4}$$
-
-Compute the energy:
-
-$$\langle\hat{H}\rangle_0 = \hbar\omega\bigl(\langle\hat{a}_+\hat{a}_-\rangle + \tfrac{1}{2}\bigr) = \tfrac{1}{2}\hbar\omega$$
-
-because $\hat{a}_-|0\rangle = 0$. The ground-state energy is exactly $\hbar\omega/2$.
-
-### 7.2 The energy of the $n$-th state by induction
-
-Claim: $E_n = (n + 1/2)\hbar\omega$. Proof by induction on $n$.
-
-Base case: $E_0 = \hbar\omega/2$, established above.
-
-Inductive step: suppose $\hat{H}|n\rangle = (n + 1/2)\hbar\omega|n\rangle$. Then
-
-$$\hat{H}\bigl(\hat{a}_+|n\rangle\bigr) = \bigl(\hat{a}_+\hat{H} + [\hat{H}, \hat{a}_+]\bigr)|n\rangle = \hat{a}_+(n+\tfrac{1}{2})\hbar\omega|n\rangle + \hbar\omega\,\hat{a}_+|n\rangle = (n+\tfrac{3}{2})\hbar\omega\,\hat{a}_+|n\rangle$$
-
-So $\hat{a}_+|n\rangle$ is an eigenstate with energy $(n+1+1/2)\hbar\omega$. Normalize: $\hat{a}_+|n\rangle = \sqrt{n+1}\,|n+1\rangle$ (we will not derive the prefactor here; it follows from computing $\langle n|\hat{a}_-\hat{a}_+|n\rangle = n+1$). The induction closes. The whole spectrum is $E_n = (n+1/2)\hbar\omega$.
-
-### 7.3 Expectation values without integrals
-
-Express position and momentum in terms of ladder operators:
-
-$$\hat{x} = \sqrt{\frac{\hbar}{2m\omega}}\,(\hat{a}_+ + \hat{a}_-), \quad \hat{p} = i\sqrt{\frac{m\hbar\omega}{2}}\,(\hat{a}_+ - \hat{a}_-)$$
-
-Then $\langle n|\hat{x}|n\rangle = 0$ and $\langle n|\hat{p}|n\rangle = 0$ — the ladder ops shift the basis state, and orthogonality kills the inner product. For the variance:
-
-$$\langle n|\hat{x}^2|n\rangle = \frac{\hbar}{2m\omega}\langle n|(\hat{a}_+ + \hat{a}_-)^2|n\rangle = \frac{\hbar}{2m\omega}(2n+1)$$
-
-(The cross terms $\hat{a}_+\hat{a}_+$ and $\hat{a}_-\hat{a}_-$ vanish on diagonal matrix elements; $\hat{a}_+\hat{a}_- + \hat{a}_-\hat{a}_+ = 2\hat{a}_+\hat{a}_- + 1 = 2n + 1$ on $|n\rangle$.) Similarly $\langle n|\hat{p}^2|n\rangle = (m\hbar\omega/2)(2n+1)$. The product:
-
-$$\sigma_x\sigma_p = \bigl(n + \tfrac{1}{2}\bigr)\hbar$$
-
-For $n = 0$ this saturates Heisenberg at $\hbar/2$. For higher $n$, the product grows linearly. No integrals were needed. This is the payoff of the ladder algebra.
-
-## 8. Exercises
-
-**Warm-up.**
-
-1. Verify $[\hat{a}_-, \hat{a}_+] = 1$ explicitly from $[\hat{x}, \hat{p}] = i\hbar$ by writing out both operators in terms of $\hat{x}$ and $\hat{p}$.
-
-2. Write down the first four Hermite polynomials and check the recursion $H_{n+1}(\xi) = 2\xi H_n - 2n H_{n-1}$ for $n = 1, 2$.
-
-3. Sketch $\psi_0, \psi_1, \psi_2, \psi_3$ and mark each zero crossing. Count nodes.
-
-**Application.**
-
-4. A diatomic molecule has reduced mass $\mu$ and a bond with spring constant $k$. The vibrational frequency is $\omega = \sqrt{k/\mu}$. Estimate the ground-state vibrational energy of HCl using $\omega \approx 5.4 \times 10^{14}$ rad/s [verify], express it in eV, and compare to thermal energy $k_BT$ at room temperature. Are most HCl molecules in the vibrational ground state at room temperature?
-
-5. Compute $\langle n|\hat{x}^4|n\rangle$ using ladder operators. (Hint: $\hat{x}^2 = (\hbar/2m\omega)(\hat{a}_+ + \hat{a}_-)^2$; expand and keep only terms that return to $|n\rangle$.)
-
-6. For the coherent state $|\alpha\rangle$, show that $\langle\alpha|\hat{n}|\alpha\rangle = |\alpha|^2$ where $\hat{n} = \hat{a}_+\hat{a}_-$ is the number operator. Show that the variance $\langle\hat{n}^2\rangle - \langle\hat{n}\rangle^2 = |\alpha|^2$ — the Poisson signature.
-
-**Synthesis.**
-
-7. Show that the ground-state probability of being outside the classical turning points $|x| > \sqrt{\hbar/m\omega}$ is $1 - \mathrm{erf}(1)$. Evaluate numerically and compare to the 16% [verify] claim in the text.
-
-8. Two coherent states $|\alpha\rangle$ and $|\beta\rangle$ are *not* orthogonal in general. Compute $|\langle\alpha|\beta\rangle|^2$. (Hint: use the expansion in $|n\rangle$ and sum the series.) Show that the overlap is large when $\alpha$ and $\beta$ are close in the complex plane and exponentially small when they are far apart.
-
-**Challenge.**
-
-9. Time-evolve $|\alpha\rangle$ under the harmonic Hamiltonian. Show that $|\alpha(t)\rangle = e^{-i\omega t/2}|\alpha e^{-i\omega t}\rangle$ — the coherent state remains coherent, with its $\alpha$ rotating in the complex plane at frequency $\omega$. The wave packet orbits in phase space.
-
-10. The Casimir force between two parallel conducting plates of area $A$ separated by distance $d$ is, to leading order, $F = -(\pi^2\hbar c A)/(240 d^4)$. The sign is *attractive*. Trace the origin: it comes from the *difference* between the zero-point energies of EM modes with and without the plates. Without computing the full sum, explain why the difference is finite even though each sum is infinite, and why zero-point motion of a single oscillator generalizes to this many-mode result.
-
-## 9. What would change my mind
-
-If a precision measurement of the Casimir force at high accuracy disagreed with the QED prediction by more than the theoretical uncertainty, or if measured vibrational energy levels in a clean diatomic system consistently failed to match $(n+1/2)\hbar\omega$ to leading order without an obvious anharmonic explanation, the chapter's framing — that the harmonic oscillator is exactly the right model for small-oscillation problems and that zero-point energy is a real, observable consequence — would be in trouble. So far, both checks have come back in the theory's favor.
-
-## 10. Still puzzling
-
-The infinity that disappears when you compute Casimir differences is one of the most well-behaved infinities in physics. The infinity that *does not* disappear — the vacuum energy density of the universe, predicted by summing zero-point energies of all fields up to the Planck scale and exceeding the observed cosmological constant by something like 120 orders of magnitude — is one of the worst. The same harmonic-oscillator machinery, applied to two different problems, gives one of physics' cleanest predictions and one of its biggest open questions. I do not know what fixes this, and neither does anyone else.
-
-## 11. LLM Exercise — the harmonic oscillator simulation
+## LLM Exercise — the harmonic oscillator simulation
 
 You are going to build a single-file D3 simulation that displays the harmonic-oscillator eigenstates, lets you watch a coherent state slosh, and lets you compare a static eigenstate to a dynamic superposition side by side. The deliverable is `03-harmonic-oscillator.html` in your working directory.
 
@@ -421,11 +347,11 @@ vanilla JS arithmetic. Comments at every non-trivial physics step.
 
 Run the simulation and answer the following:
 
-1. With $\omega = 1$, set the mode to "Eigenstate" and toggle $n$ from 0 to 5. Watch the probability density. Confirm: it does not move. (The phase rotates, but $|\psi|^2$ does not change in time.) Now switch to "Coherent state" with $|\alpha| = 1$. Watch the probability density slosh. Note the period $T = 2\pi/\omega$.
+1. With $\omega = 1$, set the mode to "Eigenstate" and toggle $n$ from 0 to 5. Watch the probability density. Confirm: it does not move. Now switch to "Coherent state" with $|\alpha| = 1$. Watch the probability density slosh. Note the period $T = 2\pi/\omega$.
 
-2. Increase $|\alpha|$ from $0$ to $3$ slowly. What happens to the *amplitude* of the orbit in phase space? What happens to the *width* of the wave packet? Predict before sliding; check after.
+2. Increase $|\alpha|$ from $0$ to $3$ slowly. What happens to the amplitude of the orbit in phase space? What happens to the width of the wave packet? Predict before sliding; check after.
 
-3. Set $|\alpha| = 0$. What state does the coherent state reduce to? Check by comparing the wave function to the eigenstate $n = 0$.
+3. Set $|\alpha| = 0$. What state does the coherent state reduce to? Compare the wave function to the eigenstate $n = 0$.
 
 4. Set the mode to "Superposition" with $n_1 = 0, n_2 = 1$, equal coefficients. Watch $|\psi|^2$. At what frequency does it slosh? Now try $n_1 = 0, n_2 = 2$. Does it slosh? Why or why not? (Hint: think about parity.)
 
@@ -453,8 +379,42 @@ of operators becomes central).
 
 ---
 
-*Sources consulted: Griffiths §2.3 (algebraic and analytic methods, Hermite polynomials, problems 2.10–2.20); Liboff §7.2–7.3 (classical setup, eigenfunctions, p. 190–211); Lahiri & Pal *A First Book of Quantum Field Theory* (ladder operators as creation/annihilation operators in QFT, pantry); Glauber, "[Coherent and Incoherent States of the Radiation Field](https://journals.aps.org/pr/abstract/10.1103/PhysRev.131.2766)", *Physical Review* 131, 2766 (1963); Lamoreaux, "Demonstration of the Casimir Force in the 0.6 to 6 μm Range", *Physical Review Letters* 78, 5 (1997).*
+## Still puzzling
 
-*Tags: harmonic-oscillator, ladder-operators, hermite-polynomials, coherent-states, zero-point-energy, casimir-effect, d3-simulation*
+The infinity that disappears when you compute Casimir differences is one of the most well-behaved infinities in physics. You take the zero-point energy sum with plates minus without, and the difference is finite and measurable. The infinity that does not disappear — the vacuum energy density of the universe, computed by summing zero-point energies of all quantum fields up to the Planck scale — exceeds the observed cosmological constant by roughly 120 orders of magnitude. The same harmonic-oscillator machinery, applied to two different problems, gives one of physics' cleanest predictions and one of its deepest open questions. I do not know what fixes the second case. Neither does anyone else.
 
-*Status: draft for Nik's review. Voice-anchor check pending — root `style/` and `books/quantum-mechanics-with-llms/style/` not yet inspected. Flag: voice-unanchored if both empty. Several `[verify]` flags throughout — see specifically CO/HCl vibrational frequencies, 16% tunneling fraction, LIGO squeezed-light PRL date.*
+---
+
+## Exercises
+
+**Warm-up**
+
+1. *[Tests: commutator algebra, ladder operator definition]* Starting from $[\hat{x}, \hat{p}] = i\hbar$ and the definitions $\hat{a}_\pm = (1/\sqrt{2\hbar m\omega})(\mp i\hat{p} + m\omega\hat{x})$, verify $[\hat{a}_-, \hat{a}_+] = 1$ explicitly by writing out the product $\hat{a}_-\hat{a}_+ - \hat{a}_+\hat{a}_-$ and substituting. Show every step. *Difficulty: warm-up.*
+
+2. *[Tests: Hermite polynomial recursion, node counting]* Using the recursion $H_{n+1}(\xi) = 2\xi H_n(\xi) - 2n H_{n-1}(\xi)$ with $H_0 = 1$, $H_1 = 2\xi$, compute $H_2$, $H_3$, and $H_4$ explicitly. For each, count the number of real roots and verify it matches $n$. *Difficulty: warm-up.*
+
+3. *[Tests: stationary state, time evolution of probability density]* Write down $|\Psi_n(x,t)|^2$ for the harmonic oscillator eigenstate. Show algebraically that it is independent of time. Then explain in one sentence what "stationary state" means physically — not mathematically. *Difficulty: warm-up.*
+
+**Application**
+
+4. *[Tests: zero-point energy, uncertainty principle connection]* A diatomic nitrogen molecule N₂ has a vibrational frequency of approximately $\omega \approx 4.45 \times 10^{14}$ rad/s. (a) Compute the zero-point vibrational energy $E_0 = \hbar\omega/2$ in eV. (b) Compute the thermal energy $k_BT$ at room temperature (300 K). (c) Are most N₂ molecules in the vibrational ground state at room temperature? Justify by comparing $E_0$ and $k_BT$ to the level spacing $\hbar\omega$. *Difficulty: application.*
+
+5. *[Tests: ladder algebra for expectation values]* Using $\hat{x} = \sqrt{\hbar/2m\omega}(\hat{a}_+ + \hat{a}_-)$ and the normalized ladder relations $\hat{a}_+|n\rangle = \sqrt{n+1}|n+1\rangle$, $\hat{a}_-|n\rangle = \sqrt{n}|n-1\rangle$: (a) Compute $\langle n|\hat{x}^3|n\rangle$ without integrals. (b) Compute the matrix element $\langle m|\hat{x}|n\rangle$ for general $m, n$ and state which values of $m-n$ give non-zero results. *Difficulty: application.*
+
+6. *[Tests: coherent state structure, Poisson distribution]* For the coherent state $|\alpha\rangle = e^{-|\alpha|^2/2}\sum_n (\alpha^n/\sqrt{n!})|n\rangle$: (a) Compute $\langle \hat{n}\rangle = \langle\alpha|\hat{a}_+\hat{a}_-|\alpha\rangle$ and show it equals $|\alpha|^2$. (b) Compute $\langle\hat{n}^2\rangle$ using $\hat{n}^2 = \hat{a}_+\hat{a}_-\hat{a}_+\hat{a}_-$ and the commutator. (c) Show the variance $\langle\hat{n}^2\rangle - \langle\hat{n}\rangle^2 = |\alpha|^2$, the Poisson signature. *Difficulty: application.*
+
+**Synthesis**
+
+7. *[Tests: tunneling fraction, connecting algebra to position-space integrals]* The classical turning points for the ground state are $x = \pm x_0$ where $x_0 = \sqrt{\hbar/m\omega}$. Show that the probability of finding the particle outside the classical turning points is $1 - \mathrm{erf}(1)$. Evaluate this numerically and check it against the 16% claim in the text. (You will need $\int_0^1 e^{-u^2}\,du = (\sqrt{\pi}/2)\mathrm{erf}(1) \approx 0.747$.) *Difficulty: synthesis.*
+
+8. *[Tests: correspondence principle, classical vs. quantum distributions]* For the $n$-th eigenstate, the classical probability density for a harmonic oscillator with energy $E_n$ is $P_\mathrm{cl}(x) = 1/(\pi\sqrt{x_n^2 - x^2})$ where $x_n = \sqrt{2E_n/m\omega^2}$ is the classical turning point. (a) Sketch $|\psi_n(x)|^2$ and $P_\mathrm{cl}(x)$ on the same axes for $n = 1$ and $n = 5$. Where does the quantum density peak? Where does the classical density peak? (b) Explain in two sentences why the quantum and classical distributions agree on average at large $n$ even though they disagree pointwise. *Difficulty: synthesis.*
+
+**Challenge**
+
+9. *[Tests: time evolution of coherent states, phase-space orbit]* Show that a coherent state $|\alpha\rangle$ evolved under $\hat{H}$ for time $t$ gives $e^{-i\omega t/2}|\alpha e^{-i\omega t}\rangle$ — a coherent state with amplitude $\alpha$ rotated in the complex plane by $-\omega t$, up to a global phase. (Hint: substitute the energy eigenstate expansion of $|\alpha\rangle$ and act with $e^{-i\hat{H}t/\hbar}$; resum the resulting series.) What does this say about the shape of the wave packet over time? *Difficulty: challenge.*
+
+10. *[Tests: generalization of ladder algebra, connection to QFT]* The commutator $[\hat{a}_-, \hat{a}_+] = 1$ is the entire algebraic content of the harmonic oscillator. Consider a system with two independent oscillator modes described by operators $\hat{a}_\pm$ and $\hat{b}_\pm$ satisfying $[\hat{a}_-, \hat{a}_+] = [\hat{b}_-, \hat{b}_+] = 1$ and $[\hat{a}_\pm, \hat{b}_\pm] = 0$. (a) Write down the total Hamiltonian $\hat{H} = \hbar\omega_a(\hat{a}_+\hat{a}_- + 1/2) + \hbar\omega_b(\hat{b}_+\hat{b}_- + 1/2)$ and show the energy eigenvalues are $(n_a + 1/2)\hbar\omega_a + (n_b + 1/2)\hbar\omega_b$. (b) Without calculation, explain why a photon in a cavity mode with frequency $\omega$ corresponds to a single quantum of the associated harmonic oscillator — and what "the vacuum" means in this picture. *Difficulty: challenge.*
+
+---
+
+*Chapter 4: The ladder operators $\hat{a}_\pm$ introduced here are the first example of something general — using algebra rather than differential equations to extract physical content. The next chapter formalizes that move into the full operator language of quantum mechanics, where states become vectors in Hilbert space, observables become Hermitian operators, and the Schrödinger equation becomes a statement about unitary evolution.*
