@@ -1,321 +1,196 @@
 # Chapter 7 — The Hydrogen Atom
+*The one place quantum mechanics went up against experiment and won completely.*
 
-> The first system where quantum mechanics made precise predictions that matched experiment exactly: the Coulomb radial equation, the energy spectrum, and a visualizer that lets you see what an orbital actually is.
+In 1885 a Swiss mathematics teacher named Johann Balmer published a four-page note observing that the four visible spectral lines of hydrogen fit a single formula:
+$$\lambda = B\cdot\frac{n^2}{n^2 - 4}, \qquad n = 3, 4, 5, 6,$$
+with $B \approx 364.5$ nm. He had no theory. He had four numbers from a lab notebook and a pattern that fit them perfectly. The formula was right. Nobody knew why for twenty-eight years.
 
----
+The reason this should bother you is the specificity. It is not merely that the lines form a series — that is not so surprising. It is that the spacing between lines is exactly this formula. Not approximately. The formula nails the wavelengths to the precision of the measurement. Either nature is telling you something very specific, or it is the most remarkable numerical coincidence in the history of spectroscopy. It is not a coincidence.
 
-## 1. A 28-year-old empirical formula
+Bohr gave a partial answer in 1913 with his planetary model — quantized circular orbits, energies $E_n = -13.6\text{ eV}/n^2$ — that reproduced Balmer's formula. But Bohr's model was an ansatz. Why integer $n$ and not half-integer? Why no radiation from those orbits, as classical electromagnetism demands? Why circular and not elliptical? The numbers were right; the explanation was not there yet.
 
-In 1885, a Swiss mathematics teacher named Johann Balmer published a four-page note in *Annalen der Physik* observing that the visible spectral lines of hydrogen — H$_\alpha$ red, H$_\beta$ blue-green, H$_\gamma$ violet, H$_\delta$ violet — fit the formula
+Erwin Schrödinger, working at an Alpine resort over Christmas 1925, wrote down the wave equation for hydrogen. The energies $-13.6\text{ eV}/n^2$ fell out again — same numbers as Bohr, but now from a calculation with no unjustified postulates. What also fell out, and what Bohr had no machinery for, was the full probability density $|\psi_{n\ell m}(r,\theta,\phi)|^2$ — the distribution of where the electron would be found on a position measurement. Not a path. Not an orbit. A probability cloud.
 
-$$ \lambda = B \cdot \frac{n^2}{n^2 - 4}, \qquad n = 3, 4, 5, 6, $$
-
-with $B \approx 364.5$ nm. He had no theory. He had four wavelengths from a lab notebook and a formula that nailed them. The formula was right. Nobody knew why for 28 years.
-
-Niels Bohr offered a partial answer in 1913 with his planetary model — quantized circular orbits at radii $a_n = n^2 a_0$, with energies $E_n = -13.6 \text{ eV}/n^2$ — that reproduced Balmer's formula and extended it to the ultraviolet (Lyman) and infrared (Paschen) series. But Bohr's model had embarrassments. Why are the orbits quantized at integer $n$ and not, say, half-integer? Why circular and not elliptical? Why no radiation from accelerating charges in those orbits, as classical electromagnetism predicts? Bohr's quantization rule $L = n\hbar$ worked, but it was an ansatz, not a derivation.
-
-Erwin Schrödinger spent Christmas of 1925 at the Alpine resort of Arosa working out the equation that would replace Bohr's planetary picture with a wave-mechanical description of hydrogen. He published the solution in *Annalen der Physik* the following spring (Schrödinger 1926 [verify volume]). The energies $E_n = -13.6 \text{ eV}/n^2$ fell out — same numbers as Bohr, but now without unjustified postulates. The orbits did not. Instead, what fell out was a probability density $|\psi_{n\ell m}(r,\theta,\phi)|^2$ — a function on space, telling you where the electron is likely to be found, but never *where it is*.
-
-This chapter solves the hydrogen atom. We will use everything from Chapters 4 (operators), 5 (3D quantum mechanics and angular momentum), and 6 (spin). We will do the radial equation explicitly for the ground state and let the Schrödinger equation hand us $E_1 = -13.6$ eV and the Bohr radius $a_0 = 0.529$ Å. And we will confront the most damaging picture students arrive with from high-school chemistry — the orbital as the electron's path — with the simulation that finally makes the alternative visible.
-
-**Learning objectives.** By the end of this chapter, you should be able to:
-
-- Reduce the two-body hydrogen problem to a one-body problem with the reduced mass and a $1/r$ potential.
-- Separate variables in spherical coordinates and write the radial equation with its effective potential, including the centrifugal barrier.
-- Solve the radial equation for the 1s ground state from an exponential ansatz, recovering $E_1 = -13.6$ eV and $a_0 = 0.529$ Å.
-- Compute the most probable radius and the expectation value $\langle r \rangle$ for 1s, and explain why they differ.
-- State and apply the quantum-number constraints $n \geq 1$, $0 \leq \ell \leq n-1$, $|m| \leq \ell$, and explain where each constraint comes from.
-- Identify the Lyman, Balmer, and Paschen series and compute photon wavelengths from $E_n$.
-- State the electric-dipole selection rules $\Delta\ell = \pm 1$, $\Delta m = 0, \pm 1$ and recognize allowed vs. forbidden transitions.
-- Build an interactive hydrogen orbital visualizer that displays $|\psi_{n\ell m}|^2$ as a 2D heat map, the radial probability $P(r) = r^2|R_{n\ell}|^2$ as a line plot, and an energy-level diagram with the $n^2$-degeneracy visible.
-
-**Prerequisites.** Wave functions, the Born rule (Ch. 1–2). The time-independent Schrödinger equation (Ch. 2). Hilbert-space machinery and Hermitian operators (Ch. 4). Spherical harmonics, $L^2$ and $L_z$ eigenvalues, the universal angular part of central-force problems (Ch. 5). Spin and the fourth quantum number $m_s = \pm 1/2$ (Ch. 6). Calculus including integration by parts and gamma-function integrals of the form $\int_0^\infty x^n e^{-ax} dx = n!/a^{n+1}$.
+This chapter does that calculation.
 
 ---
 
-## 2. Reducing two bodies to one
+## Reducing two bodies to one
 
-A hydrogen atom is a proton ($m_p \approx 1.673 \times 10^{-27}$ kg [verify CODATA]) and an electron ($m_e \approx 9.109 \times 10^{-31}$ kg), interacting via the Coulomb potential. The classical Hamiltonian for the two-body system is
+A hydrogen atom is a proton and an electron, interacting via the Coulomb potential. Write the two-body Hamiltonian, introduce center-of-mass coordinates $\vec R$ and relative coordinates $\vec r = \vec r_e - \vec r_p$, and the Hamiltonian separates:
+$$H = \frac{P^2}{2M} + \frac{p^2}{2\mu} - \frac{e^2}{4\pi\epsilon_0 r}.$$
+The center-of-mass piece $P^2/(2M)$ is a free particle — ignore it. The relative-motion piece is a single particle of mass $\mu = m_p m_e/(m_p + m_e)$ in a Coulomb potential. Because $m_p \approx 1836 m_e$, the reduced mass differs from $m_e$ by about one part in 1836. For the headline numbers, we use $\mu \approx m_e$. The correction matters in precision spectroscopy: Harold Urey discovered deuterium in 1932 precisely by spotting the predicted isotope shift in the Balmer lines — a slightly different reduced mass, a slightly different set of wavelengths.
 
-$$ H = \frac{p_p^2}{2m_p} + \frac{p_e^2}{2m_e} - \frac{e^2}{4\pi\epsilon_0 |\vec{r}_e - \vec{r}_p|}. $$
+<!-- → [TABLE: Two-column comparison of ordinary hydrogen vs. muonic hydrogen vs. deuterium — rows: reduced mass μ, Bohr radius a₀, ground-state energy E₁, Balmer α wavelength — student should see that mass enters every observable and that the Urey discovery follows directly from the formula] -->
 
-Introduce center-of-mass and relative coordinates:
-
-$$ \vec{R} = \frac{m_p \vec{r}_p + m_e \vec{r}_e}{m_p + m_e}, \qquad \vec{r} = \vec{r}_e - \vec{r}_p. $$
-
-The Hamiltonian separates into a free-particle center-of-mass piece and a relative-motion piece:
-
-$$ H = \frac{P^2}{2M} + \frac{p^2}{2\mu} - \frac{e^2}{4\pi\epsilon_0 r}, $$
-
-where $M = m_p + m_e$ is the total mass and
-
-$$ \mu = \frac{m_p m_e}{m_p + m_e} $$
-
-is the **reduced mass**. The center-of-mass moves freely; drop it. The relative-motion Schrödinger equation,
-
-$$ \left[ -\frac{\hbar^2}{2\mu}\nabla^2 - \frac{e^2}{4\pi\epsilon_0 r}\right]\psi(\vec{r}) = E \psi(\vec{r}), $$
-
-is identical to that of a single particle of mass $\mu$ in an external Coulomb potential. Because $m_p \approx 1836 m_e$, the reduced mass differs from $m_e$ by about one part in 1836 — a 0.05% correction. For all the headline numbers in this chapter, we use $\mu \approx m_e$. The correction shows up in precision spectroscopy as the **isotope shift**: hydrogen, deuterium, and tritium have slightly different reduced masses and slightly different spectral lines. Harold Urey discovered deuterium in 1932 (with Brickwedde and Murphy, *Physical Review* 39, 164 [verify]) precisely by spotting the predicted shift in the Balmer series — Nobel 1934.
+The Schrödinger equation to solve is then
+$$\left[-\frac{\hbar^2}{2\mu}\nabla^2 - \frac{e^2}{4\pi\epsilon_0 r}\right]\psi(\vec r) = E\psi(\vec r).$$
 
 ---
 
-## 3. Separating variables and the centrifugal barrier
+## Separating variables
 
-The potential $V(r) = -e^2/(4\pi\epsilon_0 r)$ depends only on $r$. So we can separate variables in spherical coordinates: $\psi(r,\theta,\phi) = R(r) Y(\theta,\phi)$. From Chapter 5 you already know that the angular part is solved universally by the spherical harmonics:
-
-$$ Y_{\ell m}(\theta,\phi), \qquad \hat{L}^2 Y_{\ell m} = \hbar^2 \ell(\ell+1) Y_{\ell m}, \qquad \hat{L}_z Y_{\ell m} = m\hbar Y_{\ell m}, $$
-
-with $\ell \in \{0, 1, 2, \ldots\}$ and $m \in \{-\ell, \ldots, +\ell\}$. The radial equation that remains, after substituting $u(r) = rR(r)$, looks like a 1D Schrödinger equation with an **effective potential**:
-
-$$ -\frac{\hbar^2}{2\mu} \frac{d^2 u}{dr^2} + V_{\text{eff}}(r) u(r) = E u(r), $$
-
+The potential depends only on $r$. From Chapter 5 you already know what to do: write $\psi(r,\theta,\phi) = R(r)Y_{\ell m}(\theta,\phi)$, separate variables, and the angular part gives the spherical harmonics immediately — that part is universal, the same for any central potential. The radial equation that remains, after the substitution $u(r) = rR(r)$, is a one-dimensional Schrödinger equation with an effective potential:
+$$-\frac{\hbar^2}{2\mu}\frac{d^2u}{dr^2} + V_{\text{eff}}(r)\,u(r) = E\,u(r),$$
 where
+$$V_{\text{eff}}(r) = -\frac{e^2}{4\pi\epsilon_0 r} + \frac{\hbar^2\ell(\ell+1)}{2\mu r^2}.$$
 
-$$ \boxed{ V_{\text{eff}}(r) = -\frac{e^2}{4\pi\epsilon_0 r} + \frac{\hbar^2 \ell(\ell+1)}{2\mu r^2}. } $$
+<!-- → [CHART: Plot of V_eff(r) vs. r for ℓ = 0, 1, 2 with the Coulomb potential V(r) = −e²/(4πε₀r) shown as a dashed reference curve — for ℓ=0 the effective potential is just the Coulomb well; for ℓ=1,2 the centrifugal barrier creates a local maximum near the origin; horizontal lines at E_1, E_2, E_3 indicate bound-state energies; student should see that higher ℓ suppresses the wave function near r=0] -->
 
-The second term is the **centrifugal barrier** — a repulsive $1/r^2$ contribution proportional to $\ell(\ell+1)$. It comes from the angular kinetic energy and plays the same role as the centrifugal pseudo-potential in classical orbits: angular momentum keeps the particle away from $r = 0$. For $\ell = 0$ ($s$ orbitals), no barrier — the electron can reach the nucleus. For $\ell \geq 1$ ($p$, $d$, $f$ orbitals), the barrier pushes the wave function away from the origin. This is exactly why $|\psi_{n\ell m}(0)|^2$ is nonzero only for $\ell = 0$ states — a fact that matters when atomic electrons interact with the nucleus, e.g., in the hyperfine 21 cm line of radio astronomy or in muonic-atom spectroscopy.
+The second term is the centrifugal barrier from Chapter 5 — the angular kinetic energy in disguise. For $\ell = 0$, it vanishes and the electron can reach the nucleus. For $\ell \geq 1$, it diverges as $r \to 0$ and pushes the wave function away from the origin. This is why $|\psi(0)|^2$ is nonzero only for s-states — a fact you can measure in hyperfine spectroscopy, where the electron's probability density at the nucleus determines the coupling to the nuclear magnetic moment.
 
-Boundary conditions. We need $u(r) \to 0$ at both $r = 0$ and $r \to \infty$, so that $\psi$ is normalizable. The first kills any divergence at the origin; the second kills any growing exponential at infinity. These two conditions together quantize the energy.
-
----
-
-## 4. The 1s ground state — the deep dive
-
-This is the chapter's earned explanation. We will solve the radial equation for $n = 1, \ell = 0$ by ansatz, recover $E_1 = -13.6$ eV and $a_0 = 0.529$ Å, normalize the wave function, and compute two different "average" radii. Half a page. Take your time.
-
-### 4.1 Solving by ansatz
-
-Set $\ell = 0$. The centrifugal barrier vanishes; $V_{\text{eff}} = V = -e^2/(4\pi\epsilon_0 r)$. The radial equation for $u(r)$:
-
-$$ -\frac{\hbar^2}{2\mu} u'' - \frac{e^2}{4\pi\epsilon_0 r} u = E u. $$
-
-Try the ansatz $u(r) = A r e^{-r/a}$, where $a$ is an unknown length scale and $A$ a normalization constant. Differentiate:
-
-$$ u'(r) = A e^{-r/a}\left(1 - \frac{r}{a}\right), $$
-$$ u''(r) = A e^{-r/a}\left(-\frac{2}{a} + \frac{r}{a^2}\right). $$
-
-Substitute into the radial equation and divide by $A e^{-r/a}$ (the common factor):
-
-$$ -\frac{\hbar^2}{2\mu}\left(-\frac{2}{a} + \frac{r}{a^2}\right) - \frac{e^2}{4\pi\epsilon_0 r} \cdot r = E \cdot r. $$
-
-(Note the trick: the Coulomb term contributes $-(e^2/(4\pi\epsilon_0 r)) \cdot u(r) = -(e^2/(4\pi\epsilon_0 r)) \cdot A r e^{-r/a}$, so after dividing by $A e^{-r/a}$ we get $-e^2/(4\pi\epsilon_0)$, not $-e^2/(4\pi\epsilon_0 r)$.)
-
-Distribute and collect terms by powers of $r$:
-
-$$ \underbrace{\frac{\hbar^2}{\mu a}}_{\text{constant}} - \underbrace{\frac{\hbar^2}{2\mu a^2} r}_{\text{linear in }r} - \underbrace{\frac{e^2}{4\pi\epsilon_0}}_{\text{constant}} = E r. $$
-
-For this to hold for all $r$, the constant terms and the linear terms must balance separately:
-
-**Constant terms:** $\dfrac{\hbar^2}{\mu a} - \dfrac{e^2}{4\pi\epsilon_0} = 0$, giving
-
-$$ \boxed{ a = a_0 = \frac{4\pi\epsilon_0 \hbar^2}{\mu e^2}. } $$
-
-This is the **Bohr radius**. Plug in numbers:
-
-$$ a_0 = \frac{(8.854 \times 10^{-12})(1.055 \times 10^{-34})^2}{(9.109 \times 10^{-31})(1.602 \times 10^{-19})^2} \approx 5.29 \times 10^{-11} \text{ m} \approx 0.529 \text{ Å}. $$
-
-[CODATA 2018: $a_0 = 5.29177210903 \times 10^{-11}$ m, [verify current value].]
-
-**Linear terms:** $-\dfrac{\hbar^2}{2\mu a^2} = E$. Substitute $a = a_0$:
-
-$$ E_1 = -\frac{\hbar^2}{2\mu a_0^2} = -\frac{\mu e^4}{2(4\pi\epsilon_0)^2 \hbar^2} \approx -13.6 \text{ eV}. $$
-
-[Precise CODATA value: $E_1 = -R_\infty hc \approx -13.6057$ eV [verify current Rydberg constant].]
-
-The ansatz gave us both the Bohr radius and the ground-state energy from a single calculation. The cleverness is that $u(r) = A r e^{-r/a}$ has the right behavior at both boundaries — vanishing at $r = 0$ (because of the $r$ factor) and at $r \to \infty$ (because of the exponential) — and exactly one free length scale, which the equation itself determines.
-
-### 4.2 Normalizing
-
-The full ground-state wave function is
-
-$$ \psi_{100}(r,\theta,\phi) = R_{10}(r) Y_{00}(\theta,\phi). $$
-
-Since $u_{10}(r) = r R_{10}(r) = A r e^{-r/a_0}$, we have $R_{10}(r) = A e^{-r/a_0}$. Demand $\int |\psi_{100}|^2 d^3 r = 1$. The angular part contributes $\int |Y_{00}|^2 d\Omega = 1$ (because $Y_{00} = 1/\sqrt{4\pi}$ is already normalized over the sphere). The radial part gives
-
-$$ \int_0^\infty |R_{10}|^2 r^2 dr = |A|^2 \int_0^\infty r^2 e^{-2r/a_0} dr = |A|^2 \cdot \frac{2}{(2/a_0)^3} = |A|^2 \cdot \frac{a_0^3}{4}. $$
-
-Set this equal to 1: $A = 2/a_0^{3/2}$. So
-
-$$ \boxed{ \psi_{100}(r) = \frac{1}{\sqrt{\pi a_0^3}} e^{-r/a_0}. } $$
-
-Spherically symmetric. No angular structure. The ground state is, geometrically, a cloud of probability density centered on the nucleus, falling off exponentially.
-
-### 4.3 The most probable radius and the expectation value — the chapter's signature move
-
-If the electron were a particle on a definite orbit, "where is it?" would have one answer: the orbit's radius. The wave function gives a probability *distribution*, and any distribution has multiple summary statistics — the peak, the mean, the median — and these can differ.
-
-The **radial probability density** $P(r)$ is the probability per unit radial distance of finding the electron between $r$ and $r + dr$, after integrating over angles:
-
-$$ P(r) = r^2 |R_{10}(r)|^2 = \frac{4}{a_0^3} r^2 e^{-2r/a_0}. $$
-
-The $r^2$ factor comes from the spherical volume element $r^2 \sin\theta \, dr \, d\theta \, d\phi$ and is doing real geometric work: even though $|\psi_{100}|^2$ is maximal at $r = 0$, the surface area of a shell at $r = 0$ is zero, so the *probability* of being near $r = 0$ is zero.
-
-**Most probable radius.** Maximize $P(r)$. Take the derivative:
-
-$$ \frac{dP}{dr} = \frac{4}{a_0^3}\left[2r - \frac{2r^2}{a_0}\right] e^{-2r/a_0} = \frac{8r}{a_0^3}\left(1 - \frac{r}{a_0}\right) e^{-2r/a_0}. $$
-
-Zero at $r = 0$ (trivial minimum) and at
-
-$$ \boxed{ r_{\text{mp}} = a_0. } $$
-
-The most probable radius is exactly the Bohr radius. The peak of the probability distribution sits where Bohr put his orbit.
-
-**Expectation value.** Compute $\langle r \rangle$:
-
-$$ \langle r \rangle = \int_0^\infty r \cdot P(r) dr = \frac{4}{a_0^3} \int_0^\infty r^3 e^{-2r/a_0} dr. $$
-
-Using $\int_0^\infty x^n e^{-bx} dx = n!/b^{n+1}$ with $n = 3$, $b = 2/a_0$:
-
-$$ \langle r \rangle = \frac{4}{a_0^3} \cdot \frac{3!}{(2/a_0)^4} = \frac{4}{a_0^3} \cdot \frac{6 a_0^4}{16} = \frac{3 a_0}{2}. $$
-
-$$ \boxed{ \langle r \rangle_{1s} = \frac{3}{2} a_0. } $$
-
-The expectation value of $r$ is $1.5 a_0$, fifty percent larger than the most probable radius.
-
-**Stop and look.** These two numbers describe the same probability distribution $P(r)$. The peak is at $a_0$. The mean is at $1.5 a_0$. They are different because $P(r)$ is *skewed* — a long tail at large $r$ pulls the mean to the right of the peak.
-
-This is the chapter's signature pedagogical move. If the orbital were a path the electron travels — a circular path at some radius — there would be exactly one radius. There would be no distinction between "most probable" and "average." The fact that these two numbers are different is the geometric fingerprint of the orbital being a probability distribution, not a path. A single number cannot describe where the electron is, because the electron is not anywhere in particular until you measure it.
-
-The Bohr model put the electron in a circular orbit at radius $a_0$ and got the energy right. The Schrödinger solution puts the *peak* of the probability distribution at $a_0$ and the *mean* at $1.5 a_0$, and reproduces the same $-13.6$ eV. Same number, different meaning. The Bohr model is, in retrospect, a numerical accident — an accident enabled by hydrogen's hidden $SO(4)$ symmetry, of which more in §6.
+The boundary conditions: $u(0) = 0$ to keep $R = u/r$ finite at the origin, and $u(r) \to 0$ as $r \to \infty$ for normalizability. These two conditions together will quantize the energy.
 
 ---
 
-## 5. The full spectrum and the quantum-number rules
+## The ground state, worked through
 
-The 1s solution was straightforward because of the ansatz. The general $(n, \ell)$ solution requires the full Frobenius series method applied to the radial equation, which leads to the **associated Laguerre polynomials** $L_{n-\ell-1}^{2\ell+1}$. The radial wave functions take the form
+Here is the central calculation. Set $\ell = 0$. The centrifugal barrier vanishes. Try the ansatz
+$$u(r) = Ar\,e^{-r/a},$$
+where $a$ is an unknown length and $A$ a normalization constant. Differentiate twice:
+$$u'' = Ae^{-r/a}\!\left(-\frac{2}{a} + \frac{r}{a^2}\right).$$
+Substitute into the radial equation, divide by $Ae^{-r/a}$, and collect by powers of $r$:
+$$\underbrace{\frac{\hbar^2}{\mu a} - \frac{e^2}{4\pi\epsilon_0}}_{\text{constant in }r} = \underbrace{\left(E + \frac{\hbar^2}{2\mu a^2}\right)}_{\text{must be zero}}\cdot r.$$
+For this to hold at every $r$, both groupings must vanish separately.
 
-$$ R_{n\ell}(r) = \mathcal{N}_{n\ell} \cdot r^\ell \cdot e^{-r/(n a_0)} \cdot L_{n-\ell-1}^{2\ell+1}\!\left(\frac{2r}{n a_0}\right), $$
+From the constant terms:
+$$\frac{\hbar^2}{\mu a} = \frac{e^2}{4\pi\epsilon_0} \quad\Longrightarrow\quad a = a_0 = \frac{4\pi\epsilon_0\hbar^2}{\mu e^2}.$$
+This is the Bohr radius. Plugging in numbers: $a_0 \approx 5.29 \times 10^{-11}\text{ m} = 0.529$ Å.
 
-with normalization constant $\mathcal{N}_{n\ell}$ fixed by $\int_0^\infty |R_{n\ell}|^2 r^2 dr = 1$. The energies are
+From the linear terms:
+$$E = -\frac{\hbar^2}{2\mu a_0^2} = -\frac{\mu e^4}{2(4\pi\epsilon_0)^2\hbar^2} \approx -13.6\text{ eV}.$$
+The ansatz gave us both numbers from a single calculation. The cleverness is that $u(r) = Are^{-r/a}$ has the right behavior at both boundaries — it vanishes at $r = 0$ (the $r$ factor) and at $r \to \infty$ (the exponential) — and it has exactly one free length scale that the equation determines for you.
 
-$$ \boxed{ E_n = -\frac{\mu e^4}{2(4\pi\epsilon_0)^2 \hbar^2 n^2} = -\frac{13.6 \text{ eV}}{n^2}. } $$
+Normalize: $\int_0^\infty |u|^2\,dr = 1$ gives $A = 2/a_0^{3/2}$, so $R_{10}(r) = (2/a_0^{3/2})e^{-r/a_0}$, and the full ground-state wave function is
+$$\psi_{100}(r) = \frac{1}{\sqrt{\pi a_0^3}}\,e^{-r/a_0}.$$
+Spherically symmetric. No angular structure. A blob of probability density centered on the nucleus, falling off exponentially.
 
-Two surprises hide in this formula. First, the energy depends *only* on $n$, not on $\ell$ or $m$. Second, the allowed range of $\ell$ is restricted to $0 \leq \ell \leq n - 1$. Let me explain where each constraint comes from, because students who memorize the rules without seeing the reasons stumble in upper-division courses.
-
-**Where $n \geq 1$ comes from.** Normalizability at $r \to \infty$. The Frobenius series for the radial wave function terminates only if a certain dimensionless parameter (related to $E$) takes integer values. Below $n = 1$, the series fails to terminate and $u(r)$ grows exponentially at infinity, killing normalizability.
-
-**Where $\ell \leq n - 1$ comes from.** The Laguerre polynomial $L_{n-\ell-1}^{2\ell+1}$ has degree $n - \ell - 1$. For the radial wave function to exist, this degree must be $\geq 0$, hence $\ell \leq n - 1$. For $n = 1$, only $\ell = 0$ is allowed (1s). For $n = 2$, $\ell \in \{0, 1\}$ (2s, 2p). For $n = 3$, $\ell \in \{0, 1, 2\}$ (3s, 3p, 3d).
-
-**Where $|m| \leq \ell$ comes from.** Chapter 5. The angular operator inequality $L^2 \geq L_z^2$ forces $\ell(\ell+1)\hbar^2 \geq m^2 \hbar^2$, hence $|m| \leq \ell$.
-
-**Degeneracy.** At each $n$, the number of orbital states is
-
-$$ \sum_{\ell=0}^{n-1}(2\ell + 1) = n^2. $$
-
-Adding spin ($m_s = \pm 1/2$) doubles this to $2n^2$. So the $n = 1$ shell holds 2 electrons, $n = 2$ holds 8, $n = 3$ holds 18, $n = 4$ holds 32 — exactly the row lengths of the periodic table. This is not a coincidence we hand back; it is structural.
-
-### 5.1 The first few wave functions
-
-Here are the explicit forms for $n \leq 2$, which the simulation will plot:
-
-$$ \psi_{100} = \frac{1}{\sqrt{\pi a_0^3}} e^{-r/a_0} \quad \text{(1s, spherically symmetric)} $$
-
-$$ \psi_{200} = \frac{1}{\sqrt{32\pi a_0^3}}\left(2 - \frac{r}{a_0}\right) e^{-r/(2a_0)} \quad \text{(2s, radial node at } r = 2a_0\text{)} $$
-
-$$ \psi_{210} = \frac{1}{\sqrt{32\pi a_0^3}} \frac{r}{a_0} e^{-r/(2a_0)} \cos\theta \quad \text{(2p}_z\text{, angular node in xy-plane)} $$
-
-$$ \psi_{21\pm 1} = \mp\frac{1}{\sqrt{64\pi a_0^3}} \frac{r}{a_0} e^{-r/(2a_0)} \sin\theta \, e^{\pm i\phi} \quad \text{(2p}_{\pm 1}\text{, complex)} $$
-
-[Normalizations from Griffiths §4.2, verify Table 4.7 of the adopted edition.]
-
-A useful node-counting rule emerges: the total number of nodes is $n - 1$, partitioned into $n - \ell - 1$ radial nodes and $\ell$ angular nodes. The 1s state (n=1, ℓ=0) has zero nodes. The 2s state has one radial node (at $r = 2a_0$) and zero angular nodes. The 2p states have zero radial nodes and one angular node. The 3d states have zero radial nodes and two angular nodes. The simulation displays the node count for every state.
-
-### 5.2 The chemistry orbitals vs. the $L_z$ eigenstates
-
-Chemistry textbooks draw three "p orbitals" labeled $p_x, p_y, p_z$, as orthogonal dumbbells along the coordinate axes. These are *real* linear combinations of the complex $L_z$ eigenstates $\psi_{21,\pm 1}$ and $\psi_{210}$:
-
-$$ p_z \equiv Y_{10} \propto \cos\theta, $$
-$$ p_x \equiv -\frac{Y_{11} - Y_{1,-1}}{\sqrt{2}} \propto \sin\theta \cos\phi, $$
-$$ p_y \equiv i\frac{Y_{11} + Y_{1,-1}}{\sqrt{2}} \propto \sin\theta \sin\phi. $$
-
-The $p_z$ state *is* an $L_z$ eigenstate (with $m = 0$). The $p_x$ and $p_y$ states are not — they are superpositions of $m = +1$ and $m = -1$. Both descriptions are correct; they answer different questions. Chemists working with bonding geometries want the real dumbbells. Physicists working with magnetic fields or spectroscopy want the $L_z$ eigenstates because they diagonalize $L_z$. Knowing both lets you move between the two pictures fluently.
+<!-- → [IMAGE: Side-by-side 2D cross-sections of |ψ_{100}|² in the xz-plane — left panel: raw density with Viridis color scale, brightest at origin, smoothly fading outward; right panel: the same data as a surface plot showing the peak at center; axes labeled in units of a₀; caption: "The 1s probability density is maximal at the nucleus — but the most probable radius is a₀, not zero, because spherical shells at r=0 have zero volume"] -->
 
 ---
 
-## 6. The hidden symmetry — why energy depends only on $n$
+## Two radii — and why they are different
 
-For a generic central potential $V(r)$, the energy depends on both $n$ (the radial quantum number) and $\ell$ (the angular quantum number). Hydrogen is special: $E$ depends only on $n$. The 2s and 2p states are degenerate even though they have different angular structure. The 3s, 3p, and 3d are all degenerate. This "extra" degeneracy is called the **Coulomb degeneracy** and it has a deeper origin.
+Here is the signature move of this chapter, and the clearest demonstration that the orbital is not a path.
 
-The Coulomb potential $-1/r$ is unique among central potentials in admitting a *second* conserved vector beyond angular momentum: the **Laplace–Runge–Lenz vector**
+The radial probability density — the probability per unit radial distance of finding the electron between $r$ and $r+dr$, after integrating over all angles — is
+$$P(r) = r^2|R_{10}(r)|^2 = \frac{4}{a_0^3}\,r^2 e^{-2r/a_0}.$$
+The $r^2$ factor matters. Even though $|\psi_{100}|^2$ is maximal at $r = 0$, the surface area of a shell at $r = 0$ is zero, so the *probability* of finding the electron near $r = 0$ is zero. It is the product of the density and the available volume that gives the probability.
 
-$$ \vec{M} = \frac{1}{2m_e}(\vec{p} \times \vec{L} - \vec{L} \times \vec{p}) - \frac{e^2}{4\pi\epsilon_0}\hat{r}. $$
+**Most probable radius.** Set $dP/dr = 0$:
+$$\frac{d}{dr}\left[r^2 e^{-2r/a_0}\right] = e^{-2r/a_0}\left(2r - \frac{2r^2}{a_0}\right) = 0.$$
+This vanishes at $r = 0$ (a minimum) and at $r = a_0$. The most probable radius is exactly the Bohr radius.
 
-In classical mechanics, $\vec{M}$ points along the major axis of the Kepler ellipse and is conserved because $1/r$ orbits do not precess. In quantum mechanics, the commutators of the six components $\{\vec{L}, \vec{M}\}$ close on each other, forming the Lie algebra $\mathfrak{so}(4)$ — the symmetry algebra of rotations in four dimensions. Wolfgang Pauli used this algebra in 1926 (*Zeitschrift für Physik* 36, 336 [verify]) to solve hydrogen *algebraically* — before Schrödinger published the wave-mechanical solution.
+**Expectation value.** Compute $\langle r\rangle = \int_0^\infty r\cdot P(r)\,dr$:
+$$\langle r\rangle = \frac{4}{a_0^3}\int_0^\infty r^3 e^{-2r/a_0}\,dr = \frac{4}{a_0^3}\cdot\frac{3!}{(2/a_0)^4} = \frac{3}{2}a_0.$$
+The mean radius is $1.5a_0$.
 
-The chapter does not derive the $\mathfrak{so}(4)$ machinery; that is a graduate-level topic. But I want you to know that the $n^2$-degeneracy of hydrogen is not generic to "rotational symmetry." It is rotational symmetry plus an extra conserved vector that exists *only* because the potential is exactly $1/r$. The moment the potential departs from $1/r$ — for instance, in a multi-electron atom where inner electrons partially screen the nucleus — the LRL symmetry is broken and the $\ell$-degeneracy splits. In sodium (Z = 11), the 3s lies below 3p lies below 3d. The "sodium D lines" (the bright yellow doublet at 589 nm) are the 3p → 3s transitions, and their existence is direct evidence that sodium's effective single-electron potential is no longer pure $1/r$. The chapter on identical particles (Ch. 8) sets up the machinery to handle this.
+<!-- → [CHART: Plot of P(r) = r²|R_{10}(r)|² vs. r/a₀ for the 1s state — a smooth curve rising from zero, peaking at r = a₀, then decaying with a long tail; two vertical lines: solid at r_mp = a₀ labeled "most probable radius" and dashed at ⟨r⟩ = 1.5a₀ labeled "expectation value"; shading under the tail illustrates the skew that pulls the mean rightward; caption: "The peak and mean of the same distribution differ because P(r) is skewed. A path has one radius; a probability distribution does not."] -->
 
----
+Two different numbers describe the same probability distribution: the peak is at $a_0$, the mean is at $1.5a_0$. They differ because $P(r)$ is skewed — a long tail at large $r$ pulls the mean to the right of the peak.
 
-## 7. The hydrogen spectrum and selection rules
+If the orbital were a path — a circular orbit at some radius — there would be exactly one radius. There would be no distinction between "most probable" and "average." The fact that these are different is the geometric fingerprint of the orbital being a probability distribution, not a path. A path has one radius. A probability distribution has a peak and a mean and they need not coincide.
 
-### 7.1 The spectral series
-
-Transitions $\psi_{n_i \ell_i m_i} \to \psi_{n_f \ell_f m_f}$ emit (or absorb) a photon whose energy is the difference of the initial and final levels:
-
-$$ \hbar\omega = E_{n_i} - E_{n_f} = 13.6 \text{ eV}\left(\frac{1}{n_f^2} - \frac{1}{n_i^2}\right). $$
-
-Named series, by final state:
-
-| Series | $n_f$ | Wavelength range |
-|---|---|---|
-| Lyman | 1 | UV |
-| Balmer | 2 | Visible |
-| Paschen | 3 | Near IR |
-| Brackett | 4 | IR |
-| Pfund | 5 | IR |
-
-**Balmer** $\alpha$ (the 3 → 2 transition) sits at 656.281 nm [verify NIST] — the red line of the hydrogen Balmer spectrum, the one you see in the H II emission nebulae photographed by every observatory. **Lyman** $\alpha$ (2 → 1) sits at 121.567 nm in the vacuum UV. These two lines are workhorses of astrophysics: redshifted Lyman $\alpha$ traces hydrogen out to the highest-redshift galaxies; Balmer $\alpha$ traces star-forming regions.
-
-### 7.2 Selection rules
-
-Not every transition is allowed. The electric-dipole matrix element $\langle\psi_f | \vec{r} | \psi_i\rangle$ governs the rate of single-photon emission. Computing the angular part of this integral (using the spherical harmonic algebra from Ch. 5) shows that the integral is nonzero only when
-
-$$ \boxed{ \Delta\ell = \pm 1, \qquad \Delta m_\ell = 0, \pm 1. } $$
-
-The $\Delta\ell = \pm 1$ rule comes from parity: the photon carries angular momentum 1, and the angular integrand has definite parity, so $\ell$ must change by an odd integer; the algebra forces this to be exactly $\pm 1$. The $\Delta m_\ell$ rule comes from the azimuthal symmetry.
-
-A transition that violates these rules is *electric-dipole forbidden*. It can still occur, but at vastly reduced rate via higher-order processes (magnetic dipole, electric quadrupole, two-photon emission). The 2s → 1s transition in hydrogen has $\Delta\ell = 0$ — forbidden in the dipole approximation — and proceeds via two-photon emission with a lifetime of about 0.12 s [verify], compared to the ~$10^{-9}$ s lifetime of allowed transitions. This eight-order-of-magnitude difference is what makes the 2s state metastable, and it is the basis of precision hydrogen spectroscopy (the Lamb shift, hyperfine measurements, and antihydrogen tests of CPT).
-
-### 7.3 Worked transition: Balmer $\alpha$
-
-The 3 → 2 transition energy is
-
-$$ \Delta E = 13.6 \text{ eV}\left(\frac{1}{4} - \frac{1}{9}\right) = 13.6 \times \frac{5}{36} \approx 1.889 \text{ eV}. $$
-
-The photon wavelength:
-
-$$ \lambda = \frac{hc}{\Delta E} = \frac{1240 \text{ eV nm}}{1.889 \text{ eV}} \approx 656.3 \text{ nm}. $$
-
-Compare to the experimental value 656.281 nm [verify NIST]. Agreement to better than 0.05%, with no fudge factors. This is what Balmer's empirical 1885 formula was missing: an explanation.
+Bohr put the electron at radius $a_0$. Schrödinger says the *peak* of the probability distribution is at $a_0$ and the *mean* is at $1.5a_0$. Same number, different meaning, completely different picture of what is happening.
 
 ---
 
-## 8. Three misconceptions to dismantle
+## The full spectrum
 
-**Misconception 1: "Orbitals are paths the electron travels."** This is the picture from intro chemistry — "the 1s orbital is a spherical orbit." It is wrong. $|\psi_{n\ell m}|^2$ is a probability density: integrate it over a region and you get the probability of finding the electron in that region on a single position measurement. The "dumbbell" pictures chemists draw are *isosurfaces* of $|\psi|^2$ — surfaces enclosing some fixed fraction (usually 90%) of the total probability. The electron does not orbit. The most-probable-radius vs. $\langle r \rangle$ comparison in §4.3 is the empirical evidence: a path has one radius; a probability distribution has many summary statistics.
+The 1s solution was straightforward because of the ansatz. The general $(n, \ell)$ solution requires a Frobenius series method on the radial equation, leading to the associated Laguerre polynomials $L_{n-\ell-1}^{2\ell+1}$. The radial wave functions take the form
+$$R_{n\ell}(r) = \mathcal{N}_{n\ell}\cdot r^\ell\cdot e^{-r/(na_0)}\cdot L_{n-\ell-1}^{2\ell+1}\!\left(\frac{2r}{na_0}\right),$$
+and the energies are
+$$E_n = -\frac{13.6\text{ eV}}{n^2}, \quad n = 1, 2, 3, \ldots$$
+The energy depends only on $n$, not on $\ell$ or $m$. This is the Coulomb degeneracy, a consequence of a hidden symmetry I will come back to. For now, the constraints on quantum numbers: $n \geq 1$, $0 \leq \ell \leq n-1$, $|m| \leq \ell$. Each comes from a different place.
 
-**Misconception 2: "The Bohr model is essentially correct."** Bohr's model gets $E_n = -13.6 \text{ eV}/n^2$ right and gets the Balmer wavelengths right. It gets these answers right by a numerical accident: hydrogen's hidden $\mathfrak{so}(4)$ symmetry makes the energy depend on a single quantum number, and Bohr's quantization rule $L = n\hbar$ correctly identifies that quantum number for circular orbits. But Bohr's model has no machinery for:
+$n \geq 1$ comes from normalizability at infinity. The Frobenius series for the radial wave function terminates only when a certain dimensionless parameter takes integer values — below $n = 1$, the series fails to terminate and the wave function blows up exponentially.
 
-- Wave functions (so no probability density, no node structure).
-- Angular momentum quantum numbers other than $\ell = n$ (Bohr orbits have $L = n\hbar$ always; Schrödinger says $\ell$ can range from 0 to $n-1$).
-- Multi-electron atoms (helium binding energy is off by 30 eV in Bohr's picture; see §A.4 below).
-- Spectral fine structure (relativistic corrections, spin-orbit coupling).
-- Selection rules.
-- Anything quantum-mechanical about the electron's spatial distribution.
+$\ell \leq n - 1$ comes from the Laguerre polynomial. Its degree is $n - \ell - 1$, and a polynomial of negative degree does not exist, so $\ell \leq n - 1$ is forced.
 
-The Bohr model is a pre-Schrödinger numerology that worked once. It is not "essentially correct"; it is a special case that the full theory has long since superseded.
+$|m| \leq \ell$ comes from Chapter 5 — the angular momentum algebra forces this.
 
-**Misconception 3: "$|\psi|^2$ is the electron's charge distribution."** This shows up in chemistry texts that smear the electron's charge over the orbital. It is closer to right than the orbit picture — at least there is no path — but it is still wrong. $|\psi|^2$ is the *probability density* for finding the electron at a point on a single position measurement. The electron is a point particle whose location is governed by a probability distribution, not a continuous fluid of charge. The distinction matters in scattering experiments: when you fire something at hydrogen and measure where it bounces, you get a probability distribution of scattering events, not the result of a single fluidic charge density. Run enough scattering events and the histogram converges to $|\psi|^2$.
+**Degeneracy.** At each $n$, the number of orbital states is $\sum_{\ell=0}^{n-1}(2\ell+1) = n^2$. Including spin ($m_s = \pm 1/2$) this becomes $2n^2$. The $n=1$ shell holds 2 electrons, $n=2$ holds 8, $n=3$ holds 18, $n=4$ holds 32. These are the row lengths of the periodic table. Not a coincidence — a structural consequence of the quantum numbers.
+
+<!-- → [TABLE: Hydrogen quantum number table — rows for n = 1..4; columns: n, allowed ℓ values, allowed m values for each ℓ, total orbital states (n²), total states with spin (2n²), correspondence to periodic table row capacity (2, 8, 18, 32)] -->
 
 ---
 
-## 9. LLM Exercise — Building the Hydrogen Orbital Visualizer
+## What the wave functions look like
+
+For $n \leq 2$, the explicit forms are:
+$$\psi_{100} = \frac{1}{\sqrt{\pi a_0^3}}\,e^{-r/a_0} \qquad \text{(1s, spherical)}$$
+$$\psi_{200} = \frac{1}{\sqrt{32\pi a_0^3}}\!\left(2 - \frac{r}{a_0}\right)\!e^{-r/(2a_0)} \qquad \text{(2s, radial node at }r = 2a_0\text{)}$$
+$$\psi_{210} = \frac{1}{\sqrt{32\pi a_0^3}}\frac{r}{a_0}\,e^{-r/(2a_0)}\cos\theta \qquad \text{(2p}_z\text{)}$$
+$$\psi_{21\pm 1} = \mp\frac{1}{\sqrt{64\pi a_0^3}}\frac{r}{a_0}\,e^{-r/(2a_0)}\sin\theta\,e^{\pm i\phi} \qquad \text{(2p}_{\pm 1}\text{)}$$
+
+<!-- → [IMAGE: Gallery of 2D heat maps of |ψ_{nℓm}(x,0,z)|² in the xz-plane for (n,ℓ,m) = (1,0,0), (2,0,0), (2,1,0), (2,1,±1) — Viridis color scale, ±10 a₀ range; student should see: 1s is a single blob; 2s has a dark ring (radial node) at r = 2a₀; 2p_z has a dumbbell shape with a node on the equatorial plane; 2p_{±1} are azimuthally symmetric rings; caption: "All four n=2 states share E = −3.4 eV. Their spatial structures are completely different."] -->
+
+A node-counting rule: the total number of nodes is $n - 1$, divided into $n - \ell - 1$ radial nodes and $\ell$ angular nodes. The 2s state has one radial node and zero angular nodes. The 2p states have zero radial nodes and one angular node. At the same principal quantum number $n = 2$, all four states (2s, $2p_0$, $2p_{\pm 1}$) share the same energy but carry entirely different shapes.
+
+The same distinction from Chapter 5 reappears here. The $\psi_{21,\pm 1}$ states are eigenstates of $\hat{L}_z$ with eigenvalues $\pm\hbar$ — they have definite $z$-component of angular momentum but no definite spatial orientation other than the $z$-axis. The chemistry textbook combinations $p_x \propto \sin\theta\cos\phi$ and $p_y \propto \sin\theta\sin\phi$ are real mixtures of $m = \pm 1$, with dumbbell shapes pointing along the Cartesian axes but no definite $L_z$. Both descriptions span the same subspace. Physics prefers the complex eigenstates because they diagonalize $L_z$. Chemistry prefers the real combinations because the pictures are beautiful. Neither is wrong.
+
+<!-- → [INFOGRAPHIC: Side-by-side comparison of complex vs. real orbital representations for the n=2, ℓ=1 subshell — left: three complex eigenstates ψ_{210}, ψ_{21+1}, ψ_{21−1} with their L_z eigenvalues labeled; right: real chemistry orbitals p_x, p_y, p_z shown as dumbbell isosurfaces with Cartesian axis labels; connecting arrows show the linear combinations; caption: "The same subspace, two bases. Physics diagonalizes L_z; chemistry maximizes spatial clarity."] -->
+
+---
+
+## The hidden symmetry
+
+The $n^2$-fold degeneracy of hydrogen — that 2s and 2p have the same energy, that 3s, 3p, 3d are all degenerate — is not generic to central potentials. For the 3D harmonic oscillator, energy depends on $2n_r + \ell$. For a generic Coulomb-like-but-not-quite potential (as in a multi-electron atom where inner electrons screen the nucleus), energy depends on both $n$ and $\ell$.
+
+Hydrogen's special extra degeneracy has a deeper source. The Coulomb potential $-1/r$ admits a second conserved vector beyond angular momentum: the Laplace–Runge–Lenz vector, which in classical mechanics points along the major axis of the Kepler ellipse and is conserved because Coulomb orbits do not precess. In quantum mechanics, the commutators of the six components $\{\vec L, \vec M\}$ close on each other, forming the algebra $\mathfrak{so}(4)$ — the symmetry of rotations in four dimensions. Wolfgang Pauli used this algebra in 1926 to solve hydrogen algebraically, before Schrödinger published the wave-mechanical solution.
+
+The moment the potential departs from $1/r$ — in sodium, where ten inner electrons partially screen the nucleus — the LRL symmetry breaks and the $\ell$-degeneracy splits. The 3s lies below 3p lies below 3d. The bright yellow sodium D lines at 589 nm are the 3p → 3s transitions, and their existence is direct evidence that sodium's effective potential is no longer purely $-1/r$.
+
+<!-- → [IMAGE: Side-by-side energy level diagrams — left: hydrogen n=1,2,3 shells with all ℓ states at the same horizontal line per n (showing the full Coulomb degeneracy); right: sodium-like atom with the same n shells but ℓ levels split (3s lowest, 3p above it, 3d highest), the 3p→3s transition marked with an arrow and labeled "589 nm Na D line"; caption: "When the potential departs from pure 1/r, the ℓ-degeneracy breaks. The sodium D lines are the directly observable consequence."] -->
+
+---
+
+## The spectrum and the selection rules
+
+Transitions between hydrogen levels emit photons of energy $\hbar\omega = E_{n_i} - E_{n_f}$:
+$$\hbar\omega = 13.6\text{ eV}\!\left(\frac{1}{n_f^2} - \frac{1}{n_i^2}\right).$$
+Series named by final state: Lyman ($n_f = 1$, ultraviolet), Balmer ($n_f = 2$, visible), Paschen ($n_f = 3$, near-infrared). The Balmer $\alpha$ line — the 3 → 2 transition — sits at
+$$\lambda = \frac{hc}{\Delta E} = \frac{1240\text{ eV nm}}{13.6\times(1/4 - 1/9)} = \frac{1240}{1.889} \approx 656.3\text{ nm},$$
+compared to the experimental 656.281 nm. Agreement to better than 0.05%, with no fudge factors. This is what Balmer's 1885 formula was missing: an explanation.
+
+Not every transition is allowed. The electric-dipole matrix element $\langle\psi_f|\vec r|\psi_i\rangle$ governs single-photon emission rates, and the angular integral of this matrix element vanishes unless
+$$\Delta\ell = \pm 1, \qquad \Delta m = 0, \pm 1.$$
+
+<!-- → [INFOGRAPHIC: Hydrogen energy level diagram with allowed transitions drawn as arrows connecting levels — Lyman series arrows in UV (purple), Balmer series in visible (red/blue/violet), Paschen in IR; arrows drawn only for Δℓ = ±1 transitions; one forbidden transition (2s→1s, Δℓ=0) shown as a dashed arrow with a red X; caption: "Electric-dipole selection rules determine which transitions emit photons. The 2s→1s transition is forbidden; it proceeds via two-photon emission with a 0.12 s lifetime."] -->
+
+The $\Delta\ell = \pm 1$ rule comes from parity: a photon carries angular momentum 1, and the angular integrand has definite parity, so $\ell$ must change by an odd integer; the algebra forces exactly $\pm 1$. A transition that violates these rules is electric-dipole *forbidden* — it can still occur via magnetic dipole, electric quadrupole, or two-photon emission, but at rates many orders of magnitude slower. The 2s → 1s transition in hydrogen has $\Delta\ell = 0$ and proceeds via two-photon emission with a lifetime of about 0.12 s, compared to the nanosecond lifetimes of allowed transitions. This eight-order-of-magnitude difference is what makes the 2s state metastable and what enables precision hydrogen spectroscopy: the 2s state lives long enough to measure.
+
+<!-- → [TABLE: Comparison of electric-dipole allowed vs. forbidden transitions — columns: transition, Δℓ, Δm, allowed/forbidden, dominant decay channel, typical lifetime; rows covering 2p→1s (allowed, ns), 2s→1s (forbidden, 0.12 s), 3d→2p (allowed), 3s→1s (forbidden via E2), 4f→3d (allowed) — student should see the eight-orders-of-magnitude lifetime contrast] -->
+
+---
+
+## Three pictures to dismantle
+
+**The orbital is not a path the electron travels.** $|\psi_{n\ell m}|^2$ is a probability density. The "dumbbell" pictures in chemistry textbooks are isosurfaces of $|\psi|^2$ enclosing some fixed fraction of the total probability — usually 90%. The electron does not orbit inside the dumbbell. It has some probability of being found inside the dumbbell on a given measurement, and a 10% probability of being found outside it. The most-probable-radius vs. $\langle r\rangle$ comparison is the direct evidence: a path has one radius; a probability distribution has a peak and a mean that differ.
+
+**The Bohr model is not essentially correct.** It gets $E_n = -13.6\text{ eV}/n^2$ right by a numerical accident — hydrogen's hidden $\mathfrak{so}(4)$ symmetry makes the energy depend on a single quantum number, and Bohr's quantization rule $L = n\hbar$ correctly identifies that quantum number for circular orbits. But the model has no wave functions, no radial probability density, no node structure, no $\ell$-values other than $\ell = n$ (Bohr orbits have maximum angular momentum always; Schrödinger says $\ell$ can be anything from 0 to $n - 1$), and no selection rules. Bohr's model is pre-Schrödinger numerology that worked once and stopped working immediately thereafter.
+
+**$|\psi|^2$ is not the electron's charge distribution smeared continuously over space.** It is the probability density for finding the electron at a point on a single position measurement. The electron is a point particle. When you fire something at hydrogen, you get a probability distribution of scattering events; run enough events and the histogram converges to $|\psi|^2$. The fluid picture is closer to right than the orbit picture — at least there is no path — but the fluid is not where the charge *is*, it is where the charge *might be*.
+
+<!-- → [INFOGRAPHIC: Three-panel "misconception vs. reality" diagram — panel 1: Bohr orbit (circle with electron dot on path) crossed out, replaced by 1s probability density blob; panel 2: 90% isosurface dumbbell with caption "electron not confined here — 10% probability outside"; panel 3: fluid charge distribution crossed out, replaced by a histogram of simulated position measurements converging to |ψ|² — caption: "The cloud shows where measurements land, not where charge sits"] -->
+
+---
+
+## Why this problem matters
+
+What Schrödinger did in those Alpine weeks was show that the Balmer formula is not empirical numerology — it is the eigenvalue spectrum of a second-order differential equation. The spectrum is a consequence of the boundary conditions on a wave equation. Every atomic spectrum since is a variation on this theme.
+
+The hydrogen results have been tested to extraordinary precision. The 1S–2S transition, measured by two-photon laser spectroscopy, is one of the most precisely known physical frequencies in nature. The ALPHA collaboration at CERN has measured the same transition in antihydrogen — hydrogen with a positron instead of an electron, orbiting an antiproton — and found agreement with hydrogen at the parts-per-trillion level. A direct test of CPT symmetry, using the same Balmer series that Schrödinger computed in 1926.
+
+---
+
+## LLM Exercise — Building the Hydrogen Orbital Visualizer
 
 This is the headline simulation of the book. You are going to render $|\psi_{n\ell m}(x, 0, z)|^2$ as a 2D heat map, the radial probability density $P(r) = r^2|R_{n\ell}|^2$ as a line plot beneath it, and an interactive energy-level diagram. Drag the $(n, \ell, m)$ sliders and watch the orbital reorganize. Click a state to highlight it on the energy diagram. Toggle into transition mode and pick an initial and final state to compute the emitted photon's wavelength.
 
-### 9.1 The CLAUDE.md prompt
+### Part 1 — The CLAUDE.md prompt
 
-Append this to your existing project's `CLAUDE.md`:
+Append this to your existing project's CLAUDE.md:
 
 ```
 ## Chapter 7 — Hydrogen Orbital Visualizer Rules
@@ -340,7 +215,7 @@ Append this to your existing project's `CLAUDE.md`:
 - No DOM mutation outside the redraw function.
 ```
 
-### 9.2 The simulation prompt — four-move structure
+### Part 2 — The simulation prompt — four-move structure
 
 ```
 Build me a D3 v7 hydrogen orbital visualizer following CLAUDE.md.
@@ -387,23 +262,23 @@ proceeds via higher-order processes."
 Output a single self-contained HTML file using the D3 v7 CDN.
 ```
 
-### 9.3 Exploration tasks
+### Part 3 — Exploration tasks
 
-1. **Confirm the 1s headline numbers.** Set (n, ℓ, m) = (1, 0, 0). Read off $r_{mp}$ and $\langle r \rangle$. Confirm $r_{mp} \approx 1.00 a_0$ and $\langle r \rangle \approx 1.50 a_0$. These two different numbers describe the same probability distribution. Stop and look at the heat map: it is a spherical blob. There is no "ring" at $a_0$.
+1. **Confirm the 1s headline numbers.** Set $(n, \ell, m) = (1, 0, 0)$. Read off $r_{mp}$ and $\langle r\rangle$. Confirm $r_{mp} \approx 1.00\,a_0$ and $\langle r\rangle \approx 1.50\,a_0$. These two different numbers describe the same probability distribution. Stop and look at the heat map: it is a spherical blob. There is no ring at $a_0$.
 
-2. **Count nodes.** Set (2, 0, 0) — the 2s state. The radial probability plot should show two peaks separated by a zero at $r = 2a_0$. That zero is the radial node. The heat map shows two concentric shells with a dark ring between them. Now set (3, 1, 0) — the 3p$_z$ state. Predict the node count using $n - 1 = 2$ total, partitioned into $n - \ell - 1 = 1$ radial and $\ell = 1$ angular. Verify on the simulation.
+2. **Count nodes.** Set $(2, 0, 0)$ — the 2s state. The radial probability plot should show two peaks separated by a zero at $r = 2a_0$. Now set $(3, 1, 0)$ — the $3p_z$ state. Predict the node count: $n - 1 = 2$ total, partitioned into $n - \ell - 1 = 1$ radial and $\ell = 1$ angular. Verify on the simulation.
 
-3. **The $n^2$ degeneracy.** Switch among (2, 0, 0), (2, 1, 0), (2, 1, +1), (2, 1, -1). All four have $E = -3.4$ eV — they sit on the same horizontal line in the energy diagram. The shapes differ dramatically. The energy diagram makes the degeneracy visible as the lines that *don't split*. Same energy, different geometry.
+3. **The $n^2$ degeneracy.** Switch among $(2, 0, 0)$, $(2, 1, 0)$, $(2, 1, +1)$, $(2, 1, -1)$. All four share $E = -3.4$ eV, sitting on the same horizontal line in the energy diagram. Shapes differ dramatically. Same energy, different geometry.
 
-4. **Compute the Balmer $\alpha$ wavelength.** Enter transition mode. Set initial state $(n_i, \ell_i, m_i) = (3, 1, 0)$ and final $(n_f, \ell_f, m_f) = (2, 0, 0)$. Read the wavelength. Confirm $\lambda \approx 656$ nm. Verify the transition is ALLOWED ($\Delta\ell = -1$).
+4. **Compute the Balmer $\alpha$ wavelength.** Enter transition mode. Set $(n_i, \ell_i, m_i) = (3, 1, 0)$ and $(n_f, \ell_f, m_f) = (2, 0, 0)$. Read the wavelength. Confirm $\lambda \approx 656$ nm. Verify the transition is ALLOWED ($\Delta\ell = -1$).
 
-5. **A forbidden transition.** Set $(n_i, \ell_i, m_i) = (2, 0, 0)$ and $(n_f, \ell_f, m_f) = (1, 0, 0)$ — the 2s → 1s transition. Read the simulation's verdict. It should flag this as FORBIDDEN ($\Delta\ell = 0$). This is the metastable 2s state.
+5. **A forbidden transition.** Set $(n_i, \ell_i, m_i) = (2, 0, 0)$ and $(n_f, \ell_f, m_f) = (1, 0, 0)$ — the 2s → 1s transition. The simulation should flag this as FORBIDDEN ($\Delta\ell = 0$). This is the metastable 2s state.
 
-6. **Real vs. complex orbitals.** Switch the orbital-set dropdown from "complex $Y_{\ell m}$" to "real chemistry orbitals." Set ($n$, sub-shell) = (2, p). Cycle through $p_x, p_y, p_z$ and watch the dumbbells rotate. Switch back to complex; cycle through $m = -1, 0, +1$. The $m = 0$ case is the same as $p_z$; the $m = \pm 1$ cases are azimuthally symmetric blobs (with nontrivial complex phase that the magnitude plot does not show).
+6. **Real vs. complex orbitals.** Switch the orbital-set dropdown from "complex $Y_{\ell m}$" to "real chemistry orbitals." Set $(n, \text{sub-shell}) = (2, p)$. Cycle through $p_x, p_y, p_z$ and watch the dumbbells rotate. Switch back to complex; cycle through $m = -1, 0, +1$. The $m = 0$ case is identical to $p_z$; the $m = \pm 1$ cases are azimuthally symmetric blobs.
 
-### 9.4 Extension prompt — Time evolution in a superposition
+### Part 4 — Extension prompt: Time evolution in a superposition
 
-A stationary state has a time-independent probability density. To see something move, you build a coherent superposition:
+A stationary state has a time-independent probability density. To see something move, you build a superposition:
 
 ```
 Extend the hydrogen visualizer to include a "Superposition mode."
@@ -425,53 +300,62 @@ atom does when it is in the process of transitioning between 1s and 2p,
 in the dipole approximation.
 ```
 
-This is the simulation that makes "atomic transitions are coherent superpositions evolving in time" finally visible. Most undergraduate treatments stop at "the electron jumps from one orbital to another." That picture is wrong: the electron's wave function continuously sloshes between configurations, and the photon emission is the dipole-radiation tail of the oscillation.
+This is the simulation that makes "atomic transitions are coherent superpositions evolving in time" finally visible. The electron's wave function continuously sloshes between configurations; the photon emission is the dipole-radiation tail of the oscillation.
 
-### 9.5 Six failure modes to watch for
+<!-- → [IMAGE: Four animation frames of |ψ(x,0,z,t)|² for the 1s+2p_z superposition — frames at t=0, T/4, T/2, 3T/4 of the beat period T₁₂ — showing the density shifting from a spherical blob (t=0) through an asymmetric deformation to a dumbbell (t=T/2) and back; caption: "A coherent superposition oscillates. This is what an atom looks like while it is emitting a photon."] -->
 
-1. **Color-scale domain not reset on state change.** If you set the Viridis domain once at $n = 1$ and then switch to $n = 4$ (where peak density is hundreds of times smaller), the high-$n$ orbital will look uniformly dark. Recompute the domain at every state change.
+### Part 5 — Six failure modes to watch for
 
-2. **Forgetting the $r^2$ Jacobian in $P(r)$.** A common bug: students plot $|R_{n\ell}|^2$ instead of $r^2 |R_{n\ell}|^2$. The former peaks at $r = 0$ for 1s; the latter peaks at $r = a_0$. The visible difference is dramatic: the radial probability plot for 1s should have its peak at $r = a_0$, not at the origin.
+1. **Color-scale domain not reset on state change.** If the Viridis domain is set once at $n = 1$ and not updated, high-$n$ orbitals appear uniformly dark. Recompute the domain at every state change.
 
-3. **Energy formula off by a sign.** $E_n = -13.6/n^2$, *negative* (bound states). If your energy diagram shows positive values, you dropped a sign somewhere.
+2. **Forgetting the $r^2$ Jacobian in $P(r)$.** Plotting $|R_{n\ell}|^2$ instead of $r^2|R_{n\ell}|^2$ makes the 1s density peak at $r = 0$ instead of $r = a_0$. The difference is visible and dramatic.
 
-4. **Selection rule logic too strict.** $\Delta m_\ell$ must be $0, +1,$ or $-1$. Some students implement this as exactly $0$. Allow all three.
+3. **Energy formula off by a sign.** $E_n = -13.6/n^2$, negative. If the energy diagram shows positive values, a sign was dropped.
 
-5. **Quantum number ranges not enforced.** If sliders allow (n, ℓ, m) = (1, 1, 0), the simulation will try to evaluate a Laguerre polynomial of degree $-1$ and produce garbage. Constrain the sliders: $\ell$ slider's max is $n - 1$; $m$ slider's range is $-\ell$ to $+\ell$.
+4. **Selection rule logic too strict.** $\Delta m$ must be $0, +1,$ or $-1$ — all three. Some students implement this as exactly $0$.
 
-6. **Heat-map coordinate confusion.** The xz-plane has $\phi = 0$, but $x > 0$ corresponds to $\phi = 0$ and $x < 0$ to $\phi = \pi$. Some students use $\phi = 0$ everywhere and get a half-orbital. Correctly handle the sign of $x$ when computing the azimuthal angle.
+5. **Quantum number ranges not enforced.** The combination $(n, \ell, m) = (1, 1, 0)$ asks for a Laguerre polynomial of degree $-1$. Constrain the sliders: $\ell$ max is $n - 1$; $m$ range is $-\ell$ to $+\ell$.
 
----
-
-## 10. Synthesis and the path forward
-
-This chapter is the central triumph of single-particle quantum mechanics. You started with the 1885 Balmer formula — an empirical fit with no theory — and ended with a closed-form solution of the bound-state Schrödinger equation that reproduces Balmer's wavelengths to better than 0.05%, predicts every line of the Lyman and Paschen and higher series, and produces a complete probability-density description of the electron in hydrogen.
-
-You can now:
-
-- Reduce two bodies (proton + electron) to one body (reduced mass + Coulomb potential).
-- Separate variables in spherical coordinates and write the radial equation with its centrifugal barrier.
-- Solve the radial equation for 1s explicitly, recovering the Bohr radius and the ground-state energy from one ansatz.
-- Compute most-probable and expectation-value radii and explain why they differ — the geometric fingerprint of "orbital is not a path."
-- State the quantum-number constraints and explain their origins (normalizability, polynomial degree, angular operator inequality).
-- Compute Rydberg-formula transitions and identify spectral series.
-- Apply the dipole selection rules and distinguish allowed from forbidden transitions.
-- Render and manipulate the full family of orbitals up to $n = 4$ with your own simulation.
-
-What this chapter does *not* address, and what is coming:
-
-- **Multi-electron atoms.** Helium, lithium, and the rest of the periodic table involve electron-electron Coulomb repulsion, which breaks the $\mathfrak{so}(4)$ symmetry and splits the $\ell$-degeneracy. Chapter 8 sets up the indistinguishability and antisymmetry machinery.
-- **Fine structure.** The 2p$_{1/2}$ and 2p$_{3/2}$ levels split by about $10^{-4}$ eV due to relativistic corrections and spin-orbit coupling. Chapter 9 (perturbation theory) computes this from first principles.
-- **Lamb shift.** The 2s$_{1/2}$ and 2p$_{1/2}$ levels are degenerate in non-relativistic Schrödinger theory, in Dirac theory, but split by about 1058 MHz [verify] in experiment — the first observational evidence for the radiative corrections of QED (Lamb & Retherford 1947, *Physical Review* 72, 241 [verify]). This is a Ch. 13 topic.
-- **The proton radius puzzle.** Spectroscopy of muonic hydrogen — where a muon replaces the electron and sits 200 times closer to the proton — gave a proton charge radius about 4% smaller than electronic measurements were yielding around 2010 (Pohl et al. 2010, *Nature* 466, 213 [verify]). The discrepancy drove a decade of precision experiments and largely converged to the smaller value by 2018 (CODATA 2018 adopted 0.8414 fm [verify]). Hydrogen spectroscopy is still where new physics gets tested.
-- **Antihydrogen.** The ALPHA collaboration at CERN has trapped antihydrogen ($\bar{p} + e^+$) and measured the 1S–2S transition, finding agreement with hydrogen at the parts-per-trillion level (Ahmadi et al. 2018, *Nature* 557, 71 [verify]). A direct test of CPT symmetry.
-
-Hydrogen is the foundation. Every multi-electron atom is built from hydrogen-like single-particle orbitals plus the antisymmetry of Chapter 8. The visualizer you built will travel forward: in Chapter 8 you will extend it to handle two-electron products and Slater determinants; in Chapter 9 you will see how perturbations split the levels you computed here.
+6. **Heat-map coordinate confusion.** For $x < 0$ in the xz-plane, $\phi = \pi$ not $\phi = 0$. Handling the sign of $x$ when computing the azimuthal angle correctly is required; otherwise the simulation renders a half-orbital.
 
 ---
 
-**What would change my mind:** a precision measurement of a hydrogen transition that disagrees with the Schrödinger + Dirac + QED prediction at a level larger than current theoretical uncertainty, after all known systematic effects are accounted for.
+## Still puzzling
 
-**Still puzzling:** the $\mathfrak{so}(4)$ symmetry of the Coulomb problem — the existence of the Laplace–Runge–Lenz vector — is a fact about the specific potential $-1/r$ that I can state and use, but I do not have a deep explanation for why this potential, of all central potentials, admits the extra conserved vector. The standard answer ("it's algebraically what falls out") leaves me unsatisfied.
+The Laplace–Runge–Lenz vector — the classical conserved quantity that signals the $\mathfrak{so}(4)$ symmetry of the Coulomb problem — exists because $-1/r$ orbits do not precess. Bertrand's theorem says only the $1/r$ and $r^2$ potentials have all bound orbits closed. The quantum degeneracy and the classical closed-orbit property must be the same fact in different clothing. I can state the algebra; I cannot make the connection feel inevitable. The math is settled. The explanation, at the level of "of course it had to be this way," is not there for me.
 
-**Tags:** hydrogen atom, Coulomb potential, radial equation, Bohr radius, Rydberg formula, spherical harmonics, orbital visualizer, Balmer series, selection rules, D3.js
+---
+
+## Exercises
+
+### Warm-up
+
+1. *[Tests: two-body reduction, reduced mass]* A muonic hydrogen atom replaces the electron with a muon ($m_\mu \approx 207 m_e$). (a) Compute the reduced mass $\mu$ for muonic hydrogen. (b) Compute the Bohr radius $a_0^\mu = 4\pi\epsilon_0\hbar^2/(\mu e^2)$. By what factor is it smaller than the ordinary Bohr radius? (c) By what factor does the ground-state energy $E_1 = -\mu e^4/(2(4\pi\epsilon_0)^2\hbar^2)$ change? Express the answer in eV. *Difficulty: warm-up.*
+
+2. *[Tests: ground-state normalization, radial probability density]* Verify that $\psi_{100}(r) = (1/\sqrt{\pi a_0^3})e^{-r/a_0}$ is normalized by computing $\int|\psi_{100}|^2 d^3r$ explicitly. Use $\int_0^\infty r^2 e^{-2r/a_0}dr = a_0^3/4$. Then write down $P(r) = r^2|R_{10}(r)|^2$, and verify $\int_0^\infty P(r)\,dr = 1$. *Difficulty: warm-up.*
+
+3. *[Tests: quantum number constraints, counting states]* List all allowed $(n, \ell, m)$ combinations for $n = 3$. Verify the count is $n^2 = 9$ orbital states and $2n^2 = 18$ states including spin. State in one sentence where each of the three constraints ($n \geq 1$, $\ell \leq n-1$, $|m| \leq \ell$) comes from. *Difficulty: warm-up.*
+
+### Application
+
+4. *[Tests: the two-radii distinction, skewness of P(r)]* For the 2s state, the radial wave function is $R_{20}(r) = (1/\sqrt{8a_0^3})(2 - r/a_0)e^{-r/(2a_0)}$ (verify the normalization). (a) Find the radial node — the value of $r$ where $R_{20} = 0$. (b) Compute the most probable radius by finding the maximum of $P(r) = r^2|R_{20}|^2$. (c) Compute $\langle r\rangle_{2s}$ using $\int_0^\infty r^n e^{-r/b}\,dr = n!\,b^{n+1}$. Compare $r_{mp}$ and $\langle r\rangle_{2s}$. *Difficulty: application.*
+
+5. *[Tests: spectral series, Rydberg formula]* (a) Compute the wavelength of the Lyman $\alpha$ line ($n = 2 \to n = 1$) and confirm it falls in the ultraviolet. (b) Compute the wavelength of the Paschen $\alpha$ line ($n = 4 \to n = 3$) and confirm it falls in the near-infrared. (c) In 1932, Urey discovered deuterium by spotting a faint line shifted slightly from H$_\alpha$ (656.3 nm). Estimate the wavelength of the deuterium Balmer $\alpha$ line using the reduced mass $\mu_D = m_p m_d m_e/(m_p m_d + m_d m_e + m_p m_e)$ where $m_d \approx 2 m_p$. How large is the shift in nm? *Difficulty: application.*
+
+6. *[Tests: selection rules, forbidden transitions]* For each of the following transitions, state whether it is electric-dipole allowed or forbidden, and give the reason: (a) $3p \to 1s$; (b) $3d \to 1s$; (c) $3p \to 2p$; (d) $3d \to 2p$; (e) $2s \to 1s$. For any forbidden transition, name one higher-order process by which it could still occur. *Difficulty: application.*
+
+### Synthesis
+
+7. *[Tests: radial probability density, comparison across n and ℓ]* (a) For general $n$ and $\ell = 0$ (s-states), the most probable radius scales approximately as $r_{mp} \approx n^2 a_0$ for large $n$. Verify this for $n = 1, 2, 3$ by finding the peaks of $P(r)$ for 1s, 2s, and 3s explicitly. (b) For a given $n$, does increasing $\ell$ move the most probable radius inward or outward? Use the centrifugal barrier picture to explain why. *Difficulty: synthesis.*
+
+8. *[Tests: Coulomb degeneracy, physical consequences]* (a) In hydrogen, 2s and 2p are degenerate at $-3.4$ eV. What physical observable could distinguish them without measuring the energy directly? (Hint: consider the selection rules and their lifetimes.) (b) In sodium, 3s lies at $-5.14$ eV and 3p at $-3.04$ eV — the $\ell$-degeneracy is broken. Use the LRL symmetry argument to explain qualitatively why breaking the $1/r$ potential breaks the degeneracy. (c) The sodium D lines at 589 nm are actually a doublet — two closely spaced lines. What causes this fine splitting? (The answer involves spin-orbit coupling from Chapter 9, but name the effect.) *Difficulty: synthesis.*
+
+### Challenge
+
+9. *[Tests: expectation values by ladder operators, connection to Chapter 3]* Using the ladder-operator algebra of Chapter 3 applied to the hydrogen radial equation, show that $\langle r\rangle_{n\ell} = a_0[3n^2 - \ell(\ell+1)]/2$. Verify for $(1, 0)$ giving $3a_0/2$ and for $(2, 0)$ giving $6a_0$. (Hint: express $r$ in terms of the appropriate operators and use the known matrix elements.) *Difficulty: challenge.*
+
+10. *[Tests: superposition, time evolution, connection to classical dipole radiation]* Consider the superposition $\Psi(r,t) = (1/\sqrt{2})[\psi_{100}e^{-iE_1 t/\hbar} + \psi_{210}e^{-iE_2 t/\hbar}]$. (a) Show that $|\Psi|^2$ contains a time-dependent cross-term oscillating at frequency $\omega_{12} = (E_2 - E_1)/\hbar$. (b) Compute the expectation value $\langle z\rangle(t) = \langle\Psi|\hat{z}|\Psi\rangle$ and show it oscillates sinusoidally at $\omega_{12}$. (c) An oscillating dipole moment $\langle z\rangle \propto \cos(\omega_{12}t)$ is the classical picture of a radiating antenna. Explain in two sentences why this superposition physically represents the atom in the process of emitting a photon at frequency $\omega_{12}$, rather than sitting in either eigenstate. *Difficulty: challenge.*
+
+---
+
+**Chapter 8:** You have solved one-electron hydrogen completely. The next step is two electrons — helium — and immediately the problem becomes unsolvable analytically. The reason: electron-electron repulsion. Chapter 8 sets up the machinery of identical particles, antisymmetry, and the Pauli exclusion principle that governs every multi-electron atom in the periodic table.
