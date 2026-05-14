@@ -1,314 +1,150 @@
 # Chapter 6 — Spin
+*Two Spots, No Explanation, Three Years.*
+
+An angular momentum with no classical analog: the two-state Hilbert space, the Pauli matrices, and the experiment that found something quantum theory hadn't yet imagined.
+
+
+In February 1922, Otto Stern and Walther Gerlach sent a beam of neutral silver atoms through an inhomogeneous magnetic field and caught them on a glass plate. The field exerts a force on any magnetic moment — the gradient of $\vec{\mu}\cdot\vec{B}$ — and atoms with different moment orientations should deflect by different amounts. Classical physics says the magnetic moments can point in any direction, so the plate should show a continuous smear of silver. Stern developed the plate. He found two spots.
+Not a smear. Two distinct spots. One above, one below. Nothing in between.
+Whatever silver atoms are doing, the component of their magnetic moment along the field axis takes exactly two values, never three, never a continuum. And this turns out to be true for any axis you point: two spots, always. The experiment is unambiguous and strange, and it sat unexplained for three years.
+Here is what makes the story more interesting: Stern and Gerlach in 1922 did not know what they had found. They believed they were confirming the old Bohr–Sommerfeld "space quantization" of orbital angular momentum. Silver has the electron configuration $[\text{Kr}]\,4d^{10}5s^1$, with a single valence electron in an $s$ orbital. An $s$ orbital has zero orbital angular momentum — $\ell = 0$ — so it contributes nothing to the magnetic moment. The two spots came from something nobody had proposed yet: the intrinsic spin of the electron, hypothesized by Uhlenbeck and Goudsmit in 1925. Stern and Gerlach got the right answer before the right question had been asked.
+I find this worth saying honestly, because it is how physics often goes. The experiment was right. The interpretation waited for a new concept.
+This chapter builds that concept.
+
+<!-- → [IMAGE: reproduction of the original 1922 Stern–Gerlach glass plate photograph alongside a schematic of the apparatus — magnet poles top and bottom, silver beam entering horizontally, two discrete impact spots visible on the plate; caption: "The original result: two spots where classical physics predicts a continuous smear. The image should make viscerally clear that the split is discrete, not broadened"] -->
+
+## Two values means two dimensions
+The empirical fact — always two values, any axis — points directly to the Hilbert space. Whatever spin lives in, that space must be such that any spin-component operator has exactly two eigenvalues. The smallest complex vector space that supports this is $\mathbb{C}^2$, two-dimensional and complex. This is not a guess; it is the minimal structure forced by "two and only two."
+Choose the eigenstates of the $z$-component of spin as the basis:
+$$|\!\uparrow\rangle = \begin{pmatrix}1\\0\end{pmatrix}, \qquad |\!\downarrow\rangle = \begin{pmatrix}0\\1\end{pmatrix}.$$
+Any normalized spin state is a linear combination of these:
+$$|\psi\rangle = \alpha|\!\uparrow\rangle + \beta|\!\downarrow\rangle, \qquad |\alpha|^2 + |\beta|^2 = 1.$$
+Two complex numbers, one normalization constraint, one overall phase that is unobservable: two real degrees of freedom. That is the dimension of a sphere. We will come back to the sphere.
+The spin operators are $\hat{S}_i = (\hbar/2)\sigma_i$, where $\sigma_x, \sigma_y, \sigma_z$ are the Pauli matrices:
+$$\sigma_x = \begin{pmatrix}0&1\\1&0\end{pmatrix}, \qquad \sigma_y = \begin{pmatrix}0&-i\\i&0\end{pmatrix}, \qquad \sigma_z = \begin{pmatrix}1&0\\0&-1\end{pmatrix}.$$
+Four facts about these matrices, all verifiable by direct multiplication. The computation is mechanical but the facts are structural — they recur everywhere from NMR pulse sequences to qubit gates to the Feynman rules of QED.
 
-> An angular momentum with no classical analog: the two-state Hilbert space, the Pauli matrices, and the experiment that found something quantum theory hadn't yet imagined.
+$\sigma_i^2 = I$ for each $i$. Check: $\sigma_x^2 = \bigl(\begin{smallmatrix}0&1\\1&0\end{smallmatrix}\bigr)^2 = \bigl(\begin{smallmatrix}1&0\\0&1\end{smallmatrix}\bigr)$. ✓
 
----
+$\mathrm{Tr}(\sigma_i) = 0$ for each $i$. Read off the diagonals.
 
-## 1. The 1922 puzzle
+Different Pauli matrices anticommute: $\sigma_i\sigma_j + \sigma_j\sigma_i = 0$ for $i \neq j$. Compute $\sigma_x\sigma_y = \bigl(\begin{smallmatrix}i&0\\0&-i\end{smallmatrix}\bigr)$ and $\sigma_y\sigma_x = \bigl(\begin{smallmatrix}-i&0\\0&i\end{smallmatrix}\bigr)$; they sum to zero.
 
-In February 1922, Otto Stern and Walther Gerlach sent a thin beam of neutral silver atoms through the gap between a sharp pole piece and a flat one — an inhomogeneous magnetic field — and let the beam strike a glass plate. The classical prediction was clean. A silver atom carries a magnetic moment $\vec{\mu}$; the field exerts a force $\vec{F} = \nabla(\vec{\mu}\cdot\vec{B})$; atoms entering with $\vec{\mu}$ at every possible angle to $\hat{z}$ would deposit in a continuous smear along the plate.
+They satisfy the angular-momentum commutation relations: $[\sigma_i, \sigma_j] = 2i\epsilon_{ijk}\sigma_k$. From the calculation above, $[\sigma_x, \sigma_y] = \sigma_x\sigma_y - \sigma_y\sigma_x = 2i\sigma_z$. Which means $[\hat{S}_i, \hat{S}_j] = i\hbar\epsilon_{ijk}\hat{S}_k$ — the same algebra you derived for orbital angular momentum $\hat{L}$ in Chapter 5. That algebraic coincidence is not an accident. It is the reason "spin" deserves to be called angular momentum.
 
-When Stern developed the plate (famously aided by sulfur from his cheap cigar, which reacted with silver to make the faint trace visible), he found two spots. Not a smear. Two.
+The four facts combine into one multiplication table: $\sigma_i\sigma_j = \delta_{ij}I + i\epsilon_{ijk}\sigma_k$. This single identity is the entire Pauli algebra. Memorize it.
 
-That is the empirical fact this chapter has to explain. Whatever a silver atom carries, the component along whichever axis you choose to measure takes exactly two values, never three, never a continuum. The deflection is proportional to $\mu_z$, so two deflections means two $\mu_z$ values. Always. For any axis you point.
+<!-- → [TABLE: Pauli multiplication table — 3×3 grid with rows and columns labeled σ_x, σ_y, σ_z; each cell shows the product σ_i σ_j as either I (diagonal), +iσ_k, or −iσ_k (off-diagonal, with signs following the right-hand rule); footer row: "σ_i² = I for all i; σ_i σ_j = −σ_j σ_i for i≠j"; caption: "The entire Pauli algebra in one table. Every NMR calculation, qubit gate, and Feynman rule involving spin reduces to entries here"] -->
 
-A subtlety the chapter has to honor up front: Stern and Gerlach in 1922 did *not* discover electron spin. Spin did not exist as a concept until late 1925, when George Uhlenbeck and Samuel Goudsmit proposed it in *Die Naturwissenschaften* 13, 953. Stern and Gerlach believed they were observing the "space quantization" of orbital angular momentum predicted by the old Bohr–Sommerfeld theory. Silver has the configuration [Kr] $4d^{10} 5s^1$; its lone valence electron sits in an $s$ orbital with $\ell = 0$ and contributes zero orbital angular momentum. The two-spot pattern is in fact the projection of the *spin* of that single $5s^1$ valence electron. The 1922 experiment is the right answer to the wrong question, and the right answer only became readable three years later.
+## Why spin is not rotation
+Many students arrive with a picture: the electron is a tiny ball physically rotating on its own axis, and "spin" names that rotation's angular momentum. Let us kill this picture now with a number, not a hand-wave.
+Assume the electron has angular momentum $\hbar/2$ and the "spinning ball" picture is true. We need a radius to work with. Use the most generous possible estimate — the classical electron radius:
+$$r_e = \frac{e^2}{4\pi\epsilon_0 m_e c^2} \approx 2.82 \times 10^{-15}\ \text{m},$$
+defined by setting the electrostatic self-energy equal to $m_e c^2$. Real experiment bounds the electron's actual size below $10^{-18}$ m, but we want the most generous radius, since a smaller one makes the picture fail worse.
+The moment of inertia of a uniform solid sphere is $I = \frac{2}{5}m_e r_e^2$, and $L = I\omega$, so the equatorial surface speed is $v = \omega r_e = L r_e/I = 5\hbar/(4m_e r_e)$:
+$$v = \frac{5 \times 1.055 \times 10^{-34}}{4 \times 9.11 \times 10^{-31} \times 2.82 \times 10^{-15}} \approx 5.1 \times 10^{10}\ \text{m/s}.$$
+The speed of light is $c \approx 3.0 \times 10^8$ m/s. The required equatorial speed is roughly $170c$. The picture is not wrong by a small margin. It is wrong by more than two orders of magnitude, and using a smaller, more realistic electron radius makes it worse.
 
-I find this is worth telling honestly because it is exactly how physics often goes. An experiment is robust; its interpretation depends on which concepts have been invented yet.
+<!-- → [CHART: log-scale bar chart comparing v_equator to c for three assumed electron radii — classical electron radius r_e ≈ 2.82×10⁻¹⁵ m (gives ~170c), experimental upper bound r < 10⁻¹⁸ m (gives ~5×10⁴ c), proton radius r_p ≈ 0.85×10⁻¹⁵ m (gives ~630c); horizontal dashed line at v = c labeled "speed of light"; caption: "The spinning-ball picture requires superluminal surface speeds at every plausible electron radius. Smaller radii make it worse, not better"] -->
 
-**Learning objectives.** By the end of this chapter, you should be able to:
+So what is spin? An internal degree of freedom that transforms as a representation of $\mathrm{SU}(2)$ — the group of $2\times2$ unitary matrices with determinant 1 — under rotations. It is not any motion in physical space. It is a label the electron carries, a label that takes two values when you measure it, that obeys the angular-momentum operator algebra, and that has no classical analog. Paul Dirac derived spin-1/2 in 1928 from the requirement that the wave equation be Lorentz-covariant and first-order in time: spin falls out of relativity plus quantum mechanics. You do not put it in by hand; you find it already there when you insist on the right symmetries.
+"Spin is intrinsic angular momentum" is true but incomplete unless you say what *intrinsic* means. Intrinsic means: the algebra is that of angular momentum, the carrier is an $\mathrm{SU}(2)$ representation, and the underlying degree of freedom does not correspond to any motion in physical space.
 
-- State what spin is and what it isn't (it is not a small ball rotating, and you will see why with a number).
-- Write the three Pauli matrices from memory and verify four algebraic facts about them.
-- Build the eigenstates of $\hat{S}_{\hat{n}}$ — spin along an arbitrary direction — and apply the Born rule to compute outcome probabilities.
-- Solve the time-dependent Schrödinger equation for a spin in a uniform magnetic field and recover Larmor precession.
-- Explain why a sequential Stern–Gerlach experiment ($SG_z \to SG_x \to SG_z$) gives 50/50 on the third stage, and why this is not "measurement disturbance" in the classical sense.
-- Build a three-panel interactive simulation that lets you drag spin states on the Bloch sphere, watch SG outcome probabilities update, and visualize Larmor precession.
+## Spin along any axis — the Bloch sphere
+Pick a unit vector $\hat{n} = (\sin\theta\cos\phi, \sin\theta\sin\phi, \cos\theta)$. The spin operator along $\hat{n}$ is
+$$\hat{S}_{\hat{n}} = \frac{\hbar}{2}\hat{n}\cdot\vec{\sigma} = \frac{\hbar}{2}\begin{pmatrix}\cos\theta & \sin\theta\,e^{-i\phi}\\\sin\theta\,e^{i\phi} & -\cos\theta\end{pmatrix}.$$
+The eigenvalues: the matrix has trace zero and determinant $-1$, so the characteristic polynomial is $\lambda^2 - 1 = 0$, giving $\lambda = \pm 1$. The eigenvalues of $\hat{S}_{\hat{n}}$ are $\pm\hbar/2$. For every axis you point, two values. The formalism delivers what the 1922 experiment found.
+The eigenvectors require more work. Solving $(\hat{n}\cdot\vec{\sigma})|\hat{n},+\rangle = +|\hat{n},+\rangle$ using the half-angle identities $1 - \cos\theta = 2\sin^2(\theta/2)$ and $\sin\theta = 2\sin(\theta/2)\cos(\theta/2)$, the normalized result is
+$$|\hat{n},+\rangle = \cos(\theta/2)|\!\uparrow\rangle + e^{i\phi}\sin(\theta/2)|\!\downarrow\rangle.$$
+The orthogonal eigenstate is $|\hat{n},-\rangle = \sin(\theta/2)|\!\uparrow\rangle - e^{i\phi}\cos(\theta/2)|\!\downarrow\rangle$.
+Notice the half-angle. A spin pointing along $+\hat{x}$ is $\theta = \pi/2$, $\phi = 0$, so $|\hat{x},+\rangle = (|\!\uparrow\rangle + |\!\downarrow\rangle)/\sqrt{2}$ — equal weights on $|\!\uparrow\rangle$ and $|\!\downarrow\rangle$. This is right: a spin definitely pointing along $\hat{x}$ should give 50/50 when measured along $\hat{z}$. Check it as a Born rule calculation and you get exactly that.
+The half-angle has a deeper consequence. Rotate the analyzer by $2\pi$ — a full turn in physical space. The angle $\theta$ goes to $\theta + 2\pi$, and $\cos(\theta/2)$ goes to $\cos(\theta/2 + \pi) = -\cos(\theta/2)$; similarly for the sine. The spin state acquires an overall minus sign. Only at $4\pi$ — two full turns — does the state return to itself. This is the spinor double cover: spin states live in $\mathrm{SU}(2)$, not in the ordinary rotation group $\mathrm{SO}(3)$. A $2\pi$ rotation that takes every vector in space back to itself takes a spinor to its negative. This is observable in interference experiments and in the "Dirac belt trick."
+The parameterization $(\theta, \phi)$ maps every pure spin state to a point on a unit sphere — the Bloch sphere. North pole: $|\!\uparrow\rangle$. South pole: $|\!\downarrow\rangle$. Equator: equal superpositions $(|\!\uparrow\rangle + e^{i\phi}|\!\downarrow\rangle)/\sqrt{2}$, with $\phi$ varying around the equator. Every point on the sphere is a spin state; every spin state is a point on the sphere.
+Now the Born rule takes a clean geometric form. Suppose the state is at Bloch angles $(\theta_\psi, \phi_\psi)$ and the analyzer points at $(\theta_n, \phi_n)$. Let $\gamma$ be the angle between the two unit vectors on the Bloch sphere:
+$$\cos\gamma = \cos\theta_\psi\cos\theta_n + \sin\theta_\psi\sin\theta_n\cos(\phi_\psi - \phi_n).$$
+The probability of outcome $+\hbar/2$ is
+$$P(+) = \cos^2(\gamma/2), \qquad P(-) = \sin^2(\gamma/2).$$
+Three checks. State aligned with analyzer ($\gamma = 0$): $P(+) = 1$. Anti-aligned ($\gamma = \pi$): $P(+) = 0$. Perpendicular ($\gamma = \pi/2$): $P(+) = 1/2$. Three correct limits from one formula.
 
-**Prerequisites.** Wave functions and the Born rule (Ch. 1–2). Dirac notation and Hermitian operators on a finite-dimensional Hilbert space (Ch. 4). Orbital angular momentum and the commutator $[\hat{L}_i, \hat{L}_j] = i\hbar \epsilon_{ijk} \hat{L}_k$ (Ch. 5). Calculus through partial derivatives. Matrix multiplication for $2\times 2$ matrices.
+<!-- → [IMAGE: Bloch sphere diagram annotated for the Born-rule geometry — a unit sphere with labeled north pole |↑⟩, south pole |↓⟩, and equatorial ring; two arrows from the origin: a blue arrow to a state point (θ_ψ, φ_ψ) and an orange arrow to an analyzer point (θ_n, φ_n); the angle γ between them labeled on the sphere surface; a small inset shows the P(+) = cos²(γ/2) curve plotted against γ from 0 to π, with the three sanity-check values marked; caption: "The Born rule on the Bloch sphere: probability depends only on the angle γ between state and analyzer, not on their absolute positions"] -->
 
----
+## Spin in a magnetic field — Larmor precession
+A spin in a uniform magnetic field $\vec{B} = B_0\hat{z}$ has Hamiltonian
+$$\hat{H} = -\vec{\mu}\cdot\vec{B} = \gamma B_0\hat{S}_z = \frac{\gamma B_0\hbar}{2}\sigma_z,$$
+where $\gamma$ is the gyromagnetic ratio — $\gamma_e/2\pi \approx 28.025$ GHz/T for the electron, $\gamma_p/2\pi \approx 42.58$ MHz/T for the proton.
+The Hamiltonian is diagonal in the $\hat{S}_z$ basis. The time-evolution operator is therefore diagonal too:
+$$\hat{U}(t) = \begin{pmatrix}e^{-i\omega_L t/2}&0\\0&e^{+i\omega_L t/2}\end{pmatrix},$$
+where $\omega_L = \gamma B_0$ is the Larmor frequency. Starting from a general state at polar angle $\theta_0$ and azimuth $\phi_0 = 0$:
+$$|\psi(t)\rangle = \cos(\theta_0/2)|\!\uparrow\rangle + e^{i\omega_L t}\sin(\theta_0/2)|\!\downarrow\rangle.$$
+The polar angle $\theta_0$ does not change. The azimuth advances at rate $\omega_L$: $\phi(t) = \omega_L t$. On the Bloch sphere, the state precesses around the $\hat{z}$-axis at the Larmor frequency. The expectation values follow:
+$$\langle\hat{S}_x\rangle(t) = \frac{\hbar}{2}\sin\theta_0\cos(\omega_L t), \qquad \langle\hat{S}_y\rangle(t) = \frac{\hbar}{2}\sin\theta_0\sin(\omega_L t), \qquad \langle\hat{S}_z\rangle(t) = \frac{\hbar}{2}\cos\theta_0.$$
+The vector $(\langle\hat{S}_x\rangle, \langle\hat{S}_y\rangle, \langle\hat{S}_z\rangle)$ has constant magnitude $\hbar/2$ and rotates in the $xy$-plane. This is Larmor precession — formally identical to the precession of a classical magnetic moment, except that the underlying object is a quantum superposition, not a vector in space. What precesses is the probability distribution over outcomes, not any physical pointer.
+The numbers make this real. A proton in a 1 T field has $\omega_L/(2\pi) \approx 42.58$ MHz, so a period of about 23.5 ns. This is the resonance frequency exploited in nuclear magnetic resonance: every MRI scanner operating on hydrogen is tuned to this frequency times the field strength. The formula $\omega_L = \gamma B_0$ is not textbook background; it is the operating equation of a medical instrument.
 
-## 2. The two-state Hilbert space and the Pauli matrices
+<!-- → [TABLE: Larmor frequencies for different particles and field strengths — rows: electron at 1 mT, proton at 0.5 T (low-field MRI), proton at 1.5 T (clinical MRI), proton at 3 T (research MRI), proton at 7 T (ultra-high field); columns: particle, B₀ (T), γ/(2π) (MHz/T or GHz/T), f_L = ω_L/(2π), T_L = 1/f_L; caption: "Every MRI scanner is a Larmor precession detector. The operating frequency is set by ω_L = γB₀ for hydrogen protons in the applied field"] -->
 
-### 2.1 Why two
+<!-- → [IMAGE: Bloch sphere showing Larmor precession — a spin state arrow at polar angle θ₀ from the north pole, tracing a circular path around the ẑ axis; dashed circle shows the precession cone; labels: θ₀ (tilt angle, unchanged), φ(t) = ω_L t (advancing azimuth), ω_L (precession rate arrow curving around ẑ); caption: "Larmor precession: θ₀ is frozen, φ advances at ω_L = γB₀. The state traces a latitude circle on the Bloch sphere"] -->
 
-The empirical wedge is "always two values." Whatever Hilbert space spin lives in, that space must be such that any Hermitian operator representing a spin component has exactly two eigenvalues. The smallest space that does this is $\mathbb{C}^2$ — two-dimensional, complex.
+## What the sequential experiment is really telling you
+Prepare a beam of silver atoms and send it through an $\mathrm{SG}_z$ apparatus. Block the lower output. The surviving atoms are in state $|\!\uparrow\rangle$.
+Send that beam through an $\mathrm{SG}_x$ apparatus. The $\hat{S}_x$ eigenstates are $|\hat{x},\pm\rangle = (|\!\uparrow\rangle \pm |\!\downarrow\rangle)/\sqrt{2}$, so $|\!\uparrow\rangle = (|\hat{x},+\rangle + |\hat{x},-\rangle)/\sqrt{2}$. Born rule gives $P(\hat{x},+) = P(\hat{x},-) = 1/2$. The beam splits equally.
+Block the $|\hat{x},-\rangle$ output. The surviving atoms are in $|\hat{x},+\rangle = (|\!\uparrow\rangle + |\!\downarrow\rangle)/\sqrt{2}$. Now send them through a second $\mathrm{SG}_z$. Express $|\hat{x},+\rangle$ in the $\hat{z}$ basis: it is already written as an equal superposition of $|\!\uparrow\rangle$ and $|\!\downarrow\rangle$. Born rule: $P(\hat{z},+) = P(\hat{z},-) = 1/2$. The beam splits equally again.
+The atoms started definitively spin-up along $\hat{z}$. After an intermediate $\hat{x}$ measurement, they are 50/50 along $\hat{z}$ again. The tempting description is: the $\mathrm{SG}_x$ device disturbed the atoms, scrambling their $z$-component. This is the wrong picture, and it matters to get it right.
+The operators $\hat{S}_x$ and $\hat{S}_z$ do not commute: $[\hat{S}_x, \hat{S}_z] = -i\hbar\hat{S}_y \neq 0$. No state can be simultaneously an eigenstate of both. After the $\mathrm{SG}_x$ measurement selects $|\hat{x},+\rangle$, that state is not an eigenstate of $\hat{S}_z$ — it has no definite $\hat{z}$ value, not a definite value that was obscured by a clumsy apparatus. There is nothing there to disturb. The 50/50 outcome at the third stage is the Born rule applied to a state that simply does not have a definite $\hat{S}_z$. The noncommutativity of the operators is structural, not a measurement artifact.
+Here is the sharpest way to see this. A naive picture where each silver atom carries pre-existing definite values $(\mu_x, \mu_y, \mu_z)$ — labels that the SG apparatuses read off without disturbing — would predict that selecting $\mu_z = +\mu_B$ at stage one and then $\mu_x = +\mu_B$ at stage two should leave $\mu_z$ unchanged: the labels are stable. So stage three should return $\mu_z = +\mu_B$ with probability 1. Experiment gives 50/50. Pre-existing definite values for non-commuting observables are not consistent with the data.
+This is the point where students have to let go of the hidden-variable picture. The spin component along $\hat{z}$ does not exist as a pre-existing property when the system is prepared in a $\hat{x}$ eigenstate. It comes into being at the moment of the measurement. The algebra forces this.
 
-Choose a basis. Conventionally, the eigenstates of $\hat{S}_z$:
+<!-- → [INFOGRAPHIC: three-stage sequential SG diagram — left: beam enters SG_z, splits to |↑⟩ (upper, kept) and |↓⟩ (lower, blocked); center: |↑⟩ beam enters SG_x, splits 50/50 to |x,+⟩ (kept) and |x,−⟩ (blocked); right: |x,+⟩ beam enters SG_z again, splits 50/50; below, a contrast diagram showing SG_z → SG_z with no intermediate stage, where the second SG_z gives P(+)=1; caption: "The intermediate SG_x measurement does not disturb a pre-existing z-value. It produces a state that has no definite z-value. The 50/50 outcome is structural, not accidental"] -->
 
-$$ |\!\uparrow\rangle = \begin{pmatrix} 1 \\ 0 \end{pmatrix}, \qquad |\!\downarrow\rangle = \begin{pmatrix} 0 \\ 1 \end{pmatrix}. $$
+## The g-factor, and what "exactly 2" actually means
+Before leaving spin, one number deserves attention. The Hamiltonian $\hat{H} = -\vec{\mu}\cdot\vec{B}$ used the magnetic moment $\vec{\mu} = -\gamma\vec{S}$ with $\gamma = g_e(e/2m_e)$. The Dirac equation predicts $g_e = 2$ exactly. The measured value is
+$$g_e \approx 2.00232.$$
+The deviation $a_e = (g_e - 2)/2 \approx 0.00116$ is not a failure of Dirac. It is the QED radiative correction from virtual photons dressing the bare electron — the leading term is $a_e \approx \alpha/(2\pi)$, where $\alpha \approx 1/137$ is the fine-structure constant. The agreement between QED theory and experiment extends to 13 significant figures, making it one of the most precisely tested predictions in all of physics. The deviation is a feature, not a bug.
+The relevant lesson here is smaller: when we write $\hat{H} = \gamma B_0\hat{S}_z$, we use the experimental $\gamma$, which includes the anomalous correction. For most of what follows in the course, this distinction does not matter. But it is worth knowing that "spin" already pointed beyond Dirac before Dirac had finished writing the paper.
 
-You should read these as "spin-up along $z$" and "spin-down along $z$." Up to an overall phase, the general spin state is
+<!-- → [INFOGRAPHIC: conceptual diagram showing the layered structure of the electron g-factor — three horizontal bands labeled "Classical expectation: g = 1 (orbital analogy)", "Dirac equation prediction: g = 2 (relativistic QM)", "QED correction: g ≈ 2.00232 (virtual photon loops)"; each band has a brief annotation: the Dirac result as the baseline, the deviation a_e = (g−2)/2 ≈ α/(2π) with a small Feynman diagram icon of a vertex correction; caption: "The anomalous magnetic moment a_e is not an error. It is a precision test: QED and experiment agree to 13 significant figures"] -->
 
-$$ |\psi\rangle = \alpha |\!\uparrow\rangle + \beta |\!\downarrow\rangle, \qquad |\alpha|^2 + |\beta|^2 = 1. $$
+## What you now have
+The 1922 experiment found two spots because silver has one unpaired spin-1/2 electron, and that electron lives in a two-dimensional complex Hilbert space. The formalism built in this chapter — the Pauli matrices, the half-angle eigenstates, the Bloch sphere, the Larmor precession, the Born-rule formula $P(+) = \cos^2(\gamma/2)$ — is the complete machinery for any spin-1/2 system. The same machinery governs the NMR resonances used in MRI, the qubit states used in quantum computers, and the photon polarization states used in quantum cryptography. The chapter is not about a specialized subject. It is about the simplest non-trivial quantum system, and that system is everywhere.
+The deeper question — why nature puts each fundamental particle into either the bosonic or fermionic family, with integer or half-integer spin respectively — is the spin-statistics theorem. Its proof requires relativistic quantum field theory. Accept it as a fact for now: half-integer spin means fermions, integer spin means bosons. Chapter 8 will use this when it counts the states available to electrons in an atom.
 
-Two complex numbers, minus one normalization, minus one global phase: two real parameters. That is the dimension of a sphere.
+## Exercises
 
-### 2.2 The Pauli matrices
+### Warm-up
 
-The spin operators are $\hat{S}_i = (\hbar/2) \sigma_i$ where $\sigma_x, \sigma_y, \sigma_z$ are the three **Pauli matrices**. Write them out — every later identity in this chapter depends on them:
+**6.1** Write down the three Pauli matrices from memory. Verify, by direct matrix multiplication, that (a) $\sigma_x^2 = I$; (b) $\sigma_x\sigma_y = i\sigma_z$; (c) $\sigma_x\sigma_y + \sigma_y\sigma_x = 0$. State which of these verifies the anticommutation relation and which verifies the commutation relation. *(Tests: can reproduce the Pauli matrices and execute the four algebraic facts by direct computation)*
 
-$$ \sigma_x = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}, \qquad \sigma_y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}, \qquad \sigma_z = \begin{pmatrix} 1 & 0 \\ 0 & -1 \end{pmatrix}. $$
+**6.2** The chapter refutes the spinning-ball picture by calculating the required equatorial speed. Redo the calculation for a proton ($m_p = 1.673 \times 10^{-27}$ kg) with spin $\hbar/2$ and radius equal to the measured proton charge radius $r_p \approx 0.85 \times 10^{-15}$ m. Use $I = \frac{2}{5}m_p r_p^2$. Express the result as a multiple of $c$ and compare to the electron case. What does the comparison tell you about whether the argument is specific to the electron? *(Tests: can execute the angular-momentum estimate for a different particle; can generalize the refutation)*
 
-Four facts about these matrices, all checkable by direct multiplication. Get a piece of paper and verify each one before moving on; it pays off later.
+**6.3** For the state $|\hat{x},+\rangle = (|\!\uparrow\rangle + |\!\downarrow\rangle)/\sqrt{2}$, compute: (a) the probability of measuring $\hat{S}_z = +\hbar/2$; (b) $\langle\hat{S}_z\rangle$; (c) $\langle\hat{S}_z^2\rangle$; (d) $\Delta S_z = \sqrt{\langle\hat{S}_z^2\rangle - \langle\hat{S}_z\rangle^2}$. Verify that $\Delta S_z = \hbar/2$ — maximal uncertainty. *(Tests: can apply the Born rule and compute expectation values in a two-state system; understands what maximal uncertainty means)*
 
-**Fact 1: $\sigma_i^2 = I$ for each $i$.** Compute, for instance,
+### Application
 
-$$ \sigma_x^2 = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}\begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix} = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} = I. $$
+**6.4** A spin is prepared in the state $|\psi\rangle = \cos(\pi/8)|\!\uparrow\rangle + \sin(\pi/8)|\!\downarrow\rangle$ (real coefficients, $\phi = 0$, $\theta = \pi/4$). The analyzer is set along $\hat{n} = (\sin(\pi/3)\cos(\pi/6),\, \sin(\pi/3)\sin(\pi/6),\, \cos(\pi/3))$. (a) Compute $\cos\gamma$ using the Bloch-sphere formula. (b) Compute $P(+) = \cos^2(\gamma/2)$. (c) Verify $P(+) + P(-) = 1$. *(Tests: can apply the Born-rule formula $P(+) = \cos^2(\gamma/2)$ with a general analyzer; can use the dot-product formula for $\cos\gamma$)*
 
-**Fact 2: $\mathrm{Tr}(\sigma_i) = 0$.** Read off the diagonal entries: $0+0$, $0+0$, $1+(-1) = 0$.
+**6.5** A proton is placed in a field $\vec{B} = 1.5\,\hat{z}$ T. The initial spin state is $|\psi(0)\rangle = (|\!\uparrow\rangle + |\!\downarrow\rangle)/\sqrt{2}$ (Bloch angles $\theta_0 = \pi/2$, $\phi_0 = 0$). (a) Write down $|\psi(t)\rangle$ using the Larmor time-evolution operator. (b) Compute $\langle\hat{S}_x\rangle(t)$, $\langle\hat{S}_y\rangle(t)$, $\langle\hat{S}_z\rangle(t)$. (c) What is the Larmor frequency in MHz? (d) What is the precession period in nanoseconds? *(Tests: can apply the diagonal time-evolution operator; connects the formula to a physically meaningful number)*
 
-**Fact 3: Anticommutation.** $\{\sigma_i, \sigma_j\} = \sigma_i \sigma_j + \sigma_j \sigma_i = 2 \delta_{ij} I$. For $i = j$ this is just Fact 1 doubled. For $i \neq j$, you can check $\sigma_x \sigma_y + \sigma_y \sigma_x = 0$:
+**6.6** Work through the sequential Stern–Gerlach calculation explicitly: (a) Start with $|\!\uparrow\rangle$. Express it in the $\sigma_x$ eigenbasis $\{|\hat{x},+\rangle, |\hat{x},-\rangle\}$ and state the Born-rule probabilities. (b) After selecting $|\hat{x},+\rangle$, express it in the $\sigma_z$ eigenbasis and state the Born-rule probabilities. (c) State the classical hidden-variable prediction for step (b), and identify which result — the QM prediction or the classical prediction — agrees with experiment. *(Tests: can carry out a two-stage basis change; can articulate the contrast between the QM prediction and the hidden-variable prediction)*
 
-$$ \sigma_x \sigma_y = \begin{pmatrix} i & 0 \\ 0 & -i \end{pmatrix}, \qquad \sigma_y \sigma_x = \begin{pmatrix} -i & 0 \\ 0 & i \end{pmatrix}, $$
+**6.7** Derive the eigenvalues of $\hat{S}_{\hat{n}} = (\hbar/2)\hat{n}\cdot\vec{\sigma}$ for a general unit vector $\hat{n}$, starting from the explicit $2\times 2$ matrix. Confirm the eigenvalues are $\pm\hbar/2$ regardless of $\hat{n}$. State in one sentence why this mathematical fact is the direct formal explanation of "two spots for any axis." *(Tests: can compute eigenvalues of a general $2\times 2$ Hermitian matrix; can connect the formal result to the experimental observation)*
 
-sum to zero. Different Pauli matrices anticommute.
+### Synthesis
 
-**Fact 4: Commutation.** $[\sigma_i, \sigma_j] = 2i \epsilon_{ijk} \sigma_k$. From the calculation above, $\sigma_x \sigma_y - \sigma_y \sigma_x = 2i \sigma_z$. Equivalently, $[\hat{S}_i, \hat{S}_j] = i\hbar \epsilon_{ijk} \hat{S}_k$ — the same angular-momentum algebra you derived for orbital $\hat{L}$ in Chapter 5.
+**6.8** The Robertson uncertainty principle (Chapter 4) applied to $\hat{A} = \hat{S}_x$ and $\hat{B} = \hat{S}_z$ gives $\sigma_{S_x}\sigma_{S_z} \geq \frac{1}{2}|\langle[\hat{S}_x, \hat{S}_z]\rangle|$. (a) Compute the commutator $[\hat{S}_x, \hat{S}_z]$ using the Pauli algebra. (b) For the state $|\hat{x},+\rangle$, evaluate both sides of the inequality. (c) Is the bound saturated? Find a state on the Bloch sphere that saturates it, and describe it geometrically. *(Tests: can apply Robertson to spin operators; connects spin algebra to the general uncertainty structure from Chapter 4)*
 
-Combine Facts 3 and 4: $\sigma_i \sigma_j = \delta_{ij} I + i \epsilon_{ijk} \sigma_k$. This single identity is the multiplication table for the Pauli algebra, and it shows up everywhere — in QED Feynman rules, in NMR pulse sequences, in qubit gates. Memorize it.
+**6.9** The spinor double-cover property says a $2\pi$ rotation of the analyzer acquires an overall phase of $-1$ in the eigenstate, which is observable in interference but not in single-component probability. (a) Show explicitly: in $|\hat{n},+\rangle = \cos(\theta/2)|\!\uparrow\rangle + e^{i\phi}\sin(\theta/2)|\!\downarrow\rangle$, setting $\theta \to \theta + 2\pi$ sends the state to $-|\hat{n},+\rangle$. (b) Show that $P(+)$ computed from $|\hat{n},+\rangle$ and from $-|\hat{n},+\rangle$ is the same. (c) Describe an experiment (in words) that would in principle distinguish $|\hat{n},+\rangle$ from $-|\hat{n},+\rangle$. Why does such an experiment require interference? *(Tests: can execute the half-angle arithmetic; understands the distinction between global phase (unobservable) and relative phase (observable via interference))*
 
-The Pauli matrices are not arbitrary. They are forced by four requirements: (a) Hermitian (so the eigenvalues are real); (b) traceless (so the eigenvalues are $\pm \hbar/2$, summing to zero); (c) squaring to $I$ (so $\hat{S}_i^2 = (\hbar/2)^2 I$); (d) satisfying the angular-momentum commutator. Up to a unitary change of basis, no other $2 \times 2$ matrices do all four. Together they generate $SU(2)$, the group of $2 \times 2$ unitary matrices with determinant 1 — the natural rotation group for objects living in $\mathbb{C}^2$.
+### Challenge
 
-### 2.3 Spin is not rotation — the numerical takedown
+**6.10** The g-factor of the electron is $g_e \approx 2.00232$. The leading QED correction is $a_e = (g_e - 2)/2 \approx \alpha/(2\pi)$, where $\alpha \approx 1/137$. (a) Compute $\alpha/(2\pi)$ and compare to the measured $a_e \approx 0.00116$. How good is the leading-order estimate? (b) The Hamiltonian $\hat{H} = \gamma\hat{S}_z B_0$ uses the experimental $\gamma = g_e(e/2m_e)$, not the Dirac-theory value $g = 2$. Compute the fractional error in the predicted Larmor frequency if you used $g = 2$ instead of $g_e = 2.00232$ for an electron in a 1 T field. Is this error detectable in a typical laboratory ESR experiment? (c) The fractional precision of the best measurements of $a_e$ is about one part in $10^{12}$. State what physical quantity would have to be measured to this precision, and explain briefly why this makes $a_e$ one of the most precisely tested predictions in physics. *(Tests: can evaluate a perturbative correction numerically; can connect the anomalous g-factor to a measurable frequency difference; understands orders-of-magnitude precision in fundamental physics)*
 
-Many students arrive with the picture that an electron is a tiny ball physically rotating on its axis, and "spin" is the angular momentum of that rotation. Kill this picture now, with a number, not a hand-wave. We will compute the equatorial speed required if it were true, and find it embarrassing.
+## LLM Exercise — Building the Stern–Gerlach Simulator
 
-Give the electron the most generous size you can — the *classical electron radius*
+The chapter's deliverable is `06-stern-gerlach.html`: a three-panel interactive simulation where you drag a state on the Bloch sphere, drag an analyzer axis, watch the beam split with the correct $\cos^2(\gamma/2)$ probabilities, and turn on a magnetic field to watch Larmor precession in real time.
 
-$$ r_e = \frac{e^2}{4\pi\epsilon_0 m_e c^2} \approx 2.82 \times 10^{-15} \text{ m}, $$
+### Part 1 — CLAUDE.md extension
 
-defined by setting the electrostatic self-energy equal to $m_e c^2$. (Modern experimental bounds place the actual electron size below $10^{-18}$ m, but we want the most generous possible radius, since a smaller radius makes the picture fail worse.)
-
-Demand angular momentum $\hbar/2$. The moment of inertia of a uniform solid sphere is $I = \frac{2}{5} m_e r_e^2$, and $L = I \omega$, so the equatorial speed is $v = \omega r_e = L r_e / I = 5 \hbar / (4 m_e r_e)$:
-
-$$ v = \frac{5 \times 1.055 \times 10^{-34} \text{ J s}}{4 \times 9.11 \times 10^{-31} \text{ kg} \times 2.82 \times 10^{-15} \text{ m}} \approx 5.1 \times 10^{10} \text{ m/s}. $$
-
-The speed of light is $c \approx 3.0 \times 10^8$ m/s. The required equatorial speed is roughly $170 c$. The picture is not wrong by a few percent; it is wrong by more than two orders of magnitude.
-
-Give the electron a smaller radius (truer to experiment) and the speed gets worse. Give it a larger radius and the required angular momentum drops, but you have to argue the electron is bigger than $10^{-15}$ m — which experiment forbids. There is no escape inside the "spinning ball" picture.
-
-So what *is* spin? An internal degree of freedom that transforms as a representation of $SU(2)$ under rotations. It is not a description of any motion in space. It is a label the electron carries — a label that takes two values when you measure it, that obeys the same operator algebra as orbital angular momentum (so it deserves the name "angular momentum" in the operator-algebra sense), and that has no classical analog whatsoever. Paul Dirac (1928, *Proceedings of the Royal Society A* 117, 610 [verify]) derived spin-1/2 from the requirement that the wave equation be Lorentz-invariant and first-order in time. Spin falls out of relativity plus quantum mechanics; you do not put it in by hand.
-
-You will sometimes hear "spin is intrinsic angular momentum." That is true but vacuous unless you say what *intrinsic* means. Intrinsic means: the algebra is angular momentum, the carrier is a representation of $SU(2)$, and the underlying degree of freedom does not correspond to any motion in physical space.
-
----
-
-## 3. The Bloch sphere — the chapter's deep dive
-
-### 3.1 Spin along an arbitrary direction
-
-Pick a unit vector $\hat{n} = (\sin\theta \cos\phi, \sin\theta \sin\phi, \cos\theta)$. The spin operator along $\hat{n}$ is
-
-$$ \hat{S}_{\hat{n}} = \frac{\hbar}{2} \hat{n}\cdot\vec{\sigma} = \frac{\hbar}{2}(n_x \sigma_x + n_y \sigma_y + n_z \sigma_z). $$
-
-Substituting the Pauli matrices and the components of $\hat{n}$:
-
-$$ \hat{n}\cdot\vec{\sigma} = \begin{pmatrix} \cos\theta & \sin\theta \, e^{-i\phi} \\ \sin\theta \, e^{i\phi} & -\cos\theta \end{pmatrix}. $$
-
-Two questions. What are the eigenvalues? What are the eigenvectors?
-
-**Eigenvalues.** The determinant is $-\cos^2\theta - \sin^2\theta = -1$, and the trace is $0$. The characteristic polynomial is $\lambda^2 - 1 = 0$, giving $\lambda = \pm 1$. The eigenvalues of $\hat{S}_{\hat{n}} = (\hbar/2) \hat{n}\cdot\vec{\sigma}$ are therefore $\pm \hbar/2$. This is the formal statement of "always two spots, any axis you point."
-
-**Eigenvectors.** Solve $(\hat{n}\cdot\vec{\sigma}) |\hat{n}, +\rangle = +|\hat{n}, +\rangle$:
-
-$$ \begin{pmatrix} \cos\theta - 1 & \sin\theta \, e^{-i\phi} \\ \sin\theta \, e^{i\phi} & -\cos\theta - 1 \end{pmatrix} \begin{pmatrix} a \\ b \end{pmatrix} = 0. $$
-
-Use the half-angle identities $1 - \cos\theta = 2\sin^2(\theta/2)$ and $\sin\theta = 2\sin(\theta/2)\cos(\theta/2)$. The top row gives
-
-$$ -2\sin^2(\theta/2) \, a + 2\sin(\theta/2)\cos(\theta/2) e^{-i\phi} \, b = 0, $$
-
-so $a/b = \cos(\theta/2)/(\sin(\theta/2) e^{i\phi}) \cdot e^{i\phi}/e^{i\phi}$, cleaning up to $a = \cos(\theta/2)$ and $b = e^{i\phi} \sin(\theta/2)$ (after fixing the overall phase). The normalized eigenstate is
-
-$$ \boxed{ |\hat{n}, +\rangle = \cos(\theta/2) |\!\uparrow\rangle + e^{i\phi} \sin(\theta/2) |\!\downarrow\rangle. } $$
-
-The orthogonal "minus" eigenstate is
-
-$$ |\hat{n}, -\rangle = \sin(\theta/2) |\!\uparrow\rangle - e^{i\phi} \cos(\theta/2) |\!\downarrow\rangle. $$
-
-Stop and look at the half-angle. A state pointing along $+\hat{x}$ corresponds to $\theta = \pi/2, \phi = 0$, so $|\hat{x}, +\rangle = \frac{1}{\sqrt{2}}(|\!\uparrow\rangle + |\!\downarrow\rangle)$. Equal weights on $|\!\uparrow\rangle$ and $|\!\downarrow\rangle$ — which is right, because a spin pointing along $+\hat{x}$ should give 50/50 outcomes when measured along $\hat{z}$. A state pointing along $-\hat{z}$ corresponds to $\theta = \pi$, so $|\hat{z}, -\rangle = e^{i\phi}\sin(\pi/2) |\!\downarrow\rangle = e^{i\phi} |\!\downarrow\rangle$ — equal to $|\!\downarrow\rangle$ up to an overall phase, as it should.
-
-The deeper consequence of the half-angle: rotating the analyzer by $2\pi$ (a full turn in physical space) sends $\theta \to \theta + 2\pi$, which sends $\cos(\theta/2) \to -\cos(\theta/2)$ and $\sin(\theta/2) \to -\sin(\theta/2)$. The spin state acquires an overall minus sign. Only at $4\pi$ — a full turn twice — does the state return to itself. This is the famous "spinors transform under the double cover $SU(2)$ of $SO(3)$" property. You can demonstrate it physically in tabletop experiments (the "Dirac belt trick") but for now keep it as a fact: spin states are not vectors in space; they are objects in $\mathbb{C}^2$ that transform under $SU(2)$.
-
-### 3.2 The Bloch sphere
-
-The parameterization $(\theta, \phi)$ makes the spin state a point on a unit sphere — the **Bloch sphere**:
-
-- North pole ($\theta = 0$): $|\!\uparrow\rangle$.
-- South pole ($\theta = \pi$): $|\!\downarrow\rangle$.
-- Equator ($\theta = \pi/2$): equal superposition $\frac{1}{\sqrt{2}}(|\!\uparrow\rangle + e^{i\phi} |\!\downarrow\rangle)$, where $\phi$ runs around the equator.
-
-Every two-state quantum system — a spin-1/2 particle, a two-level atom, a single qubit — has its state space the Bloch sphere. This is the picture that connects Chapter 6 to the modern applications in Chapter 13.
-
-### 3.3 The Born rule on the Bloch sphere
-
-Suppose a system is prepared in state $|\psi\rangle$ at Bloch angles $(\theta_\psi, \phi_\psi)$, and you measure $\hat{S}_{\hat{n}}$ along an analyzer axis $\hat{n}$ at Bloch angles $(\theta_n, \phi_n)$. The Born rule gives the probability of outcome $+\hbar/2$:
-
-$$ P(+) = |\langle \hat{n}, + | \psi \rangle|^2. $$
-
-Compute the inner product:
-
-$$ \langle \hat{n}, + | \psi\rangle = \cos(\theta_n/2)\cos(\theta_\psi/2) + e^{i(\phi_\psi - \phi_n)} \sin(\theta_n/2)\sin(\theta_\psi/2). $$
-
-Take the modulus squared and use the identity $\cos^2(\gamma/2) = (1 + \cos\gamma)/2$, where $\gamma$ is the angle on the Bloch sphere between the state vector and the analyzer axis:
-
-$$ \cos\gamma = \cos\theta_\psi \cos\theta_n + \sin\theta_\psi \sin\theta_n \cos(\phi_\psi - \phi_n). $$
-
-The probability collapses to
-
-$$ \boxed{ P(+) = \cos^2(\gamma/2) }, \qquad P(-) = \sin^2(\gamma/2). $$
-
-This is the formula the simulation in §9 animates. Three sanity checks:
-
-- $\gamma = 0$ (analyzer aligned with state): $P(+) = 1$, $P(-) = 0$. Definite outcome.
-- $\gamma = \pi$ (anti-aligned): $P(+) = 0$, $P(-) = 1$. Definite, opposite.
-- $\gamma = \pi/2$ (perpendicular): $P(+) = P(-) = 1/2$. Maximally uncertain.
-
-Three numbers from one formula, all matching what an experimentalist would call common sense — and all derived, not asserted.
-
----
-
-## 4. Larmor precession — spin in a magnetic field
-
-### 4.1 The Hamiltonian
-
-The magnetic moment of an electron is $\vec{\mu} = -\gamma \vec{S}$, where $\gamma = g_e (e / 2 m_e)$ is the gyromagnetic ratio and $g_e \approx 2.00232$ is the electron g-factor. (The deviation of $g_e$ from 2 is the famous $(g-2)$ anomaly — Dirac theory predicts $g = 2$ exactly, and QED radiative corrections account for the deviation. The agreement between theory and experiment, currently at parts in $10^{13}$, is one of the most precise tests of any physical theory; see Fan, Myers, Sukra, and Gabrielse 2023, *Physical Review Letters* 130, 071801 [verify].)
-
-The Hamiltonian for a spin in a uniform field $\vec{B} = B_0 \hat{z}$ is
-
-$$ \hat{H} = -\vec{\mu}\cdot\vec{B} = \gamma B_0 \hat{S}_z = \frac{\gamma B_0 \hbar}{2} \sigma_z. $$
-
-This is diagonal in the $\hat{S}_z$ basis with eigenvalues $\pm (\hbar \omega_L / 2)$, where the **Larmor frequency** is
-
-$$ \boxed{ \omega_L = \gamma B_0. } $$
-
-### 4.2 Time evolution
-
-The time-evolution operator is $\hat{U}(t) = e^{-i\hat{H}t/\hbar}$. In the $\hat{S}_z$ basis, $\hat{H}$ is diagonal, so
-
-$$ \hat{U}(t) = \begin{pmatrix} e^{-i\omega_L t/2} & 0 \\ 0 & e^{+i\omega_L t/2} \end{pmatrix}. $$
-
-Take an initial state on the Bloch sphere at angle $\theta_0$ and azimuth $\phi_0 = 0$: $|\psi(0)\rangle = \cos(\theta_0/2)|\!\uparrow\rangle + \sin(\theta_0/2)|\!\downarrow\rangle$. Apply $\hat{U}(t)$:
-
-$$ |\psi(t)\rangle = e^{-i\omega_L t/2}\cos(\theta_0/2)|\!\uparrow\rangle + e^{+i\omega_L t/2}\sin(\theta_0/2)|\!\downarrow\rangle. $$
-
-Factor out the overall phase $e^{-i\omega_L t/2}$ (it has no physical consequence):
-
-$$ |\psi(t)\rangle = \cos(\theta_0/2)|\!\uparrow\rangle + e^{+i\omega_L t}\sin(\theta_0/2)|\!\downarrow\rangle. $$
-
-The polar angle stays fixed at $\theta_0$. The azimuth advances linearly: $\phi(t) = \omega_L t$. The Bloch vector rotates around $\hat{z}$ at angular frequency $\omega_L$.
-
-### 4.3 Expectation values
-
-Compute the expectation values of the spin components in the time-evolved state. The matrix elements of $\sigma_x, \sigma_y$ between $|\!\uparrow\rangle$ and $|\!\downarrow\rangle$ are off-diagonal; carrying out the calculation:
-
-$$ \langle \hat{S}_x \rangle(t) = (\hbar/2)\sin\theta_0 \cos(\omega_L t), $$
-$$ \langle \hat{S}_y \rangle(t) = (\hbar/2)\sin\theta_0 \sin(\omega_L t), $$
-$$ \langle \hat{S}_z \rangle(t) = (\hbar/2)\cos\theta_0. $$
-
-The vector $(\langle \hat{S}_x \rangle, \langle \hat{S}_y \rangle, \langle \hat{S}_z \rangle)$ has constant magnitude $\hbar/2$ and rotates in the $xy$-plane at frequency $\omega_L$. This is Larmor precession — the same equation you would write for a classical magnetic moment in a field. The expectation values precess classically; the underlying state, of course, is a quantum superposition that is not "the spin pointing in a definite direction." What rotates is the probability distribution over measurement outcomes.
-
-### 4.4 The numbers
-
-Real numbers turn the formula into instruments.
-
-- **Proton in 1 T:** $\gamma_p / (2\pi) \approx 42.58$ MHz/T [verify CODATA]. Larmor period $T = 1/(42.58 \text{ MHz}) \approx 23.5$ ns. This is the resonance frequency exploited in nuclear magnetic resonance.
-- **Clinical MRI at 1.5 T:** $f_L = 42.58 \times 1.5 \approx 63.87$ MHz [verify]. Every MRI scanner is tuned to this frequency for hydrogen — the protons in your body's water.
-- **Electron in 1 mT:** $\gamma_e / (2\pi) \approx 28.025$ GHz/T [verify]. Larmor period $\approx 35.7$ ns. Electron spin resonance lives in the microwave regime.
-
-These are not decoration. They are why magnetic resonance technology exists.
-
----
-
-## 5. The sequential Stern–Gerlach experiment
-
-Prepare a beam of silver atoms and send it through an $SG_z$ apparatus. Block the lower output. The surviving beam is in the state $|\!\uparrow\rangle = |\hat{z}, +\rangle$.
-
-Now send that beam through an $SG_x$ apparatus. Express $|\!\uparrow\rangle$ in the $\hat{S}_x$ basis. The eigenstates of $\sigma_x$ are
-
-$$ |\hat{x}, +\rangle = \frac{1}{\sqrt{2}}(|\!\uparrow\rangle + |\!\downarrow\rangle), \qquad |\hat{x}, -\rangle = \frac{1}{\sqrt{2}}(|\!\uparrow\rangle - |\!\downarrow\rangle). $$
-
-Invert:
-
-$$ |\!\uparrow\rangle = \frac{1}{\sqrt{2}}(|\hat{x}, +\rangle + |\hat{x}, -\rangle). $$
-
-By the Born rule, $P(\hat{x}, +) = P(\hat{x}, -) = 1/2$. The beam splits 50/50 at $SG_x$.
-
-Block the $|\hat{x}, -\rangle$ output. The surviving beam is in $|\hat{x}, +\rangle$. Now send *that* through a third apparatus, $SG_z$ again. Invert the relation:
-
-$$ |\hat{x}, +\rangle = \frac{1}{\sqrt{2}}(|\!\uparrow\rangle + |\!\downarrow\rangle). $$
-
-So $P(\hat{z}, +) = P(\hat{z}, -) = 1/2$. The beam splits 50/50 at the third stage — even though we started with a beam that was definitively $|\!\uparrow\rangle$ and never measured $\hat{S}_z$ directly between the two $SG_z$ stages.
-
-The intermediate $SG_x$ measurement "destroyed" the $\hat{S}_z$ information. Here is the lazy way to describe it — "the $SG_x$ device kicked the atom around" — and here is why that description is wrong.
-
-The operators $\hat{S}_x$ and $\hat{S}_z$ do not commute: $[\hat{S}_x, \hat{S}_z] = -i\hbar \hat{S}_y \neq 0$. No state can be a simultaneous eigenstate of both. After $SG_x$, the atom is in $|\hat{x}, +\rangle$, which is a superposition in the $\hat{z}$ basis — there is no "true" $\hat{S}_z$ value being disturbed by clumsy measurement. There is simply no definite $\hat{S}_z$ value to disturb. The 50/50 outcome at the third $SG_z$ is not a measurement artifact; it is the Born rule applied to a state that is not a $\hat{z}$ eigenstate.
-
-This is the moment where students must let go of an implicit classical picture. A naïve "hidden-variable" model would say: each silver atom carries pre-existing values of $\mu_x, \mu_y, \mu_z$, and the analyzers sort by those labels. Such a model could explain the two-spot pattern at any single $SG$ axis. But it would predict that if you sort atoms to have $\mu_z = +\mu_B$ at $SG_1$ and $\mu_x = +\mu_B$ at $SG_2$, the third stage at $SG_z$ should re-find $\mu_z = +\mu_B$ with probability 1 — the labels are stable. Experiment says 50/50. Pre-existing definite labels for non-commuting observables are not consistent with the data.
-
-(Bell-type arguments tighten this: *any* local hidden-variable theory consistent with all measurement outcomes can be ruled out, not just the simplest one. That machinery belongs to Ch. 13.)
-
----
-
-## 6. Worked example — measuring $\hat{S}_z$ on a state prepared along $\hat{x}$
-
-Take a state prepared in the $\hat{S}_x = +\hbar/2$ eigenstate: $|\psi\rangle = |\hat{x}, +\rangle = \frac{1}{\sqrt{2}}(|\!\uparrow\rangle + |\!\downarrow\rangle)$.
-
-**Question 1:** What is $\langle \hat{S}_z \rangle$?
-
-Using $\hat{S}_z = (\hbar/2)\sigma_z$, $\hat{S}_z |\!\uparrow\rangle = +(\hbar/2)|\!\uparrow\rangle$, $\hat{S}_z |\!\downarrow\rangle = -(\hbar/2)|\!\downarrow\rangle$:
-
-$$ \hat{S}_z |\psi\rangle = \frac{\hbar}{2}\frac{1}{\sqrt{2}}(|\!\uparrow\rangle - |\!\downarrow\rangle). $$
-
-$$ \langle\psi|\hat{S}_z|\psi\rangle = \frac{\hbar}{2}\cdot\frac{1}{2}(1 - 1) = 0. $$
-
-The expectation value is zero — as it must be, by symmetry, for a state pointing along $\hat{x}$.
-
-**Question 2:** What is the probability of measuring $\hat{S}_z = +\hbar/2$?
-
-$P(+) = |\langle\!\uparrow|\psi\rangle|^2 = |1/\sqrt{2}|^2 = 1/2$. Half. Same for $P(-)$.
-
-**Question 3:** What is the uncertainty $\Delta S_z = \sqrt{\langle \hat{S}_z^2 \rangle - \langle \hat{S}_z \rangle^2}$?
-
-$\hat{S}_z^2 = (\hbar/2)^2 I$ (since $\sigma_z^2 = I$), so $\langle \hat{S}_z^2 \rangle = (\hbar/2)^2$ for any state. With $\langle \hat{S}_z\rangle = 0$, $\Delta S_z = \hbar/2$ — maximal. A state with definite $\hat{S}_x$ has maximally uncertain $\hat{S}_z$. This is the spin-version of the position-momentum uncertainty principle, and it follows from the same commutator structure.
-
----
-
-## 7. Three misconceptions worth confronting
-
-**Misconception 1: "Spin is the particle spinning on its axis."** Killed by the equator-speed-greater-than-$c$ calculation in §2.3. The picture is wrong by orders of magnitude, not by a small approximation. Spin is an internal degree of freedom that transforms as a representation of $SU(2)$ — full stop.
-
-**Misconception 2: "Measuring one component of spin disturbs the others by the action of the measuring device."** Tempting language; wrong physics. The disturbance reading imports a classical picture where the system "had" a value all along. The cleaner statement: non-commuting observables cannot have simultaneous definite values. Measuring $\hat{S}_x$ projects the state into an $\hat{S}_x$ eigenstate; that state is a superposition in the $\hat{S}_z$ basis; a subsequent $\hat{S}_z$ measurement is probabilistic. No disturbance is needed — the previous state simply did not have a definite $\hat{S}_z$ to disturb.
-
-**Misconception 3: "The electron g-factor is exactly 2, and the Dirac equation predicts this."** Half right. Dirac's equation predicts $g = 2$ exactly at tree level. Experiment finds $g_e \approx 2.00232$. The deviation, $a_e = (g-2)/2 \approx 0.00116$, is *not* a problem with Dirac — it is the QED radiative correction from virtual photons dressing the bare electron. The agreement between QED theory and experiment for $a_e$ extends to 13 significant figures [verify]. The deviation is a feature, not a bug.
-
----
-
-## 8. Synthesis — what you can now do
-
-Spin is the chapter where quantum mechanics stops imitating classical intuition and walks somewhere new. You now have:
-
-- A two-dimensional complex Hilbert space whose unit vectors are spin states.
-- Three Hermitian operators (the Pauli matrices, scaled by $\hbar/2$) representing components of spin along orthogonal axes.
-- A way to specify spin along any direction $\hat{n}$ — the half-angle parameterization $|\hat{n}, +\rangle = \cos(\theta/2)|\!\uparrow\rangle + e^{i\phi}\sin(\theta/2)|\!\downarrow\rangle$ — and a geometric picture of the state space (the Bloch sphere).
-- A Born-rule formula for measurement outcome probabilities along any analyzer axis: $P(+) = \cos^2(\gamma/2)$, where $\gamma$ is the angle between the state and the analyzer on the Bloch sphere.
-- A solution of the time-dependent Schrödinger equation for a spin in a uniform field: Larmor precession at $\omega_L = \gamma B$.
-- An honest account of why sequential Stern–Gerlach measurements give the outcomes they do, with the "measurement disturbance" framing replaced by the structural fact that $[\hat{S}_x, \hat{S}_z] \neq 0$.
-
-The Stern–Gerlach pattern from 1922 is no longer a puzzle. The empirical fact — two spots, always, with angle-dependent probabilities — falls out of a two-state Hilbert space and the operator algebra. The deeper question — *why* nature put each fundamental particle into either the bosonic or fermionic family — is the spin-statistics theorem, which requires relativistic QFT to prove (Pauli 1940, *Physical Review* 58, 716 [verify]). For now, accept it: integer spin → bosons, half-integer → fermions. We will use this fact in Chapter 8.
-
-**Connection forward.** Chapter 7 will introduce spin as the fourth quantum number $m_s = \pm 1/2$ in the hydrogen atom. The factor of 2 in the $2n^2$ degeneracy and the entire electron count of the periodic table both depend on the two-state structure you just built.
-
----
-
-## 9. LLM Exercise — Building the Stern–Gerlach Simulator
-
-You are going to build a working interactive simulation that visualizes everything in this chapter: drag a state arrow on the Bloch sphere, drag an analyzer axis, watch the Stern–Gerlach beam split with correct probabilities, and turn on a magnetic field to see Larmor precession in real time.
-
-### 9.1 The CLAUDE.md prompt — extending the coding constitution
-
-Open your project's `CLAUDE.md` (from Chapter 0) and append this block:
+Open your project's CLAUDE.md and append this block:
 
 ```
 ## Chapter 6 — Stern–Gerlach Simulator Rules
@@ -331,99 +167,105 @@ Open your project's `CLAUDE.md` (from Chapter 0) and append this block:
 - All redraws go through a single redraw() function. No DOM mutation outside.
 ```
 
-### 9.2 The simulation prompt — four-move structure
-
-Paste the following into Claude:
+### Part 2 — The simulation prompt
 
 ```
 Build me a D3 v7 Stern–Gerlach simulator following CLAUDE.md.
 
-HOOK. Render the 1922 Stern–Gerlach experiment in one HTML page,
-but let the user rotate the analyzer.
-
-UNFOLD. The spin state is a unit vector on the Bloch sphere at
-(θ_ψ, φ_ψ). The analyzer is a unit vector at (θ_n, φ_n). The Born-rule
-probability of outcome +ℏ/2 is P(+) = cos²(γ/2), where
+SHOW.
+The spin state is a unit vector on the Bloch sphere at (θ_ψ, φ_ψ).
+The analyzer is a unit vector at (θ_n, φ_n). The Born-rule probability
+of outcome +ℏ/2 is P(+) = cos²(γ/2), where
 cos γ = cos θ_ψ cos θ_n + sin θ_ψ sin θ_n cos(φ_ψ − φ_n).
 
-MECHANISM. Three panels.
+SAY.
+Produce a single file 06-stern-gerlach.html with three panels.
   (1) Bloch sphere: isometric projection of latitude/longitude lines, with
-      two draggable arrows — one for the state |ψ⟩ (blue), one for the
-      analyzer axis n̂ (orange). Numeric readouts of (θ_ψ, φ_ψ) and (θ_n, φ_n).
-  (2) Stern–Gerlach apparatus: beam enters from the left, encounters the
-      magnet, splits into upper and lower trajectories. Stroke widths of
-      the two output beams are proportional to P(+) = cos²(γ/2) and
-      P(−) = sin²(γ/2). A bar chart at the right shows the same probabilities
-      numerically.
+      two draggable arrows — state |ψ⟩ in blue, analyzer n̂ in orange.
+      Numeric readouts of (θ_ψ, φ_ψ) and (θ_n, φ_n).
+  (2) Stern–Gerlach apparatus: beam enters from the left, splits into upper
+      and lower trajectories with stroke widths proportional to P(+) and P(−).
+      A bar chart at the right shows the probabilities numerically.
   (3) Larmor precession panel: when a B-field slider is nonzero, the state
-      arrow on the Bloch sphere precesses around ẑ at ω_L = γ · B₀, with
-      γ set by a particle dropdown (electron γ_e/2π = 28.025 GHz/T,
-      proton γ_p/2π = 42.58 MHz/T). A digital readout shows ω_L/(2π) in
-      Hz, kHz, MHz, or GHz as appropriate.
+      arrow precesses around ẑ at ω_L = γ · B₀, with γ set by a particle
+      dropdown (electron γ_e/2π = 28.025 GHz/T, proton γ_p/2π = 42.58 MHz/T).
+      Digital readout shows ω_L/(2π) in appropriate units.
 
-SYNTHESIZE. Add a "Sequential SG mode" toggle. When on, render a second
-SG apparatus downstream of the first. The user picks which branch from
-SG₁ survives (+ or −) and sets the SG₂ axis independently. Show
-conditional probabilities P(SG₂=+ | SG₁=+) and P(SG₂=− | SG₁=+).
+CONSTRAIN.
+- D3 v7 from CDN. SVG only. Vanilla JS.
+- Half-angle Born rule: P(+) = cos²(γ/2). Not cos²(γ). Verify at γ = π/2:
+  P(+) must be 0.5, not 0.
+- Add a "Sequential SG mode" toggle: a second SG apparatus downstream,
+  user picks which branch from SG₁ survives, sets SG₂ axis independently,
+  shows conditional probabilities P(SG₂=+ | SG₁=+) and P(SG₂=− | SG₁=+).
+- Larmor precession: closed-form phase advance φ(t) = φ₀ + ω_L · t, not
+  numerical integration. Verify ⟨S_z⟩ is constant during precession.
 
-Output a single self-contained HTML file. No external dependencies except
-the D3 v7 CDN. The file should be runnable by saving and double-clicking.
+VERIFY.
+Give me six checks:
+(a) State at north pole (|↑⟩), analyzer at north pole: P(+) = 1.00.
+(b) Same state, analyzer at south pole: P(+) = 0.00.
+(c) Same state, analyzer at equator (any φ_n): P(+) = 0.50.
+(d) For proton species at B₀ = 1 T, precession period = 1/(42.58 MHz) ≈ 23.5 ns.
+(e) During Larmor precession, θ_ψ stays constant (only φ_ψ advances).
+(f) P(+) + P(−) = 1.000 for every analyzer position.
+
+List known failure modes: half-angle dropped (check (c) catches it),
+wrong γ formula, Larmor units error (2π factor), wrong precession direction
+for electron vs. proton, θ drift during precession, probability normalization failure.
 ```
 
-### 9.3 Exploration tasks
+### Part 3 — Exploration tasks
 
-Once your simulation is working, do these in order. Each is a small experiment that builds your intuition.
+**Verify the antipode.** Set the state to the north pole ($|\!\uparrow\rangle$), analyzer to north pole. Read $P(+) = 1.00$. Rotate the analyzer to the south pole. Read $P(+) = 0.00$. Set the analyzer to $\theta_n = \pi/3$ and predict $P(+) = \cos^2(\pi/6) = 3/4$. Verify.
 
-1. **Verify the antipode.** Set the state to $\theta_\psi = 0$ (north pole, $|\!\uparrow\rangle$). Set the analyzer to $\theta_n = 0$. Read $P(+)$ — it should be $1.00$. Now rotate the analyzer to $\theta_n = \pi$. Read $P(+)$ — it should be $0.00$. The probability is continuous; rotate the analyzer to $\theta_n = \pi/3$ and predict $P(+) = \cos^2(\pi/6) = 3/4$. Check against the readout.
+**Verify the half-angle.** Set the state to the equator ($\theta_\psi = \pi/2$). For analyzer along $\hat{z}$ ($\theta_n = 0$), confirm $P(+) = 1/2$. Verify at three other analyzer angles. If any give $P(+) = 0$ at $\theta_n = \pi/2$, the half-angle is missing.
 
-2. **Verify the half-angle.** Set $\theta_\psi = \pi/2$ (the state lies on the equator). The Bloch-sphere half of the formula says this state is $(|\!\uparrow\rangle + |\!\downarrow\rangle)/\sqrt{2}$. Confirm by checking that for analyzer $\theta_n = 0$ (the $\hat{z}$-axis), $P(+) = 1/2$. Verify the prediction at three other angles.
+**Larmor period.** Set species to proton, $B_0 = 1$ T. Read the precession period and confirm it is $1/(42.58\ \text{MHz}) \approx 23.5$ ns. Set $B_0 = 0.5$ T and confirm the period doubles.
 
-3. **Larmor period.** Turn on the B-field. Set the particle species to "proton" and $B_0 = 1$ T. Read off the precession period from the on-screen timer. Confirm it equals $1/(42.58 \text{ MHz}) \approx 23.5$ ns. Now set $B_0 = 0.5$ T. Confirm the period doubles. Confirm $\omega_L \propto B$ by plotting period vs. $1/B$ for three field strengths.
+**The sequential SG headline.** Sequential SG mode. Initial state $|\!\uparrow\rangle$, $\mathrm{SG}_1$ along $\hat{z}$, keep the $+$ branch. Set $\mathrm{SG}_2$ along $\hat{x}$: confirm 50/50. Keep the $+$ branch of $\mathrm{SG}_2$. Set $\mathrm{SG}_3$ along $\hat{z}$: confirm 50/50 again. The atoms started definitely spin-up along $\hat{z}$ and ended randomly along $\hat{z}$.
 
-4. **The sequential SG headline.** Turn on Sequential SG mode. Prepare the initial state as $|\!\uparrow\rangle$. Set $SG_1$ along $\hat{z}$. Keep only the $+$ branch. Set $SG_2$ along $\hat{x}$ — confirm the $SG_2$ outcome is 50/50. Keep the $+$ branch of $SG_2$. Mentally chain a third (you can chain stages by re-using $SG_2$ along $\hat{z}$). Confirm the outcome is 50/50 — the original "definitely up along $\hat{z}$" state has been re-randomized by the intermediate $\hat{x}$ measurement.
+**The control.** Now run $\mathrm{SG}_z \to \mathrm{SG}_z$ (no intermediate $\hat{x}$ stage). Both stages aligned: confirm the second $\mathrm{SG}_z$ gives $P(+) = 1.00$. The contrast with task 4 is the signature of measurement incompatibility.
 
-5. **The misconception trap.** Predict, before running: if you remove the intermediate $SG_x$ (so you go $SG_z \to SG_z$ with both stages along $\hat{z}$), what do you expect at the second $SG_z$? Now configure the simulation to do this and verify. The contrast with task 4 is the empirical signature of measurement incompatibility.
+<!-- → [IMAGE: screenshot mockup of the completed 06-stern-gerlach.html simulator — three stacked panels visible: top panel shows a wireframe Bloch sphere with two colored arrows (blue state, orange analyzer); middle panel shows beam splitting into two trajectories of different thickness; bottom panel shows the Larmor precession cone; a right-side control panel shows B-field slider and particle dropdown; caption: "Target interface for the LLM exercise. Students should match this layout and verify the six checks before proceeding to the exploration tasks"] -->
 
-### 9.4 Extension prompt — Monte Carlo mode
-
-The simulation above shows continuous *probabilities*. A real Stern–Gerlach experiment fires one atom at a time, each going into one branch or the other. The $\cos^2(\gamma/2)$ law emerges as a frequency over many atoms. Add this layer:
+### Part 4 — Extension prompt: Monte Carlo mode
 
 ```
-Extend the Stern–Gerlach simulator to include a Monte Carlo mode.
+Extend 06-stern-gerlach.html to include a Monte Carlo mode.
 
-When the user clicks "Fire atom," generate a uniform random number u in [0, 1].
+When the user clicks "Fire atom," generate a uniform random u in [0, 1].
 If u < P(+), the atom goes up; else it goes down. Animate the atom traveling
-through the SG apparatus and landing on one of the two output collectors.
+through the apparatus and landing on one of the two output collectors.
 
-Maintain running tallies n_+ and n_- of the two outcomes. Display the
-empirical frequencies n_+ / (n_+ + n_-) and n_- / (n_+ + n_-) alongside
-the theoretical probabilities P(+) and P(-).
+Maintain running tallies n_+ and n_- of outcomes. Display the empirical
+frequencies n_+/(n_+ + n_-) and n_-/(n_+ + n_-) alongside the theoretical
+P(+) and P(-).
 
-Add a "Fire 1000" button that fires 1000 atoms in rapid succession (with
-shortened animation per atom) and shows the running frequencies converging
-toward the theoretical values. Plot a small histogram of the running
-deviation |empirical − theoretical| against atom number.
+Add a "Fire 1000" button that fires 1000 atoms in rapid succession and
+plots a histogram of the running deviation |empirical − theoretical| against
+atom count. The user should see the deviation shrink roughly as 1/√N.
+
+Do not regress the three existing panels.
 ```
 
-Run the extension. Watch the empirical frequencies wander before settling within a few percent of the theoretical value after ~100 atoms, and within fractions of a percent after ~1000. This is the empirical foundation of the Born rule: probabilities are predictions about frequencies in long runs of identically prepared systems, not about any single atom.
+When the empirical frequencies converge toward $\cos^2(\gamma/2)$ after a few hundred atoms, the Born rule is no longer a formula on a page. It is a frequency you watched build.
 
-### 9.5 Six failure modes to watch for
+### Part 5 — Six failure modes to check
 
-When your simulation misbehaves, the bug is usually in one of these places. Check them in order:
+When the simulation misbehaves, the bug is usually one of these six:
 
-1. **Half-angle dropped.** If $|\hat{x}, +\rangle$ comes out as $\cos(\pi/2)|\!\uparrow\rangle + \sin(\pi/2)|\!\downarrow\rangle = |\!\downarrow\rangle$, you forgot the half in $\cos(\theta/2)$. The state along $+\hat{x}$ should have *equal* weights, not all weight on $|\!\downarrow\rangle$.
-2. **$\gamma$ formula wrong.** Some students compute $\gamma$ as the angle between the state vector and analyzer in 3D space, but use the *full* angle in $\cos^2\gamma$ instead of $\cos^2(\gamma/2)$. Easy to spot: at $\gamma = \pi/2$ you'll get $P(+) = 0$ instead of $1/2$.
-3. **Larmor frequency in wrong units.** $\gamma_p/(2\pi) = 42.58$ MHz/T means $\omega_L = 2\pi \times 42.58 \times 10^6 \times B_0$ rad/s. If the precession looks $2\pi$ times too slow, you used $\gamma_p$ instead of $2\pi \gamma_p$ in the angular frequency.
-4. **Sign of the precession direction.** A positively charged proton's magnetic moment is along its spin; for an electron it is opposite. The two species precess in opposite senses for a given field. If both look the same in your simulation, check the sign of $\gamma$.
-5. **State drifts during animation.** If the polar angle $\theta_\psi$ wanders during Larmor precession, your time-evolution operator is wrong — only $\phi$ should advance. Verify $\langle \hat{S}_z \rangle$ is constant in time.
-6. **Probability normalization fails.** Check that $P(+) + P(-) = 1$ to within floating-point tolerance for every analyzer setting. If it's off by more than $10^{-9}$, you have an arithmetic bug.
+**Half-angle dropped.** If $|\hat{x},+\rangle$ comes out as $|\!\downarrow\rangle$ rather than $(|\!\uparrow\rangle + |\!\downarrow\rangle)/\sqrt{2}$, the $\theta/2$ factor is missing. At $\gamma = \pi/2$, $P(+)$ should be $1/2$, not $0$.
 
-When you can drag the state to any point on the Bloch sphere, rotate the analyzer freely, watch the beam widths update continuously, and toggle on Larmor precession to see the state drift around $\hat{z}$ — at that moment the formalism of this chapter is no longer in the page. It is on your screen, in your hands.
+**Wrong $\gamma$ formula.** Some students compute the angle between Bloch vectors correctly but then use $\cos^2\gamma$ instead of $\cos^2(\gamma/2)$. Easy to spot at $\gamma = \pi/2$.
 
----
+**Larmor units error.** $\gamma_p/(2\pi) = 42.58$ MHz/T, so $\omega_L = 2\pi \times 42.58 \times 10^6 \times B_0$ rad/s. Using $\gamma_p$ directly without the $2\pi$ makes the precession $2\pi$ times too slow.
 
-**What would change my mind:** a demonstration that some particle species in 3+1 dimensions does not fall cleanly into either the integer-spin/boson or half-integer-spin/fermion family, contradicting the spin-statistics theorem within experimental precision.
+**Wrong precession direction.** Electron and proton precess in opposite senses because $\gamma_e < 0$ (the magnetic moment is antiparallel to the spin). If both look the same, check the sign.
 
-**Still puzzling:** I can tell you what spin algebra does and how to compute every observable consequence; I cannot tell you, at the level of an undergraduate course, *why* the universe contains a $\mathbb{C}^2$ degree of freedom that transforms as a fundamental representation of $SU(2)$. The Dirac derivation answers this from "be Lorentz-invariant"; that answer pushes the question one layer deeper without dissolving it.
+**Polar angle drift.** During Larmor precession, only $\phi$ should advance; $\theta$ should stay fixed. If the Bloch arrow spirals inward, the time-evolution operator is wrong.
 
-**Tags:** spin-1/2, Pauli matrices, Stern–Gerlach experiment, Bloch sphere, Larmor precession, sequential measurement, $SU(2)$, quantum measurement, D3.js, Born rule
+**Normalization failure.** $P(+) + P(-) = 1.000$ for every analyzer position. Deviation beyond floating-point tolerance signals an arithmetic bug.
+
+
+*Bridge to Chapter 7: Spin is the fourth quantum number. Chapter 7 returns to the hydrogen atom and adds $m_s = \pm 1/2$ to the three quantum numbers $(n, \ell, m_\ell)$ derived from orbital angular momentum. The $2n^2$ degeneracy of the hydrogen energy levels and the entire electron-count structure of the periodic table both depend on the two-state structure built in this chapter.*
