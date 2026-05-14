@@ -1,342 +1,209 @@
 # Chapter 5 — Quantum Mechanics in Three Dimensions
-
-> Extend the Schrödinger equation to 3D, learn the universal machinery that solves *any* central-potential problem, and build a visualizer for the angular wave functions that govern every atom, planet, and cosmic-microwave-background mode.
+*One angular equation to rule them all.*
 
 ---
 
-## 1. What this chapter is doing
+Open any chemistry textbook to the page on atomic orbitals and you will find beautiful pictures: spheres, dumbbells, four-leaf clovers, a donut. The story is that electrons "occupy" these shapes. Before you accept this, ask a harder question: *what exactly is the picture showing?*
 
-You have done quantum mechanics in one dimension. The infinite square well had two walls. The harmonic oscillator had a parabolic confining potential. Bound states, expectation values, ladder operators — every example came on a single number line.
+Is it the wave function $\psi$? The probability density $|\psi|^2$? The angular part only, or the full thing with the radial factor included? Is the shape what the electron *is*, or the distribution of where you would *find* it?
 
-Real physical systems live in three dimensions. The hydrogen atom is not a 1D problem. A neutron in a nucleus is not a 1D problem. A photon mode in a cavity is not a 1D problem. The chapter pivots us into 3D — and immediately discovers a piece of luck. The most physically important 3D problems have a special symmetry: the potential depends only on the radial distance $r$, not on direction. These are the **central potentials**. And for any central potential, the angular part of the Schrödinger equation has a *universal* solution — the spherical harmonics — that you solve once and then never have to solve again. The radial part remains as a 1D problem in $r$, which is exactly the kind of bound-state calculation you have been doing since Chapter 2.
+The answers are specific, and they correct something the pictures quietly get wrong. The shapes are the angular probability density $|Y_{\ell m}(\theta,\phi)|^2$, not the full wave function. The "p-orbitals" in chemistry are not the $Y_1^{\pm 1}$ states of physics — they are real linear combinations of $Y_1^{\pm 1}$ and $Y_1^0$, chosen because they point conveniently along the Cartesian axes. The complex spherical harmonics physics uses (eigenstates of the $z$-component of angular momentum) and the real combinations chemistry uses (not eigenstates of any component of angular momentum) are different states of the same energy. The pictures are not wrong, exactly, but they are showing you something more specific than they admit.
 
-So the program for this chapter is: set up 3D, separate variables in spherical coordinates, solve the angular equation once and for all, and reduce every central-potential problem to a 1D radial equation. The hydrogen atom (Chapter 7) will then be one specific choice of $V(r)$ plugged into the machinery you build here.
+That is the payoff at the end of this chapter. The path to it begins with a fortunate accident.
 
-There is one more move worth flagging. The angular momentum operators $\hat{L}^2$ and $\hat{L}_z$ commute — they are **compatible observables** in the Chapter 4 sense — and their joint eigenstates are the spherical harmonics. The angular momentum machinery you would otherwise meet in isolation falls out of the separation of the 3D Schrödinger equation. The chapter gives you both at once.
+---
 
-## 2. Learning objectives
+## The accident
 
-By the end of this chapter you should be able to:
+The three-dimensional Schrödinger equation is
 
-- Write the 3D time-independent Schrödinger equation in spherical coordinates and identify the angular-momentum operator $\hat{L}^2$ inside it.
-- Separate variables for a central potential $V(\vec r) = V(r)$ and obtain the angular equation $\hat{L}^2 Y = \hbar^2 \ell(\ell+1) Y$.
-- Recognize the spherical harmonics $Y_{\ell m}(\theta, \phi)$ as the joint eigenstates of $\hat{L}^2$ and $\hat{L}_z$, with eigenvalues $\hbar^2\ell(\ell+1)$ and $\hbar m$.
-- Verify the angular-momentum commutators $[\hat{L}_i, \hat{L}_j] = i\hbar\epsilon_{ijk}\hat{L}_k$ and $[\hat{L}^2, \hat{L}_i] = 0$.
-- Apply the substitution $u(r) = rR(r)$ to reduce the radial equation to a 1D Schrödinger equation with effective potential $V_{\text{eff}}(r) = V(r) + \hbar^2\ell(\ell+1)/(2mr^2)$.
-- Solve the 3D infinite spherical well using spherical Bessel functions and identify the level ordering 1s, 1p, 1d, 2s, 1f, ...
-- Distinguish $|Y_{\ell m}|^2$ (the angular probability density) from "orbital shapes" in chemistry, and explain why $L^2 = \hbar^2\ell(\ell+1)$ rather than $\hbar^2\ell^2$.
-- Build a D3 simulation that visualizes the spherical harmonics with both physics (complex) and chemistry (real) conventions, and operationalize $\hat{L}_z$ via the $\phi$-phase animation.
+$$-\frac{\hbar^2}{2m}\nabla^2\psi(\vec r) + V(\vec r)\psi(\vec r) = E\psi(\vec r).$$
 
-## 3. Motivating problem
+In Cartesian coordinates, $\nabla^2 = \partial_x^2 + \partial_y^2 + \partial_z^2$. Three variables tangled together. For a general potential $V(\vec r)$, you cannot disentangle them. The problem is genuinely three-dimensional.
 
-Open a chemistry textbook to the page on atomic orbitals. You will see s-orbitals drawn as spheres, p-orbitals as dumbbells, d-orbitals as four-leaf clovers with one peculiar exception ($d_{z^2}$, the donut), f-orbitals as ornate flowery shapes. The pictures are everywhere. The story is: these are the orbitals the electrons "occupy."
+The accident is this: the most physically important potentials depend only on the distance $r$, not on direction. The Coulomb potential $-e^2/(4\pi\epsilon_0 r)$ in the hydrogen atom. The confining potential in a nucleus. The effective potential between nucleons in a shell-model calculation. All of these are **central potentials** — $V(\vec r) = V(r)$ — and for any central potential, the angular part of the Schrödinger equation has a universal solution. You solve it once, in this chapter. Then for hydrogen, you plug in $V(r) = -e^2/(4\pi\epsilon_0 r)$ and solve a one-dimensional radial equation. For the nuclear well, you plug in something else and solve a different one-dimensional radial equation. The angular structure is always the same.
 
-Here is a question to ask before you accept the pictures. *What exactly is the picture showing?* Is it the wave function $\psi$? The probability density $|\psi|^2$? The angular part only, or the radial part included? Is the shape the *state* of the electron, or the *distribution* of where you would find the electron if you measured?
+To see why, rewrite the Laplacian in spherical coordinates:
 
-The answers, as you will see in this chapter, are precise and specific, and they undo a misconception that the chemistry-class pictures encourage. The shapes are $|Y_{\ell m}|^2$ (angular probability density), not the full wave function (which also has a radial factor). The "p-orbitals" in chemistry are not actually the $Y_1^{\pm 1}$ states of physics — they are *real* linear combinations of $Y_1^{\pm 1}$ and $Y_1^0$, chosen because they make pretty pictures aligned with Cartesian axes. The complex spherical harmonics that physics uses (eigenstates of $\hat{L}_z$, with definite $z$-component of angular momentum) and the real combinations chemistry uses (eigenstates of *no* component of angular momentum, but with definite spatial axes) are *different states* of the same energy.
+$$\nabla^2 = \frac{1}{r^2}\frac{\partial}{\partial r}\!\left(r^2\frac{\partial}{\partial r}\right) + \frac{1}{r^2\sin\theta}\frac{\partial}{\partial\theta}\!\left(\sin\theta\frac{\partial}{\partial\theta}\right) + \frac{1}{r^2\sin^2\theta}\frac{\partial^2}{\partial\phi^2}.$$
 
-A second motivating thread. The same mathematics — Legendre polynomials, spherical harmonics — that organizes atomic orbitals organizes the cosmic microwave background. Planck and WMAP report the CMB's temperature anisotropies as a power spectrum $C_\ell$ in spherical-harmonic coefficients (see the Planck 2018 cosmological parameters paper, *A&A* 641, A6 [verify exact DOI]). The same $\ell$ that distinguishes s, p, d, f orbitals labels the multipoles of the cosmos. Spherical harmonics are the universal language for functions on spheres — atomic, terrestrial, planetary, cosmic. Learning them properly here pays off in places no first QM course would suggest.
+The first term is purely radial. The second and third are purely angular — and they are divided by $r^2$. Pull out the $r^2$ and the angular piece stands alone. Define:
 
-The 3D Schrödinger equation:
+$$\hat{L}^2 \equiv -\hbar^2\!\left[\frac{1}{\sin\theta}\frac{\partial}{\partial\theta}\!\left(\sin\theta\frac{\partial}{\partial\theta}\right) + \frac{1}{\sin^2\theta}\frac{\partial^2}{\partial\phi^2}\right].$$
 
-$$-\frac{\hbar^2}{2m}\nabla^2\psi(\vec r) + V(\vec r)\psi(\vec r) = E\psi(\vec r)$$
+This is the square of the orbital angular momentum operator. The kinetic energy splits cleanly into a radial piece and an angular piece:
 
-with $\nabla^2 = \partial_x^2 + \partial_y^2 + \partial_z^2$ in Cartesian coordinates. We will rewrite it in spherical coordinates, do separation of variables, and discover the structure that organizes nearly every bound-state problem you will meet for the rest of your career.
+$$-\frac{\hbar^2}{2m}\nabla^2 = -\frac{\hbar^2}{2m}\cdot\frac{1}{r^2}\frac{\partial}{\partial r}\!\left(r^2\frac{\partial}{\partial r}\right) + \frac{\hat{L}^2}{2mr^2}.$$
 
-## 4. Concept block — spherical coordinates and the angular equation
+<!-- → [INFOGRAPHIC: Side-by-side split of the Laplacian in spherical coordinates — left box highlights the purely radial first term in one color, right box highlights the angular second-and-third terms in another; arrow from right box to "= L̂²/r²"; caption: "The angular piece, isolated, is L̂² divided by r². This is why central-potential problems separate."] -->
 
-### 4.1 The Laplacian in spherical coordinates
+The angular kinetic energy is $\hat{L}^2/(2mr^2)$ — the same expression as $L^2/(2I)$ for a classical rotor with moment of inertia $I = mr^2$. The quantum and classical formulas are identical in structure.
 
-Spherical coordinates $(r, \theta, \phi)$ with $\theta \in [0, \pi]$ the polar angle from the $+z$-axis and $\phi \in [0, 2\pi)$ the azimuth in the $xy$-plane. The Laplacian becomes:
+---
 
-$$\nabla^2 = \frac{1}{r^2}\frac{\partial}{\partial r}\!\left(r^2\frac{\partial}{\partial r}\right) + \frac{1}{r^2\sin\theta}\frac{\partial}{\partial\theta}\!\left(\sin\theta\frac{\partial}{\partial\theta}\right) + \frac{1}{r^2\sin^2\theta}\frac{\partial^2}{\partial\phi^2}$$
+## Separating variables
 
-(Griffiths §4.1.) Stare at this for a moment. There is a clean radial term — the first piece — and then an angular block — the second and third pieces — that is divided everywhere by $r^2$. Pull the $r^2$ out and the angular part is independent of $r$. Define:
-
-$$\hat{L}^2 = -\hbar^2\left[\frac{1}{\sin\theta}\frac{\partial}{\partial\theta}\!\left(\sin\theta\frac{\partial}{\partial\theta}\right) + \frac{1}{\sin^2\theta}\frac{\partial^2}{\partial\phi^2}\right]$$
-
-This is the square of the orbital angular momentum operator. The kinetic energy splits cleanly:
-
-$$-\frac{\hbar^2}{2m}\nabla^2 = -\frac{\hbar^2}{2m}\cdot\frac{1}{r^2}\frac{\partial}{\partial r}\!\left(r^2\frac{\partial}{\partial r}\right) + \frac{\hat{L}^2}{2mr^2}$$
-
-Kinetic energy = (radial kinetic energy) + (angular kinetic energy / $r^2$). The angular kinetic energy is $\hat{L}^2/(2mr^2)$ — *exactly* what you would write for a classical rotor: kinetic energy of rotation is $L^2/(2I)$ with moment of inertia $I = mr^2$. Same expression, now as operators.
-
-### 4.2 Separation of variables for central potentials
-
-If $V(\vec r) = V(r)$ depends only on $r$, try the product ansatz $\psi(r, \theta, \phi) = R(r)Y(\theta, \phi)$. Substitute into the Schrödinger equation, divide by $RY$, multiply by $r^2$. After some bookkeeping the equation splits:
-
-$$\frac{1}{R}\frac{d}{dr}\!\left(r^2\frac{dR}{dr}\right) + \frac{2mr^2}{\hbar^2}[E - V(r)] = -\frac{1}{Y\hbar^2}\hat{L}^2 Y \cdot \hbar^2$$
-
-Wait — let me be more careful. The way separation actually works: the left side depends only on $r$, the right side only on $(\theta, \phi)$. Each side must equal a constant, which we will call $\ell(\ell+1)$ for reasons that will become clear:
+Try the product ansatz $\psi(r, \theta, \phi) = R(r)Y(\theta, \phi)$. Substitute into the Schrödinger equation with $V(\vec r) = V(r)$, divide by $RY$, multiply by $r^2$. The $r$-dependent terms go to one side, the $(\theta, \phi)$-dependent terms to the other. Each side depends on different variables, so each must equal a constant. Call it $\ell(\ell+1)$. The equation splits into two:
 
 **Angular equation:**
-
 $$\hat{L}^2 Y(\theta, \phi) = \hbar^2\ell(\ell+1)\,Y(\theta, \phi)$$
 
 **Radial equation:**
-
 $$\frac{1}{R}\frac{d}{dr}\!\left(r^2\frac{dR}{dr}\right) - \frac{2mr^2}{\hbar^2}[V(r) - E] = \ell(\ell+1)$$
 
-The angular equation is the *universal* part. It is an eigenvalue equation for $\hat{L}^2$ on the unit sphere, and it does not know anything about which central potential you chose. Its solutions are the spherical harmonics $Y_{\ell m}(\theta, \phi)$ — solved once, in this chapter, valid for hydrogen, the 3D harmonic oscillator, the spherical well, the muonic atom, anything central. The radial equation has $V(r)$ in it; that is where the specific physics lives.
+The angular equation knows nothing about which central potential you chose. It is an eigenvalue equation for $\hat{L}^2$ on the unit sphere. Its solutions are the spherical harmonics $Y_{\ell m}(\theta, \phi)$ — and solving it once solves the angular part of every central-potential problem simultaneously. The radial equation has $V(r)$ in it. That is where the specific physics lives.
 
-### 4.3 The angular solutions
+<!-- → [INFOGRAPHIC: Flow diagram — "Central potential V(r)" → "Separation of variables" → two branches: left branch "Angular equation: L̂²Y = ℏ²ℓ(ℓ+1)Y, solved once, valid for ALL central potentials" and right branch "Radial equation: depends on V(r), solved separately for hydrogen / spherical well / harmonic oscillator / etc."] -->
 
-Try a further separation $Y(\theta, \phi) = \Theta(\theta)\Phi(\phi)$. The $\phi$ equation comes out cleanly:
+---
 
-$$\Phi''(\phi) = -m^2\Phi(\phi)$$
+## The angular equation: what falls out
 
-with general solution $\Phi_m(\phi) = e^{im\phi}/\sqrt{2\pi}$. Single-valuedness — the requirement that $\Phi(\phi + 2\pi) = \Phi(\phi)$ — forces $m$ to be an integer.
+Separate once more: $Y(\theta, \phi) = \Theta(\theta)\Phi(\phi)$. The $\phi$ equation is immediate:
 
-The $\theta$ equation, after substituting $u = \cos\theta$, becomes the **associated Legendre equation**:
+$$\Phi''(\phi) = -m^2\Phi(\phi), \quad \Phi_m(\phi) = \frac{e^{im\phi}}{\sqrt{2\pi}}.$$
 
-$$(1 - u^2)\frac{d^2 P}{du^2} - 2u\frac{dP}{du} + \left[\ell(\ell+1) - \frac{m^2}{1 - u^2}\right]P = 0$$
+Single-valuedness — $\Phi(\phi + 2\pi) = \Phi(\phi)$ — forces $m$ to be an integer.
 
-This is one of the famous equations of mathematical physics. Its physically acceptable solutions (regular at $u = \pm 1$, i.e., at the poles $\theta = 0, \pi$) are the **associated Legendre functions** $P_\ell^m(\cos\theta)$, which exist only when $\ell = 0, 1, 2, \ldots$ and $|m| \leq \ell$. The condition that $\ell$ is a non-negative integer is what *forces* the eigenvalue of $\hat{L}^2$ to take the discrete values $\hbar^2 \ell(\ell+1)$. The constraint $|m| \leq \ell$ falls out of requiring $P_\ell^m$ to remain finite.
+The $\theta$ equation, with the substitution $u = \cos\theta$, becomes the **associated Legendre equation**. Its physically acceptable solutions — those that remain finite at the poles $\theta = 0$ and $\theta = \pi$ — are the associated Legendre functions $P_\ell^m(\cos\theta)$, and they exist only when $\ell$ is a non-negative integer and $|m| \leq \ell$. These two constraints are not imposed by hand. They fall out of requiring the solutions to be non-singular. That is why the eigenvalues of $\hat{L}^2$ are $\hbar^2\ell(\ell+1)$ — the discreteness is forced by the boundary conditions on the sphere.
 
-Stitch the pieces together with the proper normalization (Griffiths §4.1.3; Liboff §9.3; NIST DLMF Ch. 14):
+Stitch the pieces together with the normalization:
 
-$$Y_{\ell m}(\theta, \phi) = \sqrt{\frac{2\ell+1}{4\pi}\,\frac{(\ell - |m|)!}{(\ell + |m|)!}}\;P_\ell^m(\cos\theta)\,e^{im\phi}$$
+$$Y_{\ell m}(\theta, \phi) = \sqrt{\frac{2\ell+1}{4\pi}\,\frac{(\ell - |m|)!}{(\ell + |m|)!}}\;P_\ell^m(\cos\theta)\,e^{im\phi}.$$
 
-These are the **spherical harmonics**. They satisfy:
+These are the **spherical harmonics**. They are orthonormal on the unit sphere:
 
-$$\int_0^{2\pi}d\phi\int_0^\pi\sin\theta\,d\theta\;Y_{\ell' m'}^*\,Y_{\ell m} = \delta_{\ell\ell'}\delta_{mm'}$$
+$$\int_0^{2\pi}d\phi\int_0^\pi\sin\theta\,d\theta\;Y_{\ell' m'}^*\,Y_{\ell m} = \delta_{\ell\ell'}\delta_{mm'}.$$
 
-They are orthonormal on the unit sphere. They form a complete basis for square-integrable functions on the sphere: any nice function $f(\theta, \phi)$ can be expanded as $f = \sum_{\ell m} c_{\ell m}Y_{\ell m}$ with $c_{\ell m} = \int Y_{\ell m}^* f\,d\Omega$.
+They form a complete basis for functions on the sphere: any function $f(\theta, \phi)$ can be expanded as $f = \sum_{\ell m}c_{\ell m}Y_{\ell m}$.
 
-### 4.4 The first few spherical harmonics
+The first few are worth writing out:
 
-Worth tabulating explicitly:
+$Y_0^0 = 1/\sqrt{4\pi}$ — a constant. The s-orbital has no angular structure whatsoever.
 
-- $Y_0^0 = \dfrac{1}{\sqrt{4\pi}}$ — constant. Total spherical symmetry. The s-orbital has no angular structure.
+$Y_1^0 = \sqrt{3/(4\pi)}\cos\theta$ — maximal at the poles, zero on the equator. The physics $p_z$.
 
-- $Y_1^0 = \sqrt{\dfrac{3}{4\pi}}\cos\theta$ — the physics $p_z$. Vanishes on the equator, maximal at the poles.
+$Y_1^{\pm 1} = \mp\sqrt{3/(8\pi)}\sin\theta\,e^{\pm i\phi}$ — the minus sign for $m = +1$ is the **Condon-Shortley phase convention**. Note that $|Y_1^{\pm 1}|^2 = (3/8\pi)\sin^2\theta$: the probability density is the same for $m = +1$ and $m = -1$, independent of $\phi$. The two states differ only in their phase rotation.
 
-- $Y_1^{\pm 1} = \mp\sqrt{\dfrac{3}{8\pi}}\sin\theta\,e^{\pm i\phi}$ — note the minus sign for $m = +1$ (the **Condon-Shortley phase convention** — Griffiths follows it; some textbooks do not). The probability density $|Y_1^{\pm 1}|^2 = (3/8\pi)\sin^2\theta$ is the *same* for $m = +1$ and $m = -1$, and is independent of $\phi$ — it is rotationally symmetric about the $z$-axis. The two states differ only in the phase rotation $e^{\pm i\phi}$.
+$Y_2^0 = \sqrt{5/(16\pi)}(3\cos^2\theta - 1)$ — the $d_{z^2}$ orbital. It has nodes where $\cos\theta = \pm1/\sqrt{3}$, about $54.7°$ from the $z$-axis. The "donut belt" visible in chemistry textbooks is the region between those nodal cones.
 
-- $Y_2^0 = \sqrt{\dfrac{5}{16\pi}}(3\cos^2\theta - 1)$ — the $d_{z^2}$ orbital. Has nodes where $\cos\theta = \pm 1/\sqrt{3}$ (about $54.7°$ from the $z$-axis on either side). The famous "donut belt" in the middle is between those nodes.
+<!-- → [IMAGE: Gallery of polar plots r(θ) = |Y_{ℓm}|² for (ℓ,m) = (0,0), (1,0), (1,±1), (2,0), (2,±1), (2,±2) — six plots arranged in a triangular grid matching the ℓ=0,1,2 rows; each labeled with its quantum numbers; +z axis drawn as vertical reference; caption: "The angular probability densities. Note that all are axially symmetric about z — the φ-dependence is only in the phase."] -->
 
-Two facts to internalize:
+One structural fact to internalize: $|Y_{\ell m}|^2$ is independent of $\phi$ — always. The $\phi$-dependence of $Y_{\ell m}$ lives entirely in the phase $e^{im\phi}$, and the modulus squared kills it. The angular probability density is axially symmetric about the $z$-axis for every spherical harmonic, regardless of $m$.
 
-1. $|Y_{\ell m}|^2$ is independent of $\phi$ — always. The $\phi$-dependence of $Y_{\ell m}$ is only in the phase $e^{im\phi}$, and the modulus squared kills the phase. The angular probability density is axially symmetric about the $z$-axis.
+---
 
-2. $Y_\ell^m$ has $\ell - |m|$ nodes in $\theta$ (zeros of $P_\ell^m$) and no nodes in $|Y|^2$ along $\phi$.
+## The angular momentum operators
 
-**Misconception 1.** *"Spherical harmonics *are* the orbital wave functions."* No. They are the *angular part* of the wave function. The full bound-state wave function for a central potential is $\psi(r, \theta, \phi) = R(r)Y_{\ell m}(\theta, \phi)$, where $R(r)$ depends on which $V(r)$ you chose. Spherical harmonics are universal across central potentials; radial wave functions are not. When a chemistry textbook draws "the 2p orbital," it is showing the *combined* radial-angular shape — usually as a 3D probability density surface — and conflating it with the angular factor.
+The classical angular momentum $\vec L = \vec r \times \vec p$ becomes, in quantum mechanics:
 
-**Misconception 2.** *"The chemistry-textbook p-orbitals are the $Y_1^m$."* They are real linear combinations:
+$$\hat{L}_x = \hat{y}\hat{p}_z - \hat{z}\hat{p}_y, \quad \hat{L}_y = \hat{z}\hat{p}_x - \hat{x}\hat{p}_z, \quad \hat{L}_z = \hat{x}\hat{p}_y - \hat{y}\hat{p}_x.$$
+
+In spherical coordinates, the $z$-component simplifies to
+
+$$\hat{L}_z = -i\hbar\frac{\partial}{\partial\phi}.$$
+
+Act on $Y_{\ell m}$. The $\phi$-dependence is $e^{im\phi}$, so $\hat{L}_z Y_{\ell m} = -i\hbar\cdot im\cdot e^{im\phi} \cdot(\ldots) = m\hbar\, Y_{\ell m}$. The spherical harmonic $Y_{\ell m}$ is simultaneously an eigenstate of $\hat{L}^2$ with eigenvalue $\hbar^2\ell(\ell+1)$ and an eigenstate of $\hat{L}_z$ with eigenvalue $m\hbar$. The integer $m$ with $-\ell \leq m \leq +\ell$ is the **magnetic quantum number**.
+
+The $x$ and $y$ components have more complex expressions in spherical coordinates and are *not* diagonal in the $Y_{\ell m}$ basis. They satisfy:
+
+$$[\hat{L}_x, \hat{L}_y] = i\hbar\hat{L}_z, \quad [\hat{L}_y, \hat{L}_z] = i\hbar\hat{L}_x, \quad [\hat{L}_z, \hat{L}_x] = i\hbar\hat{L}_y.$$
+
+Compactly: $[\hat{L}_i, \hat{L}_j] = i\hbar\epsilon_{ijk}\hat{L}_k$. And:
+
+$$[\hat{L}^2, \hat{L}_i] = 0 \quad \text{for } i = x, y, z.$$
+
+This last relation is the reason $\hat{L}^2$ and *one* component can be simultaneously diagonalized. Their joint eigenstates — the states where both $L^2$ and $L_z$ are sharp — are the spherical harmonics. The other two components are then necessarily sharp, which is forced by the non-zero commutators between $\hat{L}_x$, $\hat{L}_y$, and $\hat{L}_z$.
+
+---
+
+## Why $\hbar^2\ell(\ell+1)$, not $\hbar^2\ell^2$
+
+Here is a fact that trips up almost everyone the first time. The maximum value of $\hat{L}_z$ in the $\ell$ subspace is $m = \ell$, giving $L_z = \ell\hbar$. But the magnitude of the angular momentum vector is $\sqrt{\langle L^2\rangle} = \hbar\sqrt{\ell(\ell+1)}$, which is strictly *greater* than $\ell\hbar$ for any $\ell > 0$.
+
+This means the angular momentum vector can never be fully aligned with the $z$-axis. Even in the state $|\ell, m = \ell\rangle$, which has the maximum possible $z$-component, the vector still has transverse components. Geometrically: the angular momentum precesses on a cone. The half-angle of the cone is $\arccos(\ell/\sqrt{\ell(\ell+1)})$ — for $\ell = 1$, exactly $45°$.
+
+Why does this happen? Because $\hat{L}_x$ and $\hat{L}_y$ cannot both be zero simultaneously. If $L_z = \ell\hbar$ exactly, and $L^2 = \hbar^2\ell(\ell+1)$, then $L_x^2 + L_y^2 = \hbar^2\ell(\ell+1) - \ell^2\hbar^2 = \hbar^2\ell$. The transverse components are unavoidably non-zero. They are not zero in the state $|\ell, m = \ell\rangle$; they are merely uncertain — their *expectation values* are zero, but their *variances* are not. The Robertson inequality $\sigma_{L_x}\sigma_{L_y} \geq \hbar|\langle L_z\rangle|/2 = \hbar\cdot\ell\hbar/2$ enforces a minimum spread.
+
+<!-- → [IMAGE: Cone diagram for ℓ=1, m=1 — a cone of half-angle 45° with the z-axis as the cone's axis; the angular momentum vector drawn as an arrow of length √2 ℏ lying on the cone surface; its z-projection labeled "L_z = ℏ"; the transverse projection labeled "√(L_x² + L_y²) = ℏ"; caption: "Even in the maximally aligned state |ℓ=1, m=1⟩, the angular momentum cannot point along z. It precesses on a cone."] -->
+
+This kills the Bohr-model picture of an electron orbiting in a definite plane. A definite orbital plane would require a definite direction for $\vec L$ — which the angular momentum algebra forbids. The electron has a definite $L^2$ and a definite $L_z$. It does not have a definite $L_x$ or $L_y$. There is no "orbital plane." There is a cone.
+
+---
+
+## The chemistry-textbook orbitals
+
+The spherical harmonics $Y_1^{\pm 1}$ are eigenstates of $\hat{L}_z$ with eigenvalues $\pm\hbar$. Their probability densities $|Y_1^{\pm 1}|^2$ are axially symmetric about $z$ — donuts around the $z$-axis. There is no definite spatial direction in these states other than the $z$-axis itself.
+
+Chemistry prefers something different: wave functions that point along the Cartesian axes, so you can say "the electron is along $x$" or "along $y$." The real combinations are:
 
 $$p_x = -\tfrac{1}{\sqrt{2}}(Y_1^1 - Y_1^{-1}) \propto \sin\theta\cos\phi$$
 $$p_y = \tfrac{i}{\sqrt{2}}(Y_1^1 + Y_1^{-1}) \propto \sin\theta\sin\phi$$
-$$p_z = Y_1^0 \propto \cos\theta$$
+$$p_z = Y_1^0 \propto \cos\theta.$$
 
-(signs depend on the Condon-Shortley convention used). The chemistry $p$-orbitals are eigenstates of *Cartesian projections* of the position operator (loosely: they are aligned with $x$, $y$, $z$ in space), not eigenstates of $\hat{L}_z$. The physics $Y_1^{\pm 1}$ are eigenstates of $\hat{L}_z$ with eigenvalue $\pm\hbar$ — they carry definite *z*-component of angular momentum but no definite spatial direction. Both are valid bases for the $\ell = 1$ subspace; they describe the same set of physical states; you can write any $\ell = 1$ state in either basis. Chemistry prefers the real basis because it makes pretty axis-aligned pictures. Physics prefers the complex basis because it diagonalizes $\hat{L}_z$ — useful for angular-momentum bookkeeping. The simulation in this chapter will let you toggle between them and watch the basis change while the same physical state stays put.
+These are real wave functions with the familiar dumbbell shapes pointing along $x$, $y$, $z$. But act with $\hat{L}_z = -i\hbar\partial_\phi$ on $p_x \propto \sin\theta\cos\phi$:
 
-## 5. Concept block — angular momentum and the operator picture
+$$\hat{L}_z(\sin\theta\cos\phi) = -i\hbar\frac{\partial}{\partial\phi}\cos\phi = i\hbar\sin\phi \propto ip_y.$$
 
-### 5.1 The angular momentum operators
+The result is $ip_y$, not a multiple of $p_x$. The $p_x$ orbital is *not* an eigenstate of $\hat{L}_z$. It has a definite spatial direction ($\hat x$) but no definite $z$-component of angular momentum.
 
-Classical angular momentum $\vec L = \vec r \times \vec p$ becomes, in quantum mechanics, three Hermitian operators:
+<!-- → [IMAGE: Two-row comparison for ℓ=1. Top row: physics basis — three polar plots of |Y_1^{-1}|², |Y_1^0|², |Y_1^1|² showing axially symmetric shapes (two donuts and a dumbbell along z); label "eigenstates of L̂_z, eigenvalues −ℏ, 0, +ℏ." Bottom row: chemistry basis — three polar plots of p_x, p_y, p_z showing dumbbells along x, y, z; label "NOT eigenstates of L̂_z." Caption: "Same subspace, different bases. Choose physics basis for angular momentum bookkeeping; chemistry basis for spatial orientation."] -->
 
-$$\hat{L}_x = \hat{y}\hat{p}_z - \hat{z}\hat{p}_y, \quad \hat{L}_y = \hat{z}\hat{p}_x - \hat{x}\hat{p}_z, \quad \hat{L}_z = \hat{x}\hat{p}_y - \hat{y}\hat{p}_x$$
+Both bases — the complex $\{Y_1^{-1}, Y_1^0, Y_1^1\}$ and the real $\{p_x, p_y, p_z\}$ — span the same three-dimensional subspace of states with $\ell = 1$. Any state in the subspace can be written in either basis. They are related by a unitary transformation; they describe the same physics. Chemistry picks the real basis because the pictures are beautiful. Physics picks the complex basis because $\hat{L}_z$ is diagonal. Neither is more "correct." The mistake is thinking the chemistry pictures *are* the eigenstates of angular momentum. They are not.
 
-In spherical coordinates, after some calculus,
+---
 
-$$\hat{L}_z = -i\hbar\frac{\partial}{\partial\phi}$$
+## The radial equation and the centrifugal barrier
 
-This makes $\hat{L}_z$'s action on $Y_{\ell m}$ obvious — the $\phi$-dependence is $e^{im\phi}$, and
+With $\psi = R(r)Y_{\ell m}$ and the angular part handled, the radial equation still has an inconvenient structure. Define $u(r) = rR(r)$. A short calculation converts the radial equation into:
 
-$$\hat{L}_z\,e^{im\phi} = -i\hbar\,im\,e^{im\phi} = m\hbar\,e^{im\phi}$$
+$$-\frac{\hbar^2}{2m}\frac{d^2 u}{dr^2} + \left[V(r) + \frac{\hbar^2\ell(\ell+1)}{2mr^2}\right]u(r) = E\,u(r).$$
 
-so $\hat{L}_z Y_{\ell m} = m\hbar\, Y_{\ell m}$. The integer $m$, with $-\ell \leq m \leq +\ell$, is the **magnetic quantum number**, and $m\hbar$ is the eigenvalue of $\hat{L}_z$.
+This is a **one-dimensional Schrödinger equation** in $u(r)$ on the half-line $r \in [0, \infty)$, with effective potential
 
-The other components $\hat{L}_x, \hat{L}_y$ have more complicated expressions in spherical coordinates and do not have $Y_{\ell m}$ as eigenstates. They do, however, satisfy:
+$$V_{\text{eff}}(r) = V(r) + \frac{\hbar^2\ell(\ell+1)}{2mr^2}.$$
 
-$$\hat{L}^2 Y_{\ell m} = \hbar^2\ell(\ell+1)Y_{\ell m}$$
+The extra term — positive, diverging at $r = 0$, falling off as $1/r^2$ at large $r$ — is the **centrifugal barrier**. For $\ell > 0$, it pushes probability away from the origin. For $\ell = 0$ (s-states), there is no barrier, and the wave function can have finite amplitude at $r = 0$.
 
-The spherical harmonic $Y_{\ell m}$ is a *joint* eigenstate of $\hat{L}^2$ and $\hat{L}_z$ but *not* an eigenstate of $\hat{L}_x$ or $\hat{L}_y$.
+<!-- → [CHART: Three overlaid plots of V_eff(r) = −1/r + ℏ²ℓ(ℓ+1)/(2mr²) for ℓ = 0, 1, 2 (Coulomb potential as example) — x-axis is r, y-axis is V_eff; ℓ=0 shows the bare −1/r well; ℓ=1 shows the Coulomb well with a centrifugal hump near the origin; ℓ=2 shows a taller hump; caption: "The centrifugal barrier grows with ℓ. For ℓ>0, it suppresses the wave function near r=0 and shifts the bound-state energies upward."] -->
 
-### 5.2 The angular momentum algebra
+One misconception to clear up: the centrifugal barrier is not a force pushing the electron outward. It is a *kinetic energy* contribution — specifically, the angular part of the kinetic energy, which has been absorbed into the effective potential because we have already projected onto an angular momentum eigenstate. Mathematically it sits where $V(r)$ sits. Physically it is kinetic, not potential. Students who absorbed centrifugal force from classical mechanics often confuse these. The distinction matters when you ask where the energy comes from.
 
-Compute $[\hat{L}_x, \hat{L}_y]$ from the canonical commutators $[\hat{x}_i, \hat{p}_j] = i\hbar\delta_{ij}$. A long but straightforward calculation (worked example 6.1) gives:
+The $u$ substitution does the key work: a 3D central-force problem is exactly equivalent to a 1D Schrödinger equation with an $\ell$-dependent effective potential. The angular machinery built above is what allows this reduction. The trade is clean: kill the explicit angle dependence, pay with the centrifugal term.
 
-$$[\hat{L}_x, \hat{L}_y] = i\hbar\hat{L}_z$$
+Boundary conditions: $u(0) = 0$ to keep $R = u/r$ finite at the origin; $u(r) \to 0$ as $r \to \infty$ for normalizability. The radial probability density $|u(r)|^2$ is the probability per unit length of finding the particle at distance $r$.
 
-and cyclic permutations. Compactly:
+---
 
-$$[\hat{L}_i, \hat{L}_j] = i\hbar\epsilon_{ijk}\hat{L}_k$$
+## A solvable example: the spherical well
 
-This is the **angular momentum algebra**. The three components do not commute among themselves — they are *incompatible* observables in the Chapter 4 sense, and the Robertson inequality applies. But each component commutes with $\hat{L}^2 = \hat{L}_x^2 + \hat{L}_y^2 + \hat{L}_z^2$:
+Take $V(r) = 0$ for $r < a$ and $V = \infty$ for $r \geq a$. Inside the well, with $k = \sqrt{2mE/\hbar^2}$ and $\rho = kr$, the radial equation reduces to an equation whose solutions are the spherical Bessel functions $j_\ell(\rho)$. The boundary condition $u(a) = 0$ means $j_\ell(ka) = 0$, so $ka$ must be the $n$-th zero of $j_\ell$, call it $\beta_{n\ell}$:
 
-$$[\hat{L}^2, \hat{L}_i] = 0, \quad i = x, y, z$$
+$$E_{n\ell} = \frac{\hbar^2\beta_{n\ell}^2}{2ma^2}.$$
 
-By the compatibility theorem of Chapter 4, $\hat{L}^2$ and *any one* component (conventionally $\hat{L}_z$) can be simultaneously diagonalized. Their joint eigenstates are the spherical harmonics.
+For $\ell = 0$: $j_0(\rho) = \sin\rho/\rho$, zeros at $\rho = n\pi$. So $E_{n,0} = n^2\pi^2\hbar^2/(2ma^2)$ — exactly the 1D infinite-well spectrum. The s-states of the spherical well, after the $u$ transformation, are identical to the 1D infinite-well states. That is not a coincidence. It is the statement that $\ell = 0$ states have no angular structure; they are purely radial, and the 3D and 1D problems are literally the same equation.
 
-The same algebra — with $\hat{L}_\pm = \hat{L}_x \pm i\hat{L}_y$ as ladder operators — gives an algebraic derivation of the spectrum (Sakurai Ch. 3; Liboff §9). The fact that $\hat{L}^2$ has eigenvalues $\hbar^2\ell(\ell+1)$ rather than $\hbar^2\ell^2$ falls out of the algebra and is one of those things that look weird until you do the derivation. It is the same structural move as the harmonic-oscillator ladder operators of Chapter 3 — that algebra is *not* a one-time trick, it is the general way to extract spectra from commutators.
+For $\ell = 1$: $j_1(\rho) = \sin\rho/\rho^2 - \cos\rho/\rho$. Its first zero is near $\rho \approx 4.49$, giving $E_{1,1} \approx 2.05 E_{1,0}$. The centrifugal barrier raises the energy above the corresponding s-state.
 
-**Misconception 1.** *"$\hat{L}_x$ and $\hat{L}_y$ can't both be measured because the apparatus is in the way."* No — they cannot be simultaneously *sharp* because $[\hat{L}_x, \hat{L}_y] = i\hbar\hat{L}_z \neq 0$. The Robertson inequality gives $\sigma_{L_x}\sigma_{L_y} \geq \hbar|\langle L_z\rangle|/2$ — a statistical statement about ensemble spreads, not an apparatus limitation, *exactly* as we worked through in Chapter 4 with $\sigma_x$ and $\sigma_p$ on the qubit. The misconception is recurring: every time non-commuting observables appear, the "measurement-disturbance" story tries to creep back in. The Robertson framing is what does the actual work.
+<!-- → [TABLE: Energy level table for the 3D spherical well — columns: state label (1s, 1p, 1d, 2s, 1f, 2p), ℓ, n, β_{nℓ}/π (ratio to 1s energy), E_{nℓ}/E_{1s}; rows sorted by increasing energy; caption: "The level ordering is 1s, 1p, 1d, 2s, 1f, 2p, ... This sequence, modified by spin-orbit coupling, produces the nuclear magic numbers."] -->
 
-**Misconception 2.** *"$L^2 = (\ell\hbar)^2$."* No — it is $\hbar^2\ell(\ell+1)$. The extra $\ell$ matters. Consider: the maximum value of any single component is $|L_z|_{\max} = \ell\hbar$ (when $m = \pm\ell$). But $\sqrt{\langle L^2\rangle} = \hbar\sqrt{\ell(\ell+1)} > \ell\hbar$ for $\ell > 0$. The angular momentum "vector" can never be fully aligned with any axis — there is always some transverse component, related to the non-commuting algebra. Geometrically: even in the "maximally aligned" state $|\ell, m = \ell\rangle$, the angular momentum points along a cone, not along the $z$-axis. The half-angle of the cone is $\arccos(\ell/\sqrt{\ell(\ell+1)})$ — for $\ell = 1$, about $45°$.
+The level ordering — 1s, 1p, 1d, 2s, 1f, 2p, ... — is what you get by sorting the zeros of successive Bessel functions. This is not a curiosity. It is the foundation of the nuclear shell model. Maria Goeppert Mayer and J. Hans D. Jensen showed in 1949 that adding a strong spin-orbit coupling to a spherical-well-like potential reproduces the observed nuclear magic numbers 2, 8, 20, 28, 50, 82, 126 — for which they shared the 1963 Nobel Prize in Physics. The angular machinery of this chapter, applied to a nucleus, predicts which proton and neutron numbers make unusually stable nuclei.
 
-This is a worth-pausing-on geometric fact. The Bohr-model picture, where the electron orbits in a definite plane, is dead on arrival in this geometry. The angular momentum has a definite magnitude and a definite $z$-component, and that is *all*. The $x$ and $y$ components are intrinsically indefinite. There is no "orbital plane."
+One more note on the spectrum: higher $\ell$ does not universally mean higher energy. For the spherical well it does, because the centrifugal barrier raises the kinetic energy. For the hydrogen atom (Chapter 7), energies depend only on the principal quantum number $n$, with no $\ell$-dependence — a special "accidental" degeneracy of the $1/r$ Coulomb potential. For the 3D harmonic oscillator, energies depend on $2n_r + \ell$. The angular structure is universal; the ordering of levels is potential-specific.
 
-## 6. Concept block — the radial equation and the centrifugal barrier
+---
 
-### 6.1 The substitution that does the work
+## The same mathematics, much larger
 
-With $\psi = R(r)Y_{\ell m}(\theta, \phi)$, the radial equation we obtained in §4.2 still has the inconvenient $r^2$ inside its first derivative. Define $u(r) = rR(r)$. Then a short calculation shows:
+Here is a thought to carry forward. The spherical harmonics $Y_{\ell m}(\theta, \phi)$ are the universal basis for functions on any sphere. They appear in atomic orbitals (electrons in atoms), in the nuclear shell model (nucleons in nuclei), in the multipole expansion of any electromagnetic field, in the gravitational potential of any nearly-spherical body, and in the cosmic microwave background.
 
-$$-\frac{\hbar^2}{2m}\frac{d^2 u}{dr^2} + \left[V(r) + \frac{\hbar^2\ell(\ell+1)}{2mr^2}\right]u(r) = E\,u(r)$$
+The Planck collaboration reports the CMB's temperature anisotropies — the tiny ripples in the temperature of the sky left over from 380,000 years after the Big Bang — as a power spectrum $C_\ell$, where $\ell$ is the spherical-harmonic index. The peak of the CMB power spectrum at $\ell \approx 220$ corresponds to the acoustic scale of the universe at recombination. The same $\ell$ that distinguishes s, p, d, f atomic orbitals labels the multipoles of the cosmos. The mathematics is identical. Learning spherical harmonics properly here is not preparation for atomic physics only. It is preparation for anything that lives on a sphere.
 
-This is a **1D Schrödinger equation in $u(r)$** on the half-line $r \in [0, \infty)$ with **effective potential**:
+<!-- → [INFOGRAPHIC: Two-column comparison — left: atomic orbital polar plot gallery (s, p, d shapes with their ℓ values labeled); right: CMB temperature anisotropy map of the sky (Planck result) with the power spectrum C_ℓ vs. ℓ shown below it, peak at ℓ≈220 marked; connecting arrow labeled "same ℓ, same mathematics"; caption: "Spherical harmonics organize both the electron orbitals in a hydrogen atom and the temperature fluctuations of the cosmic microwave background."] -->
 
-$$V_{\text{eff}}(r) = V(r) + \frac{\hbar^2\ell(\ell+1)}{2mr^2}$$
+---
 
-The extra term — positive, diverging at $r = 0$, falling off as $1/r^2$ at large $r$ — is the **centrifugal barrier**. For $\ell > 0$, it forces $u(0) = 0$ (to keep $R = u/r$ finite at the origin) and pushes probability away from the origin. For $\ell = 0$ (s-states), there is no barrier, and the wave function can have finite amplitude at the origin.
-
-This recasting is *the* most powerful pedagogical move in the chapter. A 3D central-force problem is reduced to a 1D bound-state problem — exactly the kind you have been solving since Chapter 2 — with an extra centrifugal term added to the potential. The trade is: kill the explicit angle dependence by going to $u(r)$, pay for it with the effective potential.
-
-**Misconception.** *"The centrifugal barrier is a real force pushing the electron out."* No, it is a kinetic energy contribution that *appears* as a potential-like term because we have already projected the wave function onto an angular momentum eigenstate. The full kinetic energy operator is $-\hbar^2\nabla^2/(2m)$. When you write the wave function as $R(r)Y_{\ell m}$, the angular part of the kinetic energy becomes $\hbar^2\ell(\ell+1)/(2mr^2)\cdot R(r)Y_{\ell m}$. Mathematically it sits in the same place as $V(r)$. Physically it is a *kinetic* energy term that depends on how much angular momentum the state carries. Students who saw centripetal forces in mechanics often confuse $\hbar^2\ell(\ell+1)/(2mr^2)$ with a force. It is not. It is part of the kinetic energy.
-
-### 6.2 Boundary conditions
-
-For bound states with $V(r) \to 0$ at infinity (Coulomb, Yukawa, finite spherical well):
-
-- $u(0) = 0$ — to keep $R = u/r$ finite at the origin. (For $\ell = 0$, the boundary $u(0) = 0$ is automatic from the second-order ODE if $V$ is well-behaved at the origin and $R(0)$ is finite.)
-- $u(r) \to 0$ as $r \to \infty$ — for normalizability.
-
-The normalization of the full wave function:
-
-$$\int|\psi|^2 d^3r = \int_0^\infty |R(r)|^2 r^2\,dr \cdot \int|Y_{\ell m}|^2\,d\Omega = \int_0^\infty |u(r)|^2\,dr = 1$$
-
-— using $\int|Y_{\ell m}|^2 d\Omega = 1$. The radial probability density $|u(r)|^2$ is the probability per unit length of finding the particle at distance $r$ (integrated over all angles). The familiar peak at $r = a_0$ for the hydrogen 1s wave function is a peak of $|u|^2$, not of $|R|^2$.
-
-### 6.3 The 3D infinite spherical well — a worked solvable example
-
-Take $V(r) = 0$ for $r < a$ and $V = \infty$ for $r \geq a$. Inside the well, the radial equation is:
-
-$$-\frac{\hbar^2}{2m}\frac{d^2 u}{dr^2} + \frac{\hbar^2\ell(\ell+1)}{2mr^2}u = E\,u$$
-
-Define $k = \sqrt{2mE/\hbar^2}$ and substitute $\rho = kr$. The equation becomes:
-
-$$\frac{d^2 u}{d\rho^2} - \frac{\ell(\ell+1)}{\rho^2}u + u = 0$$
-
-with solutions related to **spherical Bessel functions** $j_\ell(\rho)$ via $u(r) = r j_\ell(kr)$. (Equivalently, $R(r) = j_\ell(kr)$.) The boundary condition at the wall is $u(a) = 0$, i.e., $j_\ell(ka) = 0$. So $ka$ is the $n$-th zero of $j_\ell$, denoted $\beta_{n\ell}$:
-
-$$E_{n\ell} = \frac{\hbar^2 \beta_{n\ell}^2}{2ma^2}$$
-
-For $\ell = 0$: $j_0(\rho) = \sin\rho/\rho$, with zeros at $\rho = \pi, 2\pi, 3\pi, \ldots$. So $\beta_{n0} = n\pi$ and $E_{n0} = n^2\pi^2\hbar^2/(2ma^2)$ — identical to the 1D infinite well, as expected (s-states have no angular structure).
-
-For $\ell = 1$: $j_1(\rho) = \sin\rho/\rho^2 - \cos\rho/\rho$. Its first zero is at $\rho \approx 4.493$, giving $\beta_{1,1}/\pi \approx 1.430$. So $E_{1,1} \approx 1.430^2\,E_{1,0} \approx 2.046\,E_{1,0}$.
-
-The level ordering goes 1s, 1p, 1d, 2s, 1f, 2p, 1g, 2d, ... — and this approximate spectrum is *the foundation of the nuclear shell model* (Mayer & Jensen 1949 [verify precise citations *Phys. Rev.* 75, 1969 and *Phys. Rev.* 75, 1766] showed that adding strong spin-orbit coupling to a spherical-well-like potential reproduces the observed magic numbers 2, 8, 20, 28, 50, 82, 126 — for which they shared the 1963 Nobel Prize in Physics).
-
-**Misconception.** *"Higher $\ell$ means higher energy."* Not in general. It depends on $V(r)$. For the spherical well, higher $\ell$ usually has higher energy at the same $n$ — the centrifugal barrier raises the kinetic energy. For the hydrogen atom (Chapter 7), energy depends *only* on the principal quantum number $n$, not on $\ell$ — a special "accidental" degeneracy of the $1/r$ Coulomb potential, related to a deeper SO(4) symmetry that we will not derive here but will mention as a sidebar. For the 3D harmonic oscillator, energy depends on $2n_r + \ell$ — another accidental degeneracy. The right answer is always: solve the radial equation for the specific $V(r)$ and see what the spectrum does.
-
-## 7. Worked examples
-
-### 7.1 Verifying $[\hat{L}_x, \hat{L}_y] = i\hbar\hat{L}_z$
-
-Start from definitions:
-
-$$\hat{L}_x = \hat{y}\hat{p}_z - \hat{z}\hat{p}_y, \quad \hat{L}_y = \hat{z}\hat{p}_x - \hat{x}\hat{p}_z$$
-
-Compute:
-
-$$[\hat{L}_x, \hat{L}_y] = [\hat{y}\hat{p}_z - \hat{z}\hat{p}_y, \hat{z}\hat{p}_x - \hat{x}\hat{p}_z]$$
-
-Expand bilinearly into four commutators:
-
-$$= [\hat{y}\hat{p}_z, \hat{z}\hat{p}_x] - [\hat{y}\hat{p}_z, \hat{x}\hat{p}_z] - [\hat{z}\hat{p}_y, \hat{z}\hat{p}_x] + [\hat{z}\hat{p}_y, \hat{x}\hat{p}_z]$$
-
-Use $[\hat{A}\hat{B}, \hat{C}\hat{D}] = \hat{A}[\hat{B}, \hat{C}]\hat{D} + \hat{A}\hat{C}[\hat{B}, \hat{D}] + [\hat{A}, \hat{C}]\hat{D}\hat{B} + \hat{C}[\hat{A}, \hat{D}]\hat{B}$ (a Leibniz-like rule) — or just expand each one.
-
-Take the first term: $[\hat{y}\hat{p}_z, \hat{z}\hat{p}_x]$. The only non-zero canonical commutator hiding inside is $[\hat{p}_z, \hat{z}] = -i\hbar$. Working it out:
-
-$$[\hat{y}\hat{p}_z, \hat{z}\hat{p}_x] = \hat{y}[\hat{p}_z, \hat{z}]\hat{p}_x = -i\hbar\,\hat{y}\hat{p}_x$$
-
-Second term: $[\hat{y}\hat{p}_z, \hat{x}\hat{p}_z] = 0$ (no overlapping canonical pair).
-
-Third term: $[\hat{z}\hat{p}_y, \hat{z}\hat{p}_x] = 0$.
-
-Fourth term: $[\hat{z}\hat{p}_y, \hat{x}\hat{p}_z]$. The non-zero piece is $[\hat{z}, \hat{p}_z] = i\hbar$:
-
-$$[\hat{z}\hat{p}_y, \hat{x}\hat{p}_z] = \hat{x}\,\hat{p}_y\,[\hat{z}, \hat{p}_z] = i\hbar\,\hat{x}\hat{p}_y$$
-
-Sum:
-
-$$[\hat{L}_x, \hat{L}_y] = -i\hbar\hat{y}\hat{p}_x + i\hbar\hat{x}\hat{p}_y = i\hbar(\hat{x}\hat{p}_y - \hat{y}\hat{p}_x) = i\hbar\hat{L}_z$$
-
-The cyclic permutations follow identically. The whole 3D angular momentum algebra is squeezed out of $[\hat{x}_i, \hat{p}_j] = i\hbar\delta_{ij}$ by bookkeeping.
-
-### 7.2 Explicit $Y_{\ell m}$ for $\ell = 0, 1$
-
-For $\ell = 0$: $P_0^0(u) = 1$. Normalization gives $Y_0^0 = 1/\sqrt{4\pi}$. A constant on the sphere — the s-orbital angular factor.
-
-For $\ell = 1, m = 0$: $P_1^0(u) = u$. So $\Theta_1^0(\theta) \propto \cos\theta$, and after normalization $Y_1^0 = \sqrt{3/(4\pi)}\cos\theta$.
-
-For $\ell = 1, m = \pm 1$: $P_1^1(u) = -\sqrt{1 - u^2}$ (with the Condon-Shortley sign — Griffiths uses this; check yours). So $\Theta_1^{\pm 1}(\theta) \propto \sin\theta$, and:
-
-$$Y_1^{\pm 1} = \mp\sqrt{\frac{3}{8\pi}}\sin\theta\,e^{\pm i\phi}$$
-
-Verify orthogonality: $\int Y_1^{1*} Y_1^{-1}\,d\Omega = ?$ The $\phi$ integrals give $\int_0^{2\pi}e^{-i\phi}e^{-i\phi}\,d\phi = \int_0^{2\pi}e^{-2i\phi}\,d\phi = 0$, so the cross-overlap is zero. They are orthogonal — different $m$, different eigenstates of $\hat{L}_z$. The factor of $\mp$ comes from the Condon-Shortley convention; it carries through to the real-combination chemistry orbitals as the sign in front of $p_x$.
-
-### 7.3 The 1s state of the 3D spherical well
-
-Take $\ell = 0$, $n = 1$. From the analysis above, $j_0(\rho) = \sin\rho/\rho$, first zero at $\rho = \pi$. So $ka = \pi$, $k = \pi/a$, $E_{1,0} = \pi^2\hbar^2/(2ma^2)$. The radial function $R(r) = j_0(kr) = \sin(\pi r/a)/(\pi r/a)$. The transformed $u(r) = rR(r) = (a/\pi)\sin(\pi r/a)$ — *exactly* the ground state of the 1D infinite well of width $a$ (up to normalization). The s-state of the 3D spherical well, after the $u$ transformation, is identical to the 1D infinite-well ground state. That is the meaning of "the radial equation is just 1D in $u$."
-
-Normalize: $\int_0^a |u|^2 dr = (a/\pi)^2 \cdot a/2 = a^3/(2\pi^2)$, so $u(r) = \sqrt{2/a}\sin(\pi r/a)$ after normalization. Then $R(r) = u/r = \sqrt{2/a}\sin(\pi r/a)/r$. The full wave function:
-
-$$\psi_{1,0,0}(r, \theta, \phi) = R(r)Y_0^0 = \frac{1}{\sqrt{2\pi a}}\,\frac{\sin(\pi r/a)}{r}$$
-
-Note the singular-looking $1/r$ behavior at $r \to 0$: $\sin(\pi r/a) \approx \pi r/a$ for small $r$, so $R(r) \to \sqrt{2/a}\cdot\pi/a = \pi\sqrt{2}/a^{3/2}$ — finite. The wave function does *not* diverge at the origin; the s-state has finite amplitude there. (This is the s-state's distinguishing feature, and it is the reason s-electrons feel relativistic effects more strongly in heavy atoms — they spend time at small $r$ where the nucleus is.)
-
-## 8. Exercises
-
-**Warm-up.**
-
-1. Write the 3D Schrödinger equation in spherical coordinates for $V(r) = -e^2/(4\pi\epsilon_0 r)$ (the hydrogen atom). Identify the radial part and the angular part. Do *not* solve — Chapter 7 will.
-
-2. Verify $\int|Y_0^0|^2\,d\Omega = 1$ explicitly. Then verify $\int|Y_1^0|^2\,d\Omega = 1$.
-
-3. Compute $|Y_1^0(\theta, \phi)|^2$ and $|Y_1^1(\theta, \phi)|^2$. For each, sketch the polar plot of $|Y|^2$ as $r(\theta) = |Y|^2$. (The $p_z$ dumbbell along the $z$-axis; the $|Y_1^{\pm 1}|^2$ donut around the $z$-axis.)
-
-**Application.**
-
-4. Verify $\hat{L}_z Y_1^1 = \hbar\,Y_1^1$ by direct calculation: write $Y_1^1$ explicitly, apply $\hat{L}_z = -i\hbar\,\partial_\phi$.
-
-5. Show that the real combinations $p_x \propto \sin\theta\cos\phi$ and $p_y \propto \sin\theta\sin\phi$ are *not* eigenstates of $\hat{L}_z$. Compute $\hat{L}_z p_x$ explicitly and show that it returns $-i\hbar p_y$ (or $+i\hbar p_y$, depending on sign convention). The chemistry basis sacrifices definite $L_z$ for definite spatial axes.
-
-6. Apply the substitution $u(r) = rR(r)$ to the radial equation and verify that the centrifugal barrier $\hbar^2\ell(\ell+1)/(2mr^2)$ falls out exactly. Identify which derivative of $r^2 dR/dr$ produces the $\ell(\ell+1)/r^2$ term.
-
-7. For the 3D infinite spherical well, look up (or compute) the first three zeros of $j_1(\rho)$ and $j_2(\rho)$. Use them to confirm the level ordering 1s, 1p, 1d, 2s. (You can use the fact that $j_\ell(\rho)$ for large $\rho$ behaves like $\sin(\rho - \ell\pi/2)/\rho$, so its $n$-th zero is approximately at $\rho \approx (n + \ell/2)\pi$.)
-
-**Synthesis.**
-
-8. Compute the angle of the "uncertainty cone" for the $|\ell, m = \ell\rangle$ state: $\cos\alpha = m/\sqrt{\ell(\ell+1)} = \ell/\sqrt{\ell(\ell+1)}$. Evaluate for $\ell = 1, 2, 3, 10, 100$. What happens as $\ell \to \infty$? Interpret physically.
-
-9. Compute the matrix elements $\langle Y_1^0|\cos\theta|Y_1^0\rangle$ and $\langle Y_0^0|\cos\theta|Y_1^0\rangle$ by direct integration over the sphere. The first matters for the Stark effect; the second matters for dipole transitions. Selection rules in atomic transitions come from exactly this kind of integral.
-
-10. Show that the s-states ($\ell = 0$) of the 3D spherical well have the same energies as the corresponding 1D infinite-well states (of the same width). Explain why this is a special feature of $\ell = 0$.
-
-**Challenge.**
-
-11. Build the angular momentum ladder operators $\hat{L}_\pm = \hat{L}_x \pm i\hat{L}_y$. Show that $[\hat{L}_z, \hat{L}_\pm] = \pm\hbar\hat{L}_\pm$. Use this to argue, by analogy with the harmonic-oscillator ladder of Chapter 3, that $\hat{L}_\pm$ shifts $m$ by $\pm 1$. (Sakurai Ch. 3 does this in detail.)
-
-12. The Stark effect places an atom in a uniform electric field $\vec E$ along $\hat z$. The perturbing potential is $V_{\text{pert}} = eEz = eEr\cos\theta$. Note that $\cos\theta \propto Y_1^0$. Argue, using the angular integrals from problem 9, that to first order the only states connected by this perturbation are those differing by $\Delta\ell = \pm 1$ and $\Delta m = 0$. This is a selection rule, and it falls out of the angular-momentum algebra. (Chapter 9 will use this.)
-
-13. The cosmic microwave background's temperature on the sky $T(\theta, \phi)$ is a function on the celestial sphere. Expand it in spherical harmonics: $T(\theta, \phi) = \sum_{\ell m} a_{\ell m} Y_{\ell m}(\theta, \phi)$. The power spectrum is $C_\ell = \langle|a_{\ell m}|^2\rangle$ (averaged over $m$). Argue, using rotational invariance, that the $C_\ell$ do not depend on $m$. What does an observed peak in $C_\ell$ at $\ell \approx 220$ correspond to physically? (Briefly look up the Planck 2018 results [verify A&A 641, A6 DOI] for context.)
-
-## 9. What would change my mind
-
-If a precision spectroscopic measurement consistently found energy levels of a clean central-potential system (say, a Rydberg atom in a known potential) that did *not* organize themselves by $\ell$ and $m$ quantum numbers as predicted by the separation of variables — that is, if the angular structure of bound states deviated from what the spherical-harmonic basis predicts — the chapter's whole framework would be in trouble. So far, every test has come back in the theory's favor. The most stringent recent tests are atomic-clock comparisons, which rely on precisely the angular-momentum algebra developed here and are now stable to roughly $10^{-18}$ in fractional frequency.
-
-If a foundational analysis identified a 3D problem of broad interest that is *not* solvable by separation of variables in any coordinate system — and that has no exploitable symmetry — the centrality of this chapter's method would be diminished. The Stark effect is one such case (not separable in any coordinate system more clever than parabolic, and even that is special), but perturbation theory handles it. The bound-state problems that resist all the standard techniques are an active research area, but they are not what undergraduate atoms look like.
-
-## 10. Still puzzling
-
-The accidental degeneracy of the hydrogen atom — that energies depend only on $n$, not on $\ell$ — has an explanation: there is an extra conserved quantity, the Runge-Lenz vector, and a hidden SO(4) symmetry of the $1/r$ Coulomb potential. The same kind of accidental degeneracy in the 3D isotropic harmonic oscillator has an explanation: an SU(3) symmetry. Both are clean. What I do not understand, satisfactorily, is *why* these particular symmetries appear in these particular potentials and not others. The $1/r$ potential happens to be the unique potential (along with the harmonic) for which all bound orbits in classical mechanics close — Bertrand's theorem. The quantum degeneracy and the classical closed-orbit property are surely the same fact wearing different clothes, but I do not know a derivation that makes the connection feel inevitable rather than coincidental. The math is settled; the conceptual unity is not, for me.
-
-## 11. LLM Exercise — the spherical harmonics visualizer
+## LLM Exercise — the spherical harmonics visualizer
 
 You are going to build a single-file D3 simulation that displays the spherical harmonics $Y_{\ell m}(\theta, \phi)$ in two synchronized panels — a polar cross-section and a pseudo-3D mesh on the sphere — with a toggle between physics (complex) and chemistry (real) conventions, and an animation mode that visualizes the $\phi$-phase rotation generated by $\hat{L}_z$. The deliverable is `05-spherical-harmonics.html`.
 
@@ -534,15 +401,15 @@ every non-trivial physics step.
 
 Run the simulation and answer the following:
 
-1. **|Y|^2 is independent of $\phi$.** Set $(\ell, m) = (1, 1)$ in physics convention. Look at the polar cross-section (left panel) at $\phi = 0$. Now mentally rotate the view 90° about the $z$-axis — what would the cross-section at $\phi = \pi/2$ look like? Confirm by toggling the "Re(Y)" mode: the real part has a $\cos\phi$ dependence (and the cross-section at $\phi = 0$ shows the full lobe pattern), but $|Y|^2$ has the same shape at every $\phi$. The right panel makes this visible: in $|Y|^2$ mode the sphere is shaded with axial symmetry about $\hat z$, regardless of which $m$ you pick.
+1. **$|Y|^2$ is independent of $\phi$.** Set $(\ell, m) = (1, 1)$ in physics convention. Look at the polar cross-section at $\phi = 0$. Then toggle to "Re(Y)" mode: the real part has a $\cos\phi$ dependence, but $|Y|^2$ has the same shape at every $\phi$. The right panel makes this visible: in $|Y|^2$ mode the sphere is shaded with axial symmetry about $\hat z$, regardless of which $m$ you pick.
 
-2. **The $p$-orbital basis swap.** Set $(\ell, m) = (1, 1)$. Toggle from "physics (complex)" to "chemistry (real)". The polar cross-section shape *changes* — from a donut-symmetric ring (the complex $|Y_1^1|^2$, which is rotationally symmetric about $z$) to a dumbbell pointing along $\hat x$ (the real $p_x$). The eigenvalue display shows that the chemistry-convention state is no longer an eigenstate of $\hat{L}_z$ — it has $\langle\hat{L}_z\rangle = 0$ but $\sigma_{L_z} = \hbar$ (you can verify by computing it). Same Hilbert subspace, different basis, different probabilities for $L_z$ measurements.
+2. **The $p$-orbital basis swap.** Set $(\ell, m) = (1, 1)$. Toggle from "physics (complex)" to "chemistry (real)." The polar cross-section shape changes — from a donut-symmetric ring (the complex $|Y_1^1|^2$, rotationally symmetric about $z$) to a dumbbell pointing along $\hat x$ (the real $p_x$). The eigenvalue display shows that the chemistry-convention state is no longer an eigenstate of $\hat{L}_z$.
 
-3. **$\ell(\ell+1)$, not $\ell^2$.** Set $\ell = 1$. The eigenvalue strip shows $L^2 = 2\hbar^2$ — *not* $\hbar^2$. The maximum value of $L_z$ is $1\hbar$ — *less* than $\sqrt{L^2} = \sqrt{2}\hbar$. The angular momentum vector lives on a cone, not on the $z$-axis. Compute the cone half-angle: $\arccos(1/\sqrt{2}) = 45°$. For $\ell = 2, m = 2$: $L_z = 2\hbar$, $\sqrt{L^2} = \sqrt{6}\hbar$, cone angle $\arccos(2/\sqrt{6}) \approx 35°$. As $\ell$ grows, the cone closes onto the axis — the classical limit of "angular momentum points in a definite direction."
+3. **$\ell(\ell+1)$, not $\ell^2$.** Set $\ell = 1$. The eigenvalue strip shows $L^2 = 2\hbar^2$ — not $\hbar^2$. The maximum value of $L_z$ is $1\hbar$ — less than $\sqrt{L^2} = \sqrt{2}\hbar$. Compute the cone half-angle: $\arccos(1/\sqrt{2}) = 45°$. For $\ell = 2, m = 2$: $L_z = 2\hbar$, $\sqrt{L^2} = \sqrt{6}\hbar$, cone angle $\arccos(2/\sqrt{6}) \approx 35°$. As $\ell$ grows, the cone closes toward the axis — the classical limit.
 
-4. **$\hat{L}_z$ generates $\phi$-rotation.** Toggle "animate phi-phase" on. For $m = 0$ (e.g., $Y_1^0$, the $p_z$), nothing happens — the wave function is real and has no $\phi$ dependence. For $m = 1$, the right panel's color pattern rotates around the $z$-axis at rate $\omega = 1$ in your units. For $m = 2$, it rotates twice as fast. For $m = -1$, it rotates the other way. Operationally: $\hat{L}_z$ is the *generator* of rotations about $\hat z$. The eigenvalue $m\hbar$ is the *rate* of phase accumulation. This is why $\hat{L}_z = -i\hbar\partial_\phi$ — it asks "how fast is the phase changing as you walk around the $z$-axis?"
+4. **$\hat{L}_z$ generates $\phi$-rotation.** Toggle "animate phi-phase" on. For $m = 0$ ($Y_1^0$, the $p_z$), nothing happens — no $\phi$ dependence. For $m = 1$, the right panel's color pattern rotates around the $z$-axis at rate $\omega = 1$. For $m = 2$, it rotates twice as fast. For $m = -1$, it rotates the other way. This is $\hat{L}_z$ as the generator of rotations about $\hat z$ — the eigenvalue $m\hbar$ is the rate of phase accumulation.
 
-5. **Nodes.** Set $\ell = 2, m = 0$. The polar cross-section of $|Y_2^0|^2$ has two nodes at the conical surfaces $\cos\theta = \pm 1/\sqrt{3}$ (about $\theta \approx 54.7°$ and $\theta \approx 125.3°$). Verify in the simulation that the eigenvalue strip lists these. Then increase $\ell$ to 4, leaving $m = 0$: there should be 4 nodes in $\theta$. As $\ell$ grows with fixed $m = 0$, the wave function develops more nodes — the angular kinetic energy increases.
+5. **Nodes.** Set $\ell = 2, m = 0$. The polar cross-section of $|Y_2^0|^2$ has two nodes at $\cos\theta = \pm 1/\sqrt{3}$, about $54.7°$ and $125.3°$. Verify the eigenvalue strip lists these. Then set $\ell = 4, m = 0$: four nodes in $\theta$. As $\ell$ grows with $m = 0$ fixed, angular kinetic energy increases.
 
 **Extension prompt:**
 
@@ -570,8 +437,42 @@ Coulomb-potential radial equation gets solved analytically.
 
 ---
 
-*Sources consulted: Griffiths §4.1–4.3 (separation of variables, spherical harmonics, angular momentum algebra); Liboff Ch. 9 (angular momentum, pantry lines 418–423, 532), Ch. 10 (plane-wave expansion in spherical harmonics, pantry line 612); Arfken, Weber & Harris *Mathematical Methods for Physicists* (spherical harmonics and associated Legendre functions [verify chapter number]); Sakurai & Napolitano *Modern Quantum Mechanics* Ch. 3 (algebraic derivation of $\ell(\ell+1)$); Jackson *Classical Electrodynamics* Ch. 3 (spherical harmonics in potential theory); [NIST Digital Library of Mathematical Functions Ch. 14](https://dlmf.nist.gov/14) (Legendre functions, authoritative reference); Mayer & Jensen on the nuclear shell model [verify citations *Phys. Rev.* 75, 1969 (1949) and Haxel, Jensen & Suess *Phys. Rev.* 75, 1766 (1949)]; Planck Collaboration 2020 "Planck 2018 results VI: Cosmological parameters" [verify A&A 641, A6 DOI](https://www.aanda.org/articles/aa/full_html/2020/09/aa33910-18/aa33910-18.html); Karaçöp & Doymuş 2013 on chemistry students' confusion of orbitals with Bohr orbits [verify peer-reviewed publication].*
+## Still puzzling
 
-*Tags: spherical-harmonics, angular-momentum, central-potentials, centrifugal-barrier, orbitals, condon-shortley, d3-simulation*
+The accidental degeneracy of the hydrogen atom — energies depending only on $n$, not on $\ell$ — has an explanation: a conserved Runge-Lenz vector and a hidden SO(4) symmetry of the $1/r$ Coulomb potential. The same accidental degeneracy in the 3D harmonic oscillator has an SU(3) explanation. Both are clean and settled mathematically. What I do not understand, to my own satisfaction, is *why* these particular symmetries arise in these particular potentials and not others. Bertrand's theorem says the $1/r$ and $r^2$ potentials are the only ones for which all classical bound orbits close. The quantum degeneracy and the classical closed-orbit property must be the same fact in different clothing. But I do not know a derivation that makes the connection feel inevitable rather than coincidental. The math is done. The conceptual unity is not, for me.
 
-*Status: draft for Nik's review. Voice-anchor check pending — root `style/` and `books/quantum-mechanics-with-llms/style/` not yet inspected. Flag: voice-unanchored if both empty. Several `[verify]` flags throughout — see specifically Mayer/Jensen nuclear shell model citations, Planck 2018 DOI, Karaçöp & Doymuş Turkish PER citation, Arfken section number, sign-convention difference between Griffiths 2nd and 3rd ed. for $Y_1^{\pm 1}$.*
+---
+
+## Exercises
+
+**Warm-up**
+
+1. *[Tests: separation of variables, identifying the angular operator]* Write the full 3D Schrödinger equation in spherical coordinates for the Coulomb potential $V(r) = -e^2/(4\pi\epsilon_0 r)$. Without solving anything: (a) identify which terms depend only on $r$ and which depend only on $(\theta, \phi)$; (b) write down the separation constant and explain why it is conventionally called $\ell(\ell+1)$ rather than just $\lambda$; (c) state the two equations the separation produces. *Difficulty: warm-up.*
+
+2. *[Tests: normalization of spherical harmonics, explicit computation]* Verify $\int|Y_0^0|^2\,d\Omega = 1$ and $\int|Y_1^0|^2\,d\Omega = 1$ by explicit integration. (You will need $\int_0^\pi\sin\theta\,d\theta = 2$ and $\int_0^\pi\cos^2\theta\sin\theta\,d\theta = 2/3$.) *Difficulty: warm-up.*
+
+3. *[Tests: axial symmetry of |Y|², Condon-Shortley sign]* (a) Show that $|Y_{\ell m}(\theta,\phi)|^2$ is independent of $\phi$ for any $\ell, m$, by inspecting the form of the spherical harmonics. (b) Evaluate $Y_1^1$ at $(\theta = \pi/2, \phi = 0)$ explicitly and confirm the value is $-\sqrt{3/(8\pi)}$ — not $+\sqrt{3/(8\pi)}$. What goes wrong if you omit the Condon-Shortley sign? *Difficulty: warm-up.*
+
+**Application**
+
+4. *[Tests: L̂_z eigenvalue equation, magnetic quantum number]* Verify $\hat{L}_z Y_1^1 = \hbar Y_1^1$ by direct calculation: write out $Y_1^1 = -\sqrt{3/(8\pi)}\sin\theta\,e^{i\phi}$, apply $\hat{L}_z = -i\hbar\partial_\phi$, and show the result is $+\hbar$ times the original. Then verify that $p_x \propto \sin\theta\cos\phi$ is *not* an eigenstate of $\hat{L}_z$ by computing $\hat{L}_z\,p_x$ explicitly and showing the result is a multiple of $p_y$ rather than $p_x$. *Difficulty: application.*
+
+5. *[Tests: centrifugal barrier, u-substitution]* Starting from the radial equation for $R(r)$, apply the substitution $u(r) = rR(r)$ and show explicitly that the result is a 1D Schrödinger equation with effective potential $V_{\text{eff}} = V(r) + \hbar^2\ell(\ell+1)/(2mr^2)$. Identify which derivative of $r^2 dR/dr$ produces the centrifugal term. Then explain in one sentence why the centrifugal barrier is a kinetic energy contribution, not a potential energy contribution. *Difficulty: application.*
+
+6. *[Tests: spherical well energies, connection to 1D well]* For the 3D infinite spherical well of radius $a$: (a) Show that the 1s ground-state energy is $E_{1,0} = \pi^2\hbar^2/(2ma^2)$, the same as the 1D infinite well of width $a$. (b) Find the energy of the first 1p state using $j_1(\beta_{1,1}) = 0$ with $\beta_{1,1} \approx 4.493$ and express it as a multiple of $E_{1,0}$. (c) Explain why the 1s and 1D results match but the 1p result has no 1D analog. *Difficulty: application.*
+
+7. *[Tests: ℓ(ℓ+1) vs ℓ², angular momentum cone]* For the state $|\ell = 2, m = 2\rangle$: (a) Compute $\sqrt{\langle L^2\rangle}$ and $L_z$. (b) Find the half-angle of the angular momentum cone. (c) Find the magnitude of the transverse angular momentum $\sqrt{L_x^2 + L_y^2}$ in this state. (d) Explain why this quantity cannot be zero, using the Robertson inequality for $\hat{L}_x$ and $\hat{L}_y$. *Difficulty: application.*
+
+**Synthesis**
+
+8. *[Tests: physics vs. chemistry basis, L̂_z measurement outcomes]* Consider the $p_x$ chemistry orbital $\propto \sin\theta\cos\phi$. (a) Express $p_x$ as a linear combination of $Y_1^{-1}$, $Y_1^0$, $Y_1^1$. (b) If you measure $L_z$ on a large ensemble of particles each in the state $p_x$, what are the possible outcomes and with what probabilities? (c) What is $\langle L_z\rangle$ for $p_x$? Does this mean $p_x$ "has no $z$-angular momentum"? Explain the distinction between zero expectation value and zero eigenvalue. *Difficulty: synthesis.*
+
+9. *[Tests: level ordering, nuclear shell model connection]* The nuclear magic numbers — unusually stable nucleon counts — are 2, 8, 20, 28, 50, 82, 126. The first three (2, 8, 20) correspond to filled shells in a spherical well without spin-orbit coupling. Using the level ordering 1s, 1p, 1d, 2s, 1f, 2p, ... and the degeneracy $2(2\ell+1)$ per level (including both spin orientations): (a) show that filling 1s, 1p, 1d, and 2s gives cumulative counts 2, 8, 18, 20, matching the first three magic numbers; (b) explain why the higher magic numbers (28, 50, ...) require a spin-orbit term to appear. *Difficulty: synthesis.*
+
+**Challenge**
+
+10. *[Tests: angular momentum algebra, ladder operators, connection to Chapter 3]* Define $\hat{L}_\pm = \hat{L}_x \pm i\hat{L}_y$. (a) Show $[\hat{L}_z, \hat{L}_+] = \hbar\hat{L}_+$ using the commutation relations $[\hat{L}_i, \hat{L}_j] = i\hbar\epsilon_{ijk}\hat{L}_k$. (b) Use this to argue that $\hat{L}_+|Y_{\ell m}\rangle$ is an eigenstate of $\hat{L}_z$ with eigenvalue $(m+1)\hbar$. (c) The descent must terminate at $m = -\ell$ by the same non-negativity argument used for the harmonic oscillator in Chapter 3. State the termination condition ($\hat{L}_-|Y_{\ell,-\ell}\rangle = 0$) and show it forces $\ell$ to be a non-negative integer — the algebraic derivation of the spectrum without solving the Legendre equation. *Difficulty: challenge.*
+
+---
+
+*Chapter 7: You now have the universal angular machinery. The spherical harmonics solve the angular equation for any central potential. The remaining task is to solve the radial equation for the Coulomb potential $V(r) = -e^2/(4\pi\epsilon_0 r)$ specifically — and discover why the hydrogen atom's energy levels depend only on $n$.*
