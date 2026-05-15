@@ -1,350 +1,191 @@
 # Chapter 11 — The WKB Approximation and Tunneling
+*The chapter where a particle passes through a wall it has no business passing through.*
 
-> A semiclassical approximation that delivers one of the most consequential predictions in physics — and the chapter where you watch a quantum wave packet pass through a wall it has no business passing through.
+Polonium-212 has a halflife of about $3 \times 10^{-7}$ seconds. Thorium-232 has a halflife of about $1.4 \times 10^{10}$ years. Both decay by emitting an alpha particle through the same mechanism — a cluster of two protons and two neutrons, formed inside the nucleus, escaping to the outside. The ratio of their halflives is roughly $10^{24}$. Twenty-four orders of magnitude.
+
+In 1911, Hans Geiger and John Mitchell Nuttall found that for alpha emitters of the same daughter charge, the log of the halflife is approximately linear in $1/\sqrt{E_\alpha}$ — a straight line on a log-vs-inverse-square-root plot. The observation was clean and the explanation was completely absent.
+
+Here is the classical problem. An alpha particle approaching a nucleus sees a Coulomb barrier. At the nuclear surface, the barrier is about 30 MeV. The emitted alpha has about 5 MeV. Classically, the alpha is stuck. It does not have enough energy to get over the wall. And yet out it comes.
+
+In the summer of 1928, George Gamow in Göttingen computed the probability of the alpha particle *tunneling* through the Coulomb barrier using brand-new quantum mechanics. Within days, Ronald Gurney and Edward Condon at Princeton published the same idea independently. Both found the same thing: the tunneling probability is exponentially sensitive to barrier height, width, and particle energy. That exponential sensitivity is the source of the 24-decade dynamic range. A small change in alpha energy corresponds to a huge change in the exponent, which corresponds to an astronomical change in the halflife. The Geiger-Nuttall line is a plot of that exponent as a function of alpha energy.
+
+This chapter builds the machinery that gives you that result.
 
 ---
 
-## 1. What this chapter is doing
+## The WKB ansatz
 
-Quantum tunneling is not exotic. It is the reason the sun shines. It is the reason a USB stick remembers what you put on it. It is the reason a scanning tunneling microscope can image individual atoms. It is the mechanism behind alpha radioactivity, every Josephson junction in a superconducting qubit, the deuterium-tritium fusion process at the core of stars, and the cosmological problem of false-vacuum decay. Tunneling is one of the most physically consequential predictions of quantum mechanics, and the WKB approximation is the tool that makes it tractable.
+The time-independent Schrödinger equation in one dimension is
 
-The chapter delivers four things. First, the WKB ansatz — write the wave function as $\psi = e^{iS/\hbar}$ and expand $S$ in powers of $\hbar$. Second, the tunneling formula $T \approx \exp[-(2/\hbar)\int\sqrt{2m(V-E)}\,dx]$ — the Gamow factor, dominant exponential in barrier penetration, the object that explains 24 orders of magnitude of alpha-decay halflives. Third, the Bohr-Sommerfeld quantization condition $\oint p\,dx = (n+1/2)h$ — the WKB version of bound states. Fourth, a worked alpha-decay calculation that reproduces the Geiger-Nuttall law from first principles.
+$$-\frac{\hbar^2}{2m}\psi''(x) + V(x)\psi(x) = E\psi(x).$$
 
-The simulation is the chapter's centerpiece. You will build three nested visualizations: stationary transmission $T(E)$ for a rectangular barrier (exact vs. WKB on a log axis), general-barrier WKB tunneling with a shape selector, and — the heart of the chapter — an *animated Gaussian wave packet hitting a barrier* computed via the Crank-Nicolson method. The wave packet splits into a reflected piece and a transmitted piece. You watch the transmitted piece emerge. *This is the visualization that cannot be replicated in print.* Every classical intuition you had about barriers will be gone after you watch it once.
+Define the local classical momentum
 
-## 2. Learning objectives
+$$p(x) = \sqrt{2m(E - V(x))},$$
 
-By the end of this chapter you should be able to:
+which is real where the particle is classically allowed ($E > V$) and imaginary in the forbidden region ($E < V$). Now write the wave function as
 
-- Derive the WKB ansatz $\psi(x) \approx (C/\sqrt{p(x)})\exp[\pm(i/\hbar)\int p\,dx']$ by expanding $S(x)$ in powers of $\hbar$.
-- State the validity condition $|d\lambda_{dB}/dx| \ll 1$ (potential varies slowly on the de Broglie wavelength scale).
-- Sketch the connection formulas at a classical turning point and identify the role of the Maslov index.
-- Apply the tunneling formula $T \approx e^{-2\gamma}$ to a rectangular and a Coulomb barrier.
-- Derive the Bohr-Sommerfeld quantization condition $\oint p\,dx = (n+1/2)h$ as the bound-state WKB.
-- Compute the Gamow factor for alpha decay and reproduce the Geiger-Nuttall correlation.
-- Build a D3 simulation that animates a Gaussian wave packet via Crank-Nicolson and shows tunneling in real time.
+$$\psi(x) = e^{iS(x)/\hbar}$$
 
-## 3. Motivating problem
+for some function $S(x)$. This is not an approximation — it is an exact rewriting. Any $\psi$ can be written this way; $S$ is in general complex. Substitute into the Schrödinger equation and you get an exact equation for $S$:
 
-A polonium-212 nucleus has a halflife of about $3 \times 10^{-7}$ seconds. A thorium-232 nucleus has a halflife of about $1.4 \times 10^{10}$ years. Both decay by emitting an alpha particle through what looks like the same physical mechanism. The ratio of halflives is roughly $10^{24}$ — twenty-four orders of magnitude.
+$$\frac{(S')^2}{2m} - \frac{i\hbar}{2m}S'' = E - V(x).$$
 
-How can a single mechanism produce such an enormous dynamic range? In 1911 and 1912, Hans Geiger and John Mitchell Nuttall plotted alpha-decay halflives against alpha-particle energies for many isotopes and discovered an empirical correlation: $\log\tau_{1/2}$ is approximately linear in $1/\sqrt{E_\alpha}$ for fixed daughter charge $Z$ ([Geiger & Nuttall, *Phil. Mag.* 22, 613, 1911; 23, 439, 1912](https://doi.org/10.1080/14786441108637153) [verify]). A straight line on a log-vs-inverse-square-root plot. It was a beautiful empirical fact with no theoretical explanation.
+Now expand $S$ in powers of $\hbar$: $S = S_0 + (\hbar/i)S_1 + \cdots$. At zeroth order in $\hbar$ the equation gives $(S_0')^2/2m = E - V$, so
 
-The classical picture made things worse. An alpha particle approaching a nucleus sees a Coulomb potential. At the nuclear radius $R \approx 7\,\text{fm}$ for heavy nuclei, the Coulomb barrier is on the order of $V_{\text{max}} \approx 30\,\text{MeV}$. A typical emitted alpha has $E \approx 5\,\text{MeV}$. Classically, the alpha is below the barrier; classically, it cannot get out. It does not have the energy.
+$$S_0'(x) = \pm p(x) \quad\Longrightarrow\quad S_0 = \pm\int p(x')\,dx'.$$
 
-In 1928, George Gamow, working in Göttingen and using brand-new quantum mechanics, computed the probability of an alpha particle *tunneling* through the Coulomb barrier ([Gamow, "Zur Quantentheorie des Atomkernes," *Z. Phys.* 51, 204, 1928](https://link.springer.com/article/10.1007/BF01343196), submitted 29 July 1928). Independently and within a day, Ronald Gurney and Edward Condon at Princeton submitted the same idea to *Nature* ([*Nature* 122, 439, 1928](https://www.nature.com/articles/122439a0); fuller treatment in [*Phys. Rev.* 33, 127, 1929](https://journals.aps.org/pr/abstract/10.1103/PhysRev.33.127)). Both groups got the same answer: the tunneling probability is exponentially sensitive to barrier height, barrier width, and particle energy, and the resulting decay rate spans the 24-decade range of observed halflives.
+At first order, the correction satisfies $S_1' = -p'/(2p)$, giving $S_1 = -\frac{1}{2}\ln p$. Assembling the pieces and tracking the normalization:
 
-Two further questions sit in this puzzle. *How does a particle "tunnel"? Where is it inside the barrier?* (The pop-science answer — "energy borrowing through the uncertainty principle" — is wrong, and the chapter will say so.) *Why is the rate so exponentially sensitive?* The first answer is in the math; the second is the entire point. By the end of the chapter you will understand both, and you will have watched a wave packet split in two as it hits a wall.
-
-## 4. Concept block — the WKB ansatz
-
-### 4.1 An exact rewriting
-
-The time-independent Schrödinger equation in one dimension:
-
-$$-\frac{\hbar^2}{2m}\,\psi''(x) + V(x)\psi(x) = E\psi(x)$$
-
-Define the local classical momentum:
-
-$$p(x) = \sqrt{2m(E - V(x))}$$
-
-In the classically allowed region ($E > V$), $p(x)$ is real. In the classically forbidden region ($E < V$), $p(x)$ is imaginary; write $|p(x)| = \sqrt{2m(V - E)}$ for the magnitude.
-
-Now write the wave function exactly as
-
-$$\psi(x) = \exp\!\left[\frac{i}{\hbar}S(x)\right]$$
-
-This is just a *definition* of $S(x)$ — it is exact for any $\psi$, the function $S$ is in general complex. Substitute into the Schrödinger equation:
-
-$$\psi' = \frac{i}{\hbar}S'\psi, \quad \psi'' = \left[\frac{i}{\hbar}S'' - \frac{1}{\hbar^2}(S')^2\right]\psi$$
-
-So
-
-$$-\frac{\hbar^2}{2m}\left[\frac{i}{\hbar}S'' - \frac{(S')^2}{\hbar^2}\right]\psi + V\psi = E\psi$$
-
-$$\frac{(S')^2}{2m} - \frac{i\hbar}{2m}S'' = E - V(x)$$
-
-This is the *exact* equation for $S(x)$. It is nonlinear and not easier than the original Schrödinger equation. But it is in a form that allows a controlled expansion in $\hbar$.
-
-### 4.2 Expand in powers of $\hbar$
-
-Write
-
-$$S(x) = S_0(x) + \frac{\hbar}{i}S_1(x) + \left(\frac{\hbar}{i}\right)^2 S_2(x) + \cdots$$
-
-Substitute and match powers of $\hbar$.
-
-**Order $\hbar^0$.** The leading equation gives
-
-$$\frac{(S_0')^2}{2m} = E - V(x) \;\Longrightarrow\; S_0'(x) = \pm p(x)$$
-
-So
-
-$$S_0(x) = \pm\int p(x')\,dx'$$
-
-The two signs correspond to right- and left-moving waves in the classically allowed region; to growing and decaying exponentials in the forbidden region.
-
-**Order $\hbar^1$.** Collecting the next-order terms:
-
-$$\frac{2 S_0' S_1'}{2m} - \frac{i}{2m}S_0'' \cdot \frac{1}{i} \cdot i = 0$$
-
-After bookkeeping (and being careful with the factor of $1/i$ in the expansion):
-
-$$S_1'(x) = -\frac{1}{2}\frac{p'(x)}{p(x)} \;\Longrightarrow\; S_1(x) = -\frac{1}{2}\ln p(x)$$
-
-So $e^{(\hbar/i)\cdot S_1/\hbar} = e^{-S_1\cdot i} = (\text{ignoring the }i)\, 1/\sqrt{p(x)}$ up to phase. Carefully tracking signs and phases (a calculation worth doing once and pinning), the result is
-
-$$\boxed{\psi_{\text{WKB}}(x) \approx \frac{C}{\sqrt{p(x)}}\exp\!\left[\pm\frac{i}{\hbar}\int p(x')\,dx'\right]}$$
+$$\boxed{\psi_{\text{WKB}}(x) \approx \frac{C}{\sqrt{p(x)}}\,\exp\!\left[\pm\frac{i}{\hbar}\int p(x')\,dx'\right]}$$
 
 in the classically allowed region, and
 
-$$\boxed{\psi_{\text{WKB}}(x) \approx \frac{C}{\sqrt{|p(x)|}}\exp\!\left[\pm\frac{1}{\hbar}\int|p(x')|\,dx'\right]}$$
+$$\psi_{\text{WKB}}(x) \approx \frac{C}{\sqrt{|p(x)|}}\,\exp\!\left[\pm\frac{1}{\hbar}\int |p(x')|\,dx'\right]$$
 
-in the classically forbidden region. (Griffiths §9.1; Liboff §7.10 [verify].)
+in the classically forbidden region. The two signs correspond to right- and left-moving solutions, or in the forbidden region, to growing and decaying exponentials.
 
-### 4.3 What the prefactor is doing
+The $1/\sqrt{p(x)}$ prefactor has a clean interpretation. The classical probability of finding the particle near $x$ is proportional to how long it spends there — proportional to $1/v(x) \propto 1/p(x)$. So $|\psi|^2 \propto 1/p(x)$: the wave function is large where the classical particle is slow and small where it moves quickly. The envelope tracks classical mechanics; the phase oscillates quantum-mechanically. This is why the approximation is called semiclassical.
 
-The factor $1/\sqrt{p(x)}$ has a clean classical interpretation. The classical probability of finding the particle in $[x, x+dx]$ is proportional to the time it spends there, which is $dx/v(x) \propto 1/p(x)$. So $|\psi_{\text{WKB}}|^2 \propto 1/p(x)$ — the wave function spends time in proportion to where the classical particle spends time. This is the *semi*-classical part of "semiclassical." The phase oscillates quantum-mechanically; the envelope tracks classical mechanics.
+<!-- → [CHART: three panels showing ψ_WKB(x) in an arbitrary smooth potential well — top panel: V(x) as a smooth curve with horizontal line at E marking the classical turning points a and b; middle panel: |ψ_WKB(x)|² showing large amplitude where p(x) is small (near turning points), small amplitude where p(x) is large (deep in the well), with the 1/p(x) envelope drawn as a dashed line; bottom panel: Im[ψ] showing rapid phase oscillations where p is large, slow oscillations near turning points; caption: "The WKB wave function: large amplitude where the classical particle is slow, rapid phase where it moves fast"] -->
 
-### 4.4 Where WKB is valid
+---
 
-The expansion above assumes higher-order terms are small. The next-order correction $S_2$ involves $S_0''/(S_0')^2 = p'/p^2$. So WKB is valid where
+## When the approximation is valid — and when it is not
 
-$$\left|\frac{\hbar\,p'(x)}{p^2(x)}\right| \ll 1$$
+The expansion above is controlled if higher-order terms are small. The condition works out to
 
-Equivalently, defining the local de Broglie wavelength $\lambda(x) = h/p(x)$:
+$$\left|\frac{d\lambda_{\text{dB}}}{dx}\right| \ll 1$$
 
-$$\left|\frac{d\lambda}{dx}\right| \ll 1$$
+where $\lambda_{\text{dB}} = h/p(x)$ is the local de Broglie wavelength. The potential must vary slowly across one de Broglie wavelength. Equivalently, the classical action $\int p\,dx$ must be large compared to $\hbar$.
 
-The potential must vary slowly across one de Broglie wavelength. WKB works when $\hbar$ is small (semiclassical limit), or equivalently when the action is large relative to $\hbar$.
+This condition fails *exactly* at a classical turning point $x_0$ where $E = V(x_0)$ and $p \to 0$. As the particle slows down at the turning point, its de Broglie wavelength grows without bound, and the WKB forms on each side cannot be matched naively. The fix is the *connection formula*: near $x_0$, linearize the potential and solve the resulting Airy equation exactly, then match its asymptotic forms to the WKB expressions on each side. Each turning point contributes a phase of $\pi/4$ — the Maslov index — which shifts the phase of the oscillating WKB solution by that amount.
 
-The validity condition fails *exactly* at classical turning points ($E = V(x_0)$), where $p \to 0$ and $\lambda \to \infty$. The wave function near a turning point cannot be approximated by either the oscillating or the decaying WKB form — it transitions from one to the other. The fix is the *connection formula*.
+The derivation of the connection formulas is involved, and doing it once carefully is worth the effort; but for the applications in this chapter, the output is what matters. Each classical turning point contributes $\pi/4$ to the accumulated phase.
 
-## 5. Concept block — connection formulas and Bohr-Sommerfeld
+<!-- → [IMAGE: diagram of the WKB connection at a single turning point x₀ — left side (x < x₀, classically allowed): oscillating WKB wave labeled "C/√p cos(∫p dx/ℏ − π/4)"; right side (x > x₀, classically forbidden): decaying exponential labeled "C/2√|p| exp(−∫|p|dx/ℏ)"; at x₀: the Airy function Ai(z) bridges the two regions, shown as a smooth curve that transitions from oscillation to decay; a small inset shows the linearized potential V(x) ≈ E + V'(x₀)(x−x₀) used to derive the Airy equation; caption: "The Airy function is the exact solution near the turning point. Its asymptotic forms on each side pin down the WKB connection, including the π/4 Maslov phase"] -->
 
-### 5.1 Connection formulas (sketch)
+---
 
-Near a classical turning point $x_0$ where $E = V(x_0)$, linearize the potential:
+## Bound states: the Bohr-Sommerfeld condition
 
-$$V(x) \approx V(x_0) + V'(x_0)(x - x_0)$$
+A particle bound between two turning points $a$ and $b$ — classically allowed between them, forbidden outside — must have a wave function that oscillates in the interior and decays on both sides. Threading the WKB solution through both turning points, demanding a self-consistent single-valued solution, and using the Maslov contributions from each turning point gives:
 
-The Schrödinger equation in this linear potential is the *Airy equation*:
+$$\boxed{\oint p(x)\,dx = 2\int_a^b p(x)\,dx = \left(n + \frac{1}{2}\right)h, \quad n = 0, 1, 2, \ldots}$$
 
-$$\psi''(z) = z\psi(z)$$
+This is the Bohr-Sommerfeld quantization condition. The $1/2$ inside the bracket is the Maslov correction — the two $\pi/4$ contributions from the two turning points, added together. The original Bohr-Sommerfeld of 1913–1916 had $nh$ and no Maslov correction; the upgrade came with WKB.
 
-(after a rescaling). Its solutions are the Airy functions $\text{Ai}(z)$ and $\text{Bi}(z)$, which oscillate for $z < 0$ (the classically allowed side) and decay (or grow) for $z > 0$ (the forbidden side). Match the asymptotic forms of $\text{Ai}$ on each side of the turning point to the WKB forms on each side, and you get the connection formulas.
+For the harmonic oscillator, $V = \frac{1}{2}m\omega^2 x^2$, the phase-space orbit at energy $E$ is an ellipse with area $2\pi E/\omega$. The Bohr-Sommerfeld condition gives $2\pi E/\omega = (n+\frac{1}{2})h$, so $E_n = (n+\frac{1}{2})\hbar\omega$ — the *exact* quantum-mechanical energies, not just an approximation. The same miracle happens for hydrogen in the Coulomb potential. These are not coincidences; they reflect hidden symmetries in those particular potentials. For most other potentials, Bohr-Sommerfeld is a leading-order estimate.
 
-For a turning point at $x = a$ with classically allowed region to the *left* and forbidden region to the *right*:
+<!-- → [IMAGE: phase-space diagram illustrating Bohr-Sommerfeld for the harmonic oscillator — an ellipse in (x, p) space at energy E, with axes labeled x and p; the area of the ellipse shaded and labeled "∮p dx = 2πE/ω"; horizontal lines at energies E_0 = ℏω/2, E_1 = 3ℏω/2, E_2 = 5ℏω/2 showing that each allowed orbit has area (n+1/2)h; caption: "The Bohr-Sommerfeld condition as a phase-space area quantization. Each allowed orbit encloses area (n+½)h. For the harmonic oscillator, this gives the exact energies"] -->
 
-$$\frac{2C}{\sqrt{p(x)}}\cos\!\left[\frac{1}{\hbar}\int_x^a p\,dx' - \frac{\pi}{4}\right] \;\longleftrightarrow\; \frac{C}{\sqrt{|p(x)|}}\exp\!\left[-\frac{1}{\hbar}\int_a^x|p|\,dx'\right]$$
+---
 
-The $\pi/4$ phase at each turning point is the *Maslov index* contribution — a subtle but real consequence of the matching procedure. (Bender & Orszag, *Advanced Mathematical Methods for Scientists and Engineers*, 1978, Chapter 10 [verify] — the canonical reference for the matched-asymptotic derivation.)
+## Tunneling: the Gamow factor
 
-The chapter does not derive the matching in full; the calculation is technically involved and the reward-per-effort is low for a first pass. What you need is the result: each turning point contributes a phase of $\pi/4$, and that phase is the input to the Bohr-Sommerfeld quantization condition.
+Now the main event. A particle with energy $E$ encounters a potential barrier $V(x) > E$ between two classical turning points $a$ and $b$. The particle cannot get over the barrier classically; quantum-mechanically, the wave function does not vanish inside the barrier — it decays exponentially, and a small piece emerges on the other side.
 
-### 5.2 Bohr-Sommerfeld quantization
+Thread the WKB solution through the barrier. On the incident side, the wave function oscillates. Inside the forbidden region, the dominant WKB solution decays as $\exp[-(1/\hbar)\int|p|\,dx]$. On the transmitted side, it oscillates again. Following the mathematics through the connection formulas at both turning points, the *transmission coefficient* — the ratio of transmitted to incident probability current — comes out to:
 
-For a particle bound between two classical turning points $a$ and $b$ ($V(x) < E$ in between, $V > E$ outside), single-valuedness and normalizability of the WKB wave function require the phase integral over one classical period to be an integer multiple of $2\pi$, plus the Maslov contribution of $\pi/4$ at each turning point.
+$$\boxed{T \approx e^{-2\gamma}, \qquad \gamma = \frac{1}{\hbar}\int_a^b\sqrt{2m(V(x)-E)}\,dx}$$
 
-Adding it up:
+The exponent $\gamma$ is the Gamow factor.
 
-$$\frac{1}{\hbar}\oint p\,dx - \frac{\pi}{4} - \frac{\pi}{4} = (n+1) \pi - \pi = n\pi$$
+Three things to notice immediately. First, the transmission depends *exponentially* on the Gamow factor. A small change in barrier height, width, or particle energy gets amplified into a large change in $T$. This is the origin of the 24-decade dynamic range — it is the dynamic range of an exponential. Second, the barrier shape integrates into the formula automatically; any shape gets the same treatment, just a different integral. Third, the exponential carries essentially all the physics. The exact WKB formula has prefactors of order unity that depend on barrier-matching details, but those are smooth functions of $E/V_0$ and rarely matter for order-of-magnitude estimates.
 
-Rearranging:
+For a rectangular barrier of height $V_0$ and width $L$, the Gamow integral is trivial: $\gamma = \kappa L$ where $\kappa = \sqrt{2m(V_0-E)}/\hbar$. The exact transmission coefficient (derived by matching plane waves at the barrier edges) is
 
-$$\boxed{\oint p(x)\,dx = 2\int_a^b p(x)\,dx = \left(n + \tfrac{1}{2}\right) h, \quad n = 0, 1, 2, \ldots}$$
+$$T_{\text{exact}} = \left[1 + \frac{V_0^2\sinh^2(\kappa L)}{4E(V_0-E)}\right]^{-1}$$
 
-This is the **Bohr-Sommerfeld quantization condition**. The integer comes from counting wave function nodes; the $1/2$ comes from the Maslov index (the two $\pi/4$ contributions at the turning points). Old Bohr-Sommerfeld 1913–1916 had $nh$, with no Maslov correction; the upgrade came when WKB was put on rigorous footing.
+In the thick-barrier limit $\kappa L \gg 1$, this approaches $T_{\text{exact}} \approx [16E(V_0-E)/V_0^2]\,e^{-2\kappa L}$. The WKB gives $T_{\text{WKB}} = e^{-2\kappa L}$. On a log plot, the two curves run parallel: same exponential slope, offset by the smooth prefactor $16E(V_0-E)/V_0^2$. WKB nails the exponent and misses the prefactor by an $O(1)$ factor. For physics that spans decades, that is exactly the right trade.
 
-For the harmonic oscillator, this formula gives $E_n = (n + 1/2)\hbar\omega$ — *exactly*, not just to leading order in $\hbar$. The same formula gives, for the hydrogen atom in the Coulomb potential, the Bohr energies $E_n = -E_1/n^2$ exactly. These coincidences are why Bohr-Sommerfeld worked as well as it did before quantum mechanics existed; WKB shows that they are *not* coincidences but consequences of the symmetry of these particular potentials. For most other potentials, Bohr-Sommerfeld is leading-order accurate only.
+<!-- → [CHART: T vs. E/V₀ on a log y-axis from 10⁻¹² to 1, for V₀=5 and L=5 in natural units — two curves: T_exact (solid black) and T_WKB (dashed teal); below the barrier (E/V₀ < 1) the curves are parallel on the log axis with a constant vertical offset labeled "missing prefactor ≈ 16E(V₀−E)/V₀²"; above the barrier (E/V₀ > 1) T_exact shows interference fringes while T_WKB = 1; vertical reference line at E/V₀ = 1 labeled "barrier top"; caption: "WKB nails the exponent, misses the prefactor by an O(1) factor. The two curves are parallel below the barrier; the offset is the smooth function the leading WKB drops"] -->
 
-## 6. Concept block — the tunneling formula
+---
 
-### 6.1 Through a barrier
+## Alpha decay and the Geiger-Nuttall law
 
-Consider a particle with energy $E$ incident on a barrier $V(x) > E$ between two turning points $a$ and $b$. The classically forbidden region is the interval $[a, b]$. In that region, the WKB wave function decays exponentially. Following the wave through the barrier and out the other side, and using the connection formulas to match the exponentially decaying form to the oscillating form on each side, the transmission coefficient is
+Model an alpha particle as a pre-formed cluster bouncing inside a heavy nucleus. Inside the nucleus at radius $r < R$, it is held by the strong force. Outside, at $r > R$, it sees the Coulomb repulsion from the daughter nucleus (charge $Z' = Z - 2$):
 
-$$\boxed{T \approx \exp\!\left[-\frac{2}{\hbar}\int_a^b\sqrt{2m(V(x) - E)}\,dx\right] = e^{-2\gamma}}$$
+$$V(r) = \frac{2Z'e^2}{4\pi\epsilon_0 r}, \quad r > R.$$
 
-The exponent
+The barrier extends from $r = R$ out to the classical turning point $r_c$ where $V(r_c) = E_\alpha$:
 
-$$\gamma = \frac{1}{\hbar}\int_a^b\sqrt{2m(V(x) - E)}\,dx$$
+$$r_c = \frac{2Z'e^2}{4\pi\epsilon_0 E_\alpha}.$$
 
-is the **Gamow factor**. Three features of this formula deserve attention.
+For uranium-238 ($Z' = 90$, $E_\alpha \approx 4.2\,\text{MeV}$, $R \approx 7.4\,\text{fm}$), the turning point sits at $r_c \approx 60\,\text{fm}$ — the alpha must tunnel through a barrier eight times wider than the nucleus.
 
-*Exponential sensitivity.* The transmission depends *exponentially* on barrier parameters. A small change in barrier height, width, or particle energy is amplified into a giant change in $T$. This is the reason alpha-decay halflives span 24 orders of magnitude and the reason an STM can image individual atoms.
+The Gamow integral over the Coulomb barrier can be done analytically with the substitution $r = r_c\sin^2\theta$. In the limit $R \ll r_c$, which holds for heavy nuclei, the result simplifies to
 
-*The barrier shape integrates into the formula.* Square barriers, parabolic barriers, Coulomb barriers — all get the same treatment. You just compute the integral.
+$$\gamma \approx \frac{\pi Z' e^2}{4\epsilon_0\hbar}\sqrt{\frac{m_\alpha}{2E_\alpha}} - 2\sqrt{\frac{2m_\alpha}{\hbar^2}Rr_c \cdot E_\alpha / E_\alpha}$$
 
-*The exponent dominates the prefactor.* The full WKB formula has prefactors of order unity that depend on the details of barrier matching, but the exponential carries the physics. When estimating tunneling rates, computing $\gamma$ and exponentiating is enough.
-
-### 6.2 Rectangular barrier — exact vs. WKB
-
-The rectangular barrier ($V = V_0$ between $x=0$ and $x=L$, zero outside) is the calibration point. The *exact* transmission coefficient, derived by matching plane waves across the barrier (Griffiths Example 2.7; Liboff §7.7):
-
-$$T_{\text{exact}} = \left[1 + \frac{V_0^2\sinh^2(\kappa L)}{4E(V_0 - E)}\right]^{-1}, \quad \kappa = \frac{\sqrt{2m(V_0 - E)}}{\hbar}$$
-
-For $\kappa L \gg 1$ (thick or tall barrier), $\sinh(\kappa L) \approx e^{\kappa L}/2$:
-
-$$T_{\text{exact}} \approx \frac{16 E(V_0 - E)}{V_0^2}\,e^{-2\kappa L}$$
-
-The WKB prediction (since $V$ is constant, the integral is trivial):
-
-$$T_{\text{WKB}} = e^{-2\kappa L}$$
-
-So WKB gets the *exponential* right and misses the prefactor by an $O(1)$ factor that depends on $E/V_0$. *This is the most important fact in the chapter.* The exponential carries the physics; the prefactor is a smooth function of order unity that the leading WKB does not capture. The simulation will let you put $T_{\text{exact}}$ and $T_{\text{WKB}}$ on the same log plot and watch the two curves run parallel with constant offset.
-
-## 7. Concept block — alpha decay and the Geiger-Nuttall law
-
-### 7.1 The Coulomb barrier
-
-Model an alpha particle as a pre-formed cluster bouncing inside a nucleus of radius $R$. Inside the nucleus, the alpha sees a strong nuclear potential that confines it. Outside the nucleus, the alpha sees a Coulomb potential from the daughter nucleus (charge $Z' = Z - 2$, where $Z$ is the parent):
-
-$$V(r) = \frac{2(Z-2)e^2}{4\pi\epsilon_0 r}, \quad r > R$$
-
-The alpha has energy $E > 0$ (the decay $Q$-value); the Coulomb barrier extends from $r = R$ outward to $r = r_c$ where $V(r_c) = E$:
-
-$$r_c = \frac{2(Z-2)e^2}{4\pi\epsilon_0 E}$$
-
-For uranium-238 ($Z = 92$, daughter charge $90$, $E_\alpha \approx 4.2\,\text{MeV}$), $r_c \approx 60\,\text{fm}$. The nuclear radius is $R \approx 7.4\,\text{fm}$. The alpha is below the Coulomb barrier by a factor of about 8.
-
-### 7.2 The Gamow integral
-
-Compute the Gamow factor:
-
-$$\gamma = \frac{1}{\hbar}\int_R^{r_c}\sqrt{2m_\alpha\!\left[\frac{2(Z-2)e^2}{4\pi\epsilon_0 r} - E\right]}\,dr$$
-
-Substitute $r = r_c\sin^2\theta$. The integral becomes (after some algebra)
-
-$$\gamma = \sqrt{\frac{2m_\alpha E}{\hbar^2}}\,r_c\!\left[\arccos\sqrt{R/r_c} - \sqrt{R/r_c(1 - R/r_c)}\right]$$
-
-For $R \ll r_c$ (typical for heavy nuclei),
-
-$$\gamma \approx \frac{\pi}{2}\sqrt{\frac{2m_\alpha E}{\hbar^2}}\,r_c - 2\sqrt{\frac{2m_\alpha E}{\hbar^2}}\sqrt{Rr_c}$$
-
-Using $r_c \propto 1/E$ in the first term:
-
-$$\gamma \approx \frac{\pi(Z-2)e^2}{4\epsilon_0\hbar}\sqrt{\frac{m_\alpha}{2E}} - \text{correction}$$
-
-The decay rate is
+The first term grows as $1/\sqrt{E_\alpha}$; the second is a smaller correction. The decay rate is
 
 $$\Gamma \sim \nu_0\,e^{-2\gamma}$$
 
-where $\nu_0 \sim v/(2R)$ is the attempt frequency — how often the alpha bounces against the inside of the barrier ($\sim 10^{21}\,\text{Hz}$ for typical nuclear parameters). Taking the log of the halflife:
+where $\nu_0 \sim v/(2R) \sim 10^{21}\,\text{Hz}$ is the attempt frequency — how many times per second the alpha bounces against the inside of the barrier. Taking the logarithm:
 
-$$\log_{10}\tau_{1/2} = -\log_{10}\Gamma + \text{const} \approx A(Z) + \frac{B(Z)}{\sqrt{E_\alpha}}$$
+$$\log_{10}\tau_{1/2} \approx A(Z') + \frac{B(Z')}{\sqrt{E_\alpha}}$$
 
-This is the **Geiger-Nuttall law**. A plot of $\log\tau$ vs. $1/\sqrt{E}$ for alpha emitters of fixed daughter $Z$ is a straight line. The empirical observation from 1911 is *derived* from the WKB tunneling formula. The 24-decade dynamic range is the dynamic range of an exponential.
+This is the Geiger-Nuttall law. A straight line on a log-vs-$1/\sqrt{E}$ plot, for fixed daughter charge. The empirical observation from 1911 is *derived* from the WKB tunneling formula.
 
-### 7.3 Putting numbers to it
+Let me put numbers on it for $^{238}$U. The Gamow factor $\gamma \approx 43$, so $e^{-2\gamma} \approx e^{-86} \approx 4\times 10^{-38}$. The decay rate is $\Gamma \sim 10^{21} \times 4\times 10^{-38} \approx 4\times 10^{-17}\,\text{s}^{-1}$, giving a halflife of roughly $5\times 10^8\,\text{years}$. The experimental value is $4.5\times 10^9\,\text{years}$. We are off by a factor of 10. On a quantity that spans $10^{24}$, that is excellent. The remaining factor comes from the pre-formation probability of the alpha cluster inside the nucleus and from finer-grained prefactors in the WKB formula that we dropped.
 
-For $^{238}$U: $Z = 92$, $E_\alpha = 4.2\,\text{MeV}$, $m_\alpha = 6.6\times 10^{-27}\,\text{kg}$. Plugging in:
+This is one of the high-water marks of quantum mechanics applied to nuclear physics. A back-of-envelope calculation, using the WKB formula and a model that a first-year graduate student can write down, reproduces a halflife of billions of years.
 
-$$\gamma \approx 43$$
+<!-- → [IMAGE: Coulomb barrier diagram for alpha decay — radial potential V(r) plotted vs. r for a heavy nucleus; inside r < R: a flat nuclear well (strong force); outside r > R: Coulomb barrier 2Z'e²/(4πε₀r) falling as 1/r; horizontal line at E_α ≈ 5 MeV intersecting the Coulomb curve at r_c ≈ 60 fm; the classically forbidden tunneling region [R, r_c] shaded gray; the nuclear radius R ≈ 7.4 fm and turning point r_c labeled; arrows showing the alpha bouncing at frequency ν₀ inside the well and the exponentially attenuated wave emerging outside; caption: "The alpha tunnels from r = R to r = r_c through the Coulomb barrier. For ²³⁸U, the barrier is 8× wider than the nucleus. The Gamow factor γ ≈ 43 gives e^{−2γ} ≈ 10^{−38}"] -->
 
-So $e^{-2\gamma} \approx e^{-86} \approx 4 \times 10^{-38}$. The attempt frequency $\nu_0 \approx 5 \times 10^{21}\,\text{Hz}$. So the decay rate is $\Gamma \sim 2 \times 10^{-16}\,\text{s}^{-1}$, giving a halflife of $\tau_{1/2} = \ln 2/\Gamma \approx 10^{16}\,\text{s} \approx 3 \times 10^8\,\text{years}$. The experimental halflife is $4.5 \times 10^9$ years — within an order of magnitude of the back-of-envelope WKB estimate. **An order of magnitude on a quantity spanning 24 orders of magnitude is excellent.** The remaining factor of 15 comes from finer-grained prefactors and from the pre-formation probability of the alpha cluster inside the nucleus.
+<!-- → [CHART: Geiger-Nuttall plot — log₁₀(τ₁/₂) vs. 1/√(E_α) for uranium isotopes (or a fixed daughter charge Z'=90) — experimental data points as filled circles for at least five isotopes (e.g., ²³²U through ²³⁸U); straight line fit showing the linear WKB prediction; axes labeled with log₁₀(τ₁/₂) in seconds on y-axis and 1/√(E_α) in MeV^{-1/2} on x-axis; caption: "The Geiger-Nuttall law: log halflife is linear in 1/√E_α. Twenty-four decades of dynamic range on a single straight line, derived from the WKB Gamow factor"] -->
 
-This is one of the high-water marks of quantum mechanics applied to nuclear physics. A first-principles back-of-envelope calculation reproduces a halflife of billions of years.
+---
 
-## 8. Concept block — three more applications
+## What else the formula explains
 
-### 8.1 Scanning tunneling microscopy
+The same Gamow factor runs through a surprising range of physics.
 
-Gerd Binnig and Heinrich Rohrer at IBM Zurich built the first STM in 1981. The first successful image of an atomically resolved Si(111) 7×7 surface reconstruction appeared in [*Phys. Rev. Lett.* 49, 57 (1982)](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.49.57); the earlier vacuum-tunneling demonstration appeared in [*Appl. Phys. Lett.* 40, 178 (1982)](https://aip.scitation.org/doi/10.1063/1.92999). Binnig and Rohrer shared the 1986 Nobel.
+In a scanning tunneling microscope, a metal tip is held a few angstroms above a conducting surface. A small bias voltage drives electrons through the vacuum gap. The work function of a typical metal is $\phi \approx 4\,\text{eV}$, so $\kappa = \sqrt{2m_e\phi}/\hbar \approx 1\,\text{Å}^{-1}$. The tunneling current goes as $I \propto e^{-2\kappa d}$. When the tip moves one angstrom closer to the surface, the current increases by a factor of $e^2 \approx 7$. When it moves one angstrom farther, the current drops by the same factor. A surface feature of sub-angstrom amplitude produces a measurable swing in current. This is why an STM can image individual atoms: the exponential transduction turns atomic-scale topography into macroscopic current variations. The exponential is the measurement.
 
-Mechanism: bring a metal tip within a few angstroms of a conducting sample. Apply a small bias voltage (mV scale). Electrons tunnel through the vacuum gap. The tunneling current depends exponentially on the tip-sample distance $d$:
+In stars, the fusion of hydrogen nuclei is classically forbidden at solar-core temperatures ($kT \sim 1\,\text{keV}$) because the Coulomb barrier between protons is of order 1 MeV. The fusion rate is the product of the Maxwell-Boltzmann tail — the probability that a proton pair has unusually high relative energy — and the Gamow tunneling factor at that energy. The product peaks at an intermediate energy, the Gamow peak, where most of the fusion occurs. Every star burns by tunneling.
 
-$$I \propto e^{-2\kappa d}, \quad \kappa = \frac{\sqrt{2m_e\phi}}{\hbar} \approx 0.51\,\text{Å}^{-1}\sqrt{\phi/\text{eV}}$$
+Flash memory stores bits by trapping electrons on a polysilicon gate isolated by a thin oxide layer. Writing a bit drives electrons through the oxide by Fowler-Nordheim tunneling — the electrons see a triangular barrier in the oxide, and the Gamow factor for that barrier shape determines the write speed and the retention time. The entire device geometry of a USB stick is an exercise in engineering that exponential.
 
-where $\phi$ is the work function (4–5 eV for typical metals). With $\kappa \approx 1\,\text{Å}^{-1}$, a 1-Å change in $d$ changes $I$ by a factor of $e^2 \approx 7.4$ — almost an order of magnitude per atomic radius.
+<!-- → [CHART: Gamow peak diagram for stellar pp fusion — two curves plotted vs. relative kinetic energy E on the same axes: Maxwell-Boltzmann tail exp(−E/kT) falling steeply from left, Gamow tunneling factor exp(−b/√E) rising steeply from left; their product (the integrand of the fusion rate) shown as a narrow peaked curve labeled "Gamow peak" at energy E_G ≈ (bkT/2)^{2/3}; for T = 1.5×10⁷ K (solar core), E_G ≈ 6 keV while kT ≈ 1 keV; caption: "The Gamow peak: fusion happens where the thermal tail and the tunneling probability overlap. The peak sits well above kT because tunneling is exponentially suppressed at low energy"] -->
 
-This is the *reason* STM is atomically resolved. A typical surface has features of sub-angstrom amplitude; the exponential transduction turns those features into measurable current swings. The exponential is the measurement.
+---
 
-### 8.2 Stellar nuclear fusion
+## The back-of-envelope as a falsification tool
 
-Arthur Eddington conjectured in 1920 that stellar energy came from hydrogen fusion, but the classical objection was severe: at the Sun's core temperature ($\sim 1.5\times 10^7\,\text{K}$, $kT \sim 1\,\text{keV}$), the average proton-proton thermal energy is roughly $10^{-3}$ of the Coulomb barrier at the nuclear-contact distance ($\sim 1\,\text{MeV}$). Classically, fusion is forbidden in stars.
+In 1989, Martin Fleischmann and Stanley Pons announced "cold fusion" — deuterium-deuterium fusion at room temperature in a palladium electrochemical cell. Evaluating this claim requires exactly one calculation.
 
-Robert Atkinson and Friedrich Houtermans, in [*Z. Phys.* 54, 656 (1929)](https://link.springer.com/article/10.1007/BF01341723) [verify], applied Gamow's tunneling formula to stellar fusion. The fusion rate is the product of the *Maxwell-Boltzmann tail* (which gives the probability of a proton having an unusually high energy) and the *Gamow penetration factor* (which gives the probability of tunneling through the Coulomb barrier at that energy). The product peaks at an energy intermediate between the thermal energy and the barrier height — the **Gamow peak** — where most of the fusion occurs. The fusion rate in any star is computed by integrating this product over relative kinetic energies. Every star burns by tunneling.
+At room temperature, the thermal energy is $kT \approx 0.025\,\text{eV}$. The Coulomb barrier for D-D fusion at nuclear-contact distance is of order 1 MeV. Compute the Gamow factor: $\gamma \approx (\pi e^2/4\epsilon_0\hbar)\sqrt{m_D/2kT}$. Plugging in numbers gives $\gamma \sim 1000$, so $e^{-2\gamma} \sim 10^{-900}$. Even if chemistry could boost the tunneling rate by a factor of $10^{50}$ — which it cannot — you would still be $10^{850}$ short of the claimed power output. The Gamow factor does not care about the details of the palladium lattice. The number is $10^{-900}$.
 
-### 8.3 Flash memory
+This is the honest use of the back-of-envelope estimate: not to refine but to falsify. Knowing how to compute a Gamow factor is enough to evaluate any "novel nuclear effect at ambient conditions" claim quantitatively. The cold fusion case required no deep physics beyond what this chapter contains.
 
-A floating-gate transistor stores a bit by trapping electrons on a polysilicon gate isolated by a thin (5–10 nm) silicon-dioxide layer. Writing: a high voltage drives electrons *through* the oxide and onto the floating gate by Fowler-Nordheim tunneling. Reading: the trapped charge changes the transistor threshold voltage. Erasing: the voltage is reversed and the electrons tunnel back out.
+---
 
-Fowler-Nordheim tunneling through a triangular oxide barrier gives current density
+## The one application that remains genuinely open
 
-$$J \propto \mathcal{E}^2\exp\!\left[-\frac{K}{\mathcal{E}}\right]$$
+Per-Olov Löwdin proposed in 1963 that protons in the hydrogen bonds of Watson-Crick DNA base pairs can tunnel between their two tautomeric positions, occasionally flipping a base into a mismatched form and causing a point mutation during replication. The mechanism is over sixty years old and remains contested.
 
-where $\mathcal{E}$ is the oxide electric field and $K$ depends on the barrier height (electron affinity of the oxide). The original analysis is [Fowler & Nordheim, *Proc. R. Soc. A* 119, 173 (1928)](https://royalsocietypublishing.org/doi/10.1098/rspa.1928.0091) [verify]; the entire device geometry of flash memory (Kahng & Sze 1967 [verify]) is an exercise in engineering this exponential. Roughly every storage technology in your laptop, phone, and SSD is *built* around tunneling rates.
+The Gamow factor for a proton tunneling across a hydrogen bond is not $10^{-900}$. The relevant barrier is about 0.3 eV wide and a few tenths of an eV tall; the relevant mass is that of a proton. The rate is not obviously impossible. Recent open-system quantum simulations suggest the mechanism may be viable for guanine-cytosine pairs. Whether proton tunneling *actually contributes* to mutation rates in living cells — as opposed to thermal tautomeric isomerization, which also exists — is not settled.
 
-### 8.4 Failure case — cold fusion
+The methodology for telling settled tunneling stories from speculative ones is the back-of-envelope Gamow factor you have now learned. Apply it to every quantum-biology claim you read. When the exponent comes out to $10^{-900}$, the claim is dead. When it comes out to something plausible, the physics is open and the biology deserves investigation. The calculation will tell you which.
 
-Martin Fleischmann and Stanley Pons announced in March 1989 that they had observed "cold fusion" — deuterium-deuterium fusion at room temperature in a palladium electrochemical cell. The claim required deuteron tunneling rates far above what the Gamow factor allows. Compute it: at room temperature ($kT \approx 0.025\,\text{eV}$), the Gamow factor for D-D tunneling through the Coulomb barrier at the nuclear-contact distance gives $e^{-2\gamma} \sim 10^{-75}$. No chemical environment can boost this number by even ten decades, let alone seventy. The fusion rate predicted by tunneling theory falls short of the claimed power output by more than seventy orders of magnitude.
+---
 
-This is the textbook example of *the exponential dominates*. Chemistry cannot lower a nuclear-scale Gamow factor enough to recover the cold-fusion claim. The back-of-envelope tunneling estimate falsifies the claim with room to spare. The point is not to litigate Fleischmann-Pons; the point is that knowing how to compute a Gamow factor is enough to evaluate any "novel nuclear effect at room temperature" claim quantitatively.
+## Still puzzling
 
-### 8.5 The honest open case — quantum biology
+How long does a particle spend inside the barrier? This question is surprisingly difficult to answer, and not for computational reasons.
 
-Per-Olov Löwdin proposed in [*Rev. Mod. Phys.* 35, 724 (1963)](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.35.724) that protons in the hydrogen bonds of Watson-Crick DNA base pairs can tunnel between their two tautomeric positions, occasionally flipping a base into a mismatched form that causes a point mutation during replication. The mechanism is over 60 years old and remains contested. Recent open-system simulations ([Slocombe et al., *Commun. Phys.* 5, 109, 2022](https://www.nature.com/articles/s42005-022-00881-8) [verify]) suggest the mechanism may be viable for G:C pairs but not A:T.
+There are at least four well-defined definitions of "tunneling time" in the literature — the dwell time, the phase time, the Büttiker-Landauer time, the Larmor clock — and they give different numerical answers, sometimes differing by orders of magnitude. Recent attosecond-streaking experiments measure something. What they measure, and which theoretical time it corresponds to, is actively debated.
 
-This is the chapter's honest-about-uncertainty case. The math is the same Gamow factor you have learned. The biology — whether proton tunneling actually contributes to mutation rates in living cells — is not settled. The methodology for telling settled tunneling stories from speculative ones is exactly the back-of-envelope rate estimate you have learned. *Use it on every quantum-biology claim you read.*
+The pop-science answer to the tunneling question — "the particle borrows energy from the vacuum for a brief time and pays it back, allowed by the uncertainty principle" — is wrong in detail. Energy is conserved at every measurement. The wave function inside the barrier is not a particle with kinetic energy $E - V < 0$; it is an exponentially decaying solution to the Schrödinger equation for a particle *with energy* $E$. There is no energy borrowing. There is just the wave, decaying through the forbidden region and emerging on the other side.
 
-## 9. Worked examples and exercises
+The WKB formalism of this chapter gives you the transmission coefficient $T$ but does not give you a tunneling time. I do not have a satisfying answer to which of the proposed times is the right one. The framework is incomplete here. Saying so honestly is the right move.
 
-### Worked example — STM current ratio
+---
 
-A tip is 5 Å above a metal surface with work function $\phi = 4\,\text{eV}$. Compute $\kappa = (1/\hbar)\sqrt{2m_e\phi}$:
-
-$$\kappa = \frac{\sqrt{2 \cdot 9.1 \times 10^{-31}\,\text{kg} \cdot 4 \cdot 1.6 \times 10^{-19}\,\text{J}}}{1.05 \times 10^{-34}\,\text{J·s}} \approx 1.0 \times 10^{10}\,\text{m}^{-1} = 1.0\,\text{Å}^{-1}$$
-
-The current at 5 Å: $I(5) \propto e^{-10}$. At 6 Å: $I(6) \propto e^{-12}$. Ratio: $I(5)/I(6) = e^2 \approx 7.4$. A one-angstrom increase in tip-sample distance drops the tunneling current by a factor of 7. This is what makes STM see atoms.
-
-### Exercises
-
-**Warm-up.**
-
-1. State the WKB validity condition in terms of the local de Broglie wavelength. Explain in one sentence why it fails at a classical turning point.
-
-2. Verify that for the harmonic oscillator $V(x) = (1/2)m\omega^2 x^2$, the Bohr-Sommerfeld condition $\oint p\,dx = (n+1/2)h$ gives $E_n = (n+1/2)\hbar\omega$ exactly. (Hint: compute the phase-space area for an ellipse of energy $E$.)
-
-3. For a particle of energy $E < V_0$ incident on a square barrier of height $V_0$ and width $L$, write down both the exact transmission $T_{\text{exact}}$ and the WKB transmission $T_{\text{WKB}}$. Take the limit $\kappa L \gg 1$ and identify the prefactor difference.
-
-**Application.**
-
-4. Compute the WKB transmission coefficient for an electron with $E = 1\,\text{eV}$ incident on a rectangular barrier of height $V_0 = 5\,\text{eV}$ and width $L = 5\,\text{Å}$. Report $T$ in scientific notation; do not give a number in linear units.
-
-5. Estimate the Gamow factor for an alpha particle ($m_\alpha = 4u$) of energy $E_\alpha = 5\,\text{MeV}$ tunneling through the Coulomb barrier of a daughter nucleus with $Z' = 82$ (lead). Use the approximation $\gamma \approx (\pi Z' e^2 / 4\epsilon_0\hbar)\sqrt{m_\alpha/2E_\alpha}$. Estimate the halflife using attempt frequency $\nu_0 = 10^{21}\,\text{Hz}$.
-
-6. For STM with a 4-eV work function, what is the percentage change in tunneling current per 0.1-Å change in tip height? Justify why this sensitivity makes STM the right technique for atomic-resolution imaging of a surface with sub-angstrom topography.
-
-**Synthesis.**
-
-7. The **Gamow peak** in stellar fusion. The fusion rate per unit time per particle pair is the integral over relative energies $E$ of:
-$$\text{rate}(E) \propto e^{-E/kT} \cdot e^{-b/\sqrt{E}}$$
-where the first factor is the Maxwell-Boltzmann tail (probability of relative energy $E$) and the second is the Gamow factor with $b$ depending on the charges and masses. Show that the integrand peaks at $E_G = (bkT/2)^{2/3}$ — the **Gamow peak energy**. For pp fusion in the Sun ($T \approx 1.5\times 10^7\,\text{K}$), compute $E_G$ and compare to $kT$. The ratio $E_G/kT$ tells you why fusion is dominated by the high-energy tail of the thermal distribution.
-
-8. **The Geiger-Nuttall log-vs-inverse-square-root plot.** Find experimental halflives and alpha energies for at least five alpha emitters of the same daughter charge $Z'$ (e.g., the uranium isotopes that decay to $Z'=90$). Plot $\log_{10}\tau_{1/2}$ vs. $1/\sqrt{E_\alpha}$. Verify the linear correlation.
-
-**Challenge.**
-
-9. The **double barrier and resonant tunneling.** Consider two identical rectangular barriers of width $L$ separated by a well of width $W$. For an incident particle of energy $E < V_0$, show that at certain *resonance energies* the transmission $T \to 1$ even though the transmission through either barrier alone is exponentially small. (Hint: the resonance condition is essentially the bound-state condition for the inter-barrier well; constructive interference between back-and-forth reflections amplifies the transmitted amplitude.) This is the principle behind the **resonant tunneling diode** ([Esaki & Tsu, *IBM J. Res. Dev.* 14, 61, 1970](https://ieeexplore.ieee.org/document/5392421) [verify]).
-
-10. The **tunneling time problem.** How long does the wave packet "spend" inside the barrier? Define a tunneling time and compute it for the wave packet in the simulation you will build below. Compare to (a) $L/v_{\text{group}}$, (b) the Büttiker-Landauer dwell time, (c) the more recent attosecond-streaking measurements (Eckle et al., *Science* 322, 1525, 2008 [verify]; Eisenbud-Wigner phase time). This is an open problem in QM; do not expect to settle it, but name what you measured and what it means.
-
-## 10. What would change my mind
-
-The chapter rests on three claims. First, that WKB is a controlled $\hbar$-expansion valid in the semiclassical regime. Second, that the tunneling formula $T \approx e^{-2\gamma}$ captures the dominant exponential physics across many orders of magnitude in $T$. Third, that the back-of-envelope Gamow factor is *the* tool for evaluating any claim involving barrier penetration in atomic, nuclear, or condensed-matter physics.
-
-If a precision measurement in a clean tunneling system — STM with carefully characterized work function and tip geometry, alpha decay of a well-understood isotope, Josephson-junction tunneling current — disagreed with the WKB prediction by more than an order of magnitude after accounting for the prefactor, the framework would be in trouble. So far no such disagreement is on the table. Cold fusion was the most dramatic claim of a violation; it remains unsupported by reproducible evidence, exactly as the Gamow factor predicts.
-
-What the chapter does *not* settle is the right way to extract subleading prefactors and finite-$\hbar$ corrections. Exact WKB (Voros, Pham), resurgent analysis, instanton methods — these are active areas of mathematical physics. The framework here is leading-order. The leading order is enough for the physics that matters in this chapter; the corrections matter when you push for high precision.
-
-## 11. Still puzzling
-
-How long does the particle spend inside the barrier? The "tunneling time" question has resisted clean resolution since Hartman raised it in 1962. There are at least four well-defined definitions in the literature — dwell time, phase time, Büttiker-Landauer time, Larmor clock — and they give different numerical answers, sometimes by orders of magnitude. Recent attosecond-streaking experiments measure something; what they measure is debated.
-
-The pop-science answer ("the particle 'borrows' energy from the vacuum for a brief time and pays it back") is wrong in detail. Energy is conserved at every measurement; the wave function in the barrier is *not* an eigenstate of energy with $E < V$, it is just the WKB exponential decay of an eigenstate with $E$. There is no clock inside the barrier in the conventional sense. The framework of this chapter does not give a tunneling time, and I do not know which of the proposed times is the physically right one. The framework is incomplete here, and saying so honestly is the Feynman move.
-
-## 12. LLM Exercise — the tunneling simulator
+## LLM Exercise — the tunneling simulator
 
 You are going to build the chapter's signature simulation: three nested panels including an *animated Gaussian wave packet* that hits a barrier and splits into reflected and transmitted parts. This is the visualization that cannot be replicated in print. The deliverable is `11-tunneling-simulator.html` in your working directory.
 
@@ -547,7 +388,7 @@ WKB integral and the Crank-Nicolson step.
 
 Run the simulation and answer the following:
 
-1. Stationary mode. Set $V_0 = 5$, $L = 5$. Note that the exact and WKB curves are parallel on the log axis below the barrier. Read off the offset: $T_{\text{exact}}/T_{\text{WKB}}$ at $E/V_0 = 0.5$. Compare to the analytical prediction $16 E(V_0 - E)/V_0^2 = 16 \cdot 0.5 \cdot 0.5 / 1 = 4$. The simulation should give a factor of about 4.
+1. Stationary mode. Set $V_0 = 5$, $L = 5$. Note that the exact and WKB curves are parallel on the log axis below the barrier. Read off the offset: $T_{\text{exact}}/T_{\text{WKB}}$ at $E/V_0 = 0.5$. Compare to the analytical prediction $16E(V_0 - E)/V_0^2 = 16 \cdot 0.5 \cdot 0.5/1 = 4$. The simulation should give a factor of about 4.
 
 2. Stationary mode. Vary $L$ from 1 to 10. The slope of $T(E)$ on the log axis steepens. This is the exponential sensitivity to barrier width. Quantify: by what factor does $T$ at $E/V_0 = 0.5$ change when $L$ doubles?
 
@@ -586,8 +427,36 @@ physics."
 
 ---
 
-*Sources consulted: Griffiths §9.1–9.3 (WKB approximation, connection formulas, alpha decay; 3e Chapter 9, 2e Chapter 8 [verify edition]) and Chapter 2 (rectangular-barrier exact solution); Liboff §7.7 (rectangular barrier), §7.10 (WKB approximation); Gamow, "[Zur Quantentheorie des Atomkernes](https://link.springer.com/article/10.1007/BF01343196)," *Zeitschrift für Physik* 51, 204 (1928); Gurney & Condon, "Wave Mechanics and Radioactive Disintegration," *Nature* 122, 439 (1928), and "[Quantum mechanics and radioactive disintegration](https://journals.aps.org/pr/abstract/10.1103/PhysRev.33.127)," *Phys. Rev.* 33, 127 (1929); Geiger & Nuttall, *Phil. Mag.* 22, 613 (1911); 23, 439 (1912) [verify]; Binnig & Rohrer, "[7×7 Reconstruction on Si(111) Resolved in Real Space](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.49.57)," *Phys. Rev. Lett.* 49, 57 (1982); Atkinson & Houtermans, *Z. Phys.* 54, 656 (1929) [verify]; Löwdin, "[Proton Tunneling in DNA](https://journals.aps.org/rmp/abstract/10.1103/RevModPhys.35.724)," *Rev. Mod. Phys.* 35, 724 (1963); Slocombe et al., "[An open quantum systems approach to proton tunnelling in DNA](https://www.nature.com/articles/s42005-022-00881-8)," *Commun. Phys.* 5, 109 (2022) [verify]; Fowler & Nordheim, *Proc. R. Soc. A* 119, 173 (1928) [verify]; Bender & Orszag, *Advanced Mathematical Methods for Scientists and Engineers* (1978), Chapter 10 [verify].*
+## Exercises
 
-*Tags: wkb-approximation, tunneling, gamow-factor, alpha-decay, geiger-nuttall, scanning-tunneling-microscopy, crank-nicolson, quantum-biology, d3-simulation*
+### Warm-up
 
-*Status: draft for Nik's review. The Crank-Nicolson wave-packet animation is the chapter's signature visualization — pedagogical move that cannot be done in print. Several `[verify]` flags throughout — see specifically Geiger-Nuttall original citation, Atkinson-Houtermans 1929, Slocombe 2022, Bender-Orszag edition and chapter, Fowler-Nordheim 1928, Griffiths edition mapping.*
+**11.1** State the WKB validity condition $|d\lambda_\text{dB}/dx| \ll 1$ in words. Then explain in one sentence why it fails at a classical turning point. For each of the following potentials, sketch $\lambda_\text{dB}(x) = h/p(x)$ qualitatively and identify any regions where WKB will break down: (a) a harmonic oscillator at energy $E$; (b) a flat-topped rectangular barrier at energy $E < V_0$; (c) a linear potential $V = Fx$ with $F > 0$. *(Tests: ability to apply the validity condition and identify its failure modes in specific potentials.)*
+
+**11.2** For the harmonic oscillator $V = \frac{1}{2}m\omega^2 x^2$, the classical turning points at energy $E$ are $x = \pm\sqrt{2E/m\omega^2}$. (a) Compute the phase-space area $\oint p\,dx$ enclosed by the orbit at energy $E$ — this is the area of an ellipse with semi-axes $\sqrt{2mE}/m\omega$ in $x$ and $\sqrt{2mE}$ in $p$. (b) Apply the Bohr-Sommerfeld condition $\oint p\,dx = (n+1/2)h$ and verify you recover $E_n = (n+1/2)\hbar\omega$ exactly. (c) State in one sentence why the WKB result here is exact rather than approximate. *(Tests: phase-space area calculation; Bohr-Sommerfeld applied to the harmonic oscillator; understanding which symmetries make WKB exact.)*
+
+**11.3** Derive the exact transmission coefficient $T_\text{exact}$ for a rectangular barrier of height $V_0$ and width $L$ at energy $E < V_0$. Match the wave function and its derivative at $x = 0$ and $x = L$, using $\psi = Ae^{ikx} + Be^{-ikx}$ for $x < 0$, $\psi = Ce^{\kappa x} + De^{-\kappa x}$ for $0 < x < L$, and $\psi = Fe^{ikx}$ for $x > L$. Show that $T = |F/A|^2$ gives the formula quoted in the chapter. *(Tests: boundary-matching calculation; extraction of the transmission coefficient from wave function continuity conditions.)*
+
+### Application
+
+**11.4** An electron with kinetic energy $E = 1\,\text{eV}$ hits a rectangular barrier of height $V_0 = 5\,\text{eV}$ and width $L = 5\,\text{Å}$. (a) Compute $\kappa = \sqrt{2m_e(V_0 - E)}/\hbar$ and verify $\kappa \approx 1.0\,\text{Å}^{-1}$. (b) Compute $T_\text{WKB} = e^{-2\kappa L}$. (c) Compute $T_\text{exact}$ using the formula from 11.3. (d) Find the prefactor ratio $T_\text{exact}/T_\text{WKB}$ and compare to the predicted value $16E(V_0-E)/V_0^2$. *(Tests: numerical WKB and exact transmission; identification of the missing prefactor.)*
+
+**11.5** An STM tip is held $d = 5\,\text{Å}$ above a nickel surface with work function $\phi = 5\,\text{eV}$. (a) Compute $\kappa = \sqrt{2m_e\phi}/\hbar$ in Å$^{-1}$. (b) Compute the factor by which the tunneling current changes when $d$ decreases by 1 Å. (c) A surface atom protrudes 0.5 Å above the surrounding surface. By what factor does the tunneling current differ when the tip is directly over the atom vs. over the flat region? (d) Explain in one sentence why this exponential sensitivity makes sub-angstrom topographic imaging possible. *(Tests: STM current calculation; connecting the Gamow factor to spatial resolution.)*
+
+**11.6** Estimate the Gamow factor for an alpha particle ($m_\alpha = 4\,\text{u}$, $u = 1.66\times 10^{-27}\,\text{kg}$) of energy $E_\alpha = 5.5\,\text{MeV}$ tunneling through the Coulomb barrier of a daughter nucleus with $Z' = 82$ (lead). Use the approximation $\gamma \approx (\pi Z'e^2/4\epsilon_0\hbar)\sqrt{m_\alpha/2E_\alpha}$. Then estimate the halflife using attempt frequency $\nu_0 = 10^{21}\,\text{Hz}$. Compare to the uranium-238 case computed in the chapter. *(Tests: Gamow factor calculation for the Coulomb barrier; halflife estimate; understanding how the exponent controls 24 orders of magnitude.)*
+
+### Synthesis
+
+**11.7** The Geiger-Nuttall law. (a) Starting from $\log_{10}\tau_{1/2} \approx A(Z') + B(Z')/\sqrt{E_\alpha}$, show that if $\gamma \propto Z'/\sqrt{E_\alpha}$, the log of the halflife is indeed linear in $1/\sqrt{E_\alpha}$ for fixed $Z'$. (b) For polonium-212 ($Z' = 82$, $E_\alpha = 8.78\,\text{MeV}$, $\tau_{1/2} = 3\times 10^{-7}\,\text{s}$) and thorium-232 ($Z' = 90$, $E_\alpha = 4.08\,\text{MeV}$, $\tau_{1/2} = 1.4\times 10^{10}\,\text{yr}$), plot these two points on a $\log_{10}\tau$ vs. $1/\sqrt{E_\alpha}$ graph. The ratio of halflives is $10^{24}$; the ratio of $1/\sqrt{E_\alpha}$ values is only about 1.5. From this, estimate the coefficient $B$ in the Geiger-Nuttall formula and compare to the WKB prediction. *(Tests: derivation of the linear Geiger-Nuttall form from the Gamow factor; numerical check against two known isotopes; connecting the 24-decade range to the exponent.)*
+
+**11.8** The cold fusion back-of-envelope. (a) At room temperature $T = 300\,\text{K}$, compute $kT$ in eV. (b) The Coulomb barrier for D-D fusion is $V_\text{max} \approx e^2/(4\pi\epsilon_0 r_0)$ where $r_0 \approx 2\,\text{fm}$ is the nuclear-contact distance. Compute $V_\text{max}$ in MeV. (c) Using the approximate Gamow factor $\gamma \approx (\pi e^2/4\epsilon_0\hbar)\sqrt{m_D/2kT}$, compute $\gamma$ and the tunneling probability $e^{-2\gamma}$ at room temperature. Express the result as a power of 10. (d) The claimed power output of 1 W in 1 cm³ of palladium requires roughly $10^{12}$ fusion events per second. Show that the required tunneling rate is inconsistent with your Gamow factor by many orders of magnitude. *(Tests: using the Gamow factor as a falsification tool; order-of-magnitude estimation; recognizing when the exponent decisively refutes a claim.)*
+
+### Challenge
+
+**11.9** The Gamow peak in stellar fusion. The rate per particle pair of pp fusion is proportional to $\int_0^\infty e^{-E/kT} \cdot e^{-b/\sqrt{E}}\,dE$ where $b = \pi e^2\sqrt{2m_p}/(4\epsilon_0\hbar)$ for proton-proton fusion. (a) Show that the integrand has a maximum at $E_G = (bkT/2)^{2/3}$, which is called the Gamow peak energy. (b) For the Sun's core at $T = 1.5\times 10^7\,\text{K}$, compute $kT$ in keV, then compute $b$ in keV$^{1/2}$, then compute $E_G$ in keV. (c) Compare $E_G$ to $kT$: the ratio tells you how far into the thermal tail the dominant fusion occurs. (d) Explain in one paragraph why this intermediate energy — neither the thermal energy nor the barrier height — is where fusion is concentrated. *(Tests: locating the maximum of the thermal-times-tunneling integrand; numerical evaluation of the Gamow peak; understanding why the peak sits between kT and V_max.)*
+
+**11.10** WKB quantization beyond the harmonic oscillator. Consider the potential $V(x) = \alpha|x|^n$ for integer $n \geq 1$. (a) Show that the Bohr-Sommerfeld condition gives $E_m \propto m^{2n/(n+2)}$ for large quantum number $m$. (Hint: change variables in $\int_a^b \sqrt{2m_\text{particle}(E-V)}\,dx$ to reduce to a dimensionless integral, then use the scaling of $a$ and $b$ with $E$.) (b) Verify the $n=2$ (harmonic) case gives $E_m \propto m$. (c) For the linear potential $n=1$, what is the energy scaling? (d) For $n \to \infty$, the potential approaches a square well. What does the formula predict for $E_m$ in that limit, and does it agree with the exact square-well result $E_m \propto m^2$? *(Tests: WKB applied to a general power-law potential; dimensional analysis in the phase-space integral; checking limiting cases against exactly solvable problems.)*
+
+---
+
+*Sources: Griffiths §9.1–9.3; Liboff §7.7, §7.10; Gamow, "Zur Quantentheorie des Atomkernes," Zeitschrift für Physik 51, 204 (1928); Gurney & Condon, Nature 122, 439 (1928); Physical Review 33, 127 (1929); Geiger & Nuttall, Phil. Mag. 22, 613 (1911); 23, 439 (1912); Binnig & Rohrer, Physical Review Letters 49, 57 (1982); Atkinson & Houtermans, Z. Phys. 54, 656 (1929); Löwdin, Rev. Mod. Phys. 35, 724 (1963); Slocombe et al., Communications Physics 5, 109 (2022); Fowler & Nordheim, Proc. R. Soc. A 119, 173 (1928); Bender & Orszag, Advanced Mathematical Methods for Scientists and Engineers (1978), Chapter 10.*
