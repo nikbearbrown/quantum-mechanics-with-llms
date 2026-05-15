@@ -1,135 +1,123 @@
 # Chapter 10 — Time-Dependent Perturbation Theory and Transitions
-*The system absorbs when the perturbation has spectral weight at the gap.*
+*Every quantum control experiment ever built is Rabi's 1938 apparatus in different molecular handwriting.*
 
-Here is the question this chapter answers. The atom is in its ground state. An oscillating field turns on. At some later time $t$, you measure the atom. What is the probability of finding it in the excited state?
+January 1938. Columbia University. Isidor Rabi's group passes a beam of LiCl molecules through three magnets. The first selects a particular spin orientation. The second — the interaction region — carries an oscillating radio-frequency field. The third analyzes what comes out. As they sweep the RF frequency, at one specific value the beam intensity drops sharply. The molecules have been flipped: driven from one spin state to the other by the oscillating field. The line is narrow, well-defined, and theoretically predicted. Rabi won the Nobel in 1944.
 
-That question sounds narrow. It is not. It is the question behind every absorption spectrum, every fluorescence measurement, every NMR pulse, every laser cooling experiment, every qubit gate, every photoionization cross-section in atomic and nuclear physics. It is the most applied calculation in the second half of an undergraduate quantum mechanics course. The answer, as we will see, is a Fourier integral — and resonance is Fourier resonance. The system responds when the perturbation has spectral weight at the gap frequency. Everything else in the chapter — the lineshape, Fermi's golden rule, the exact Rabi solution — is that one idea developed in different directions.
+Here is what makes Rabi's experiment worth understanding before doing the math. The two-state system he was driving — a spin-up nuclear state and a spin-down nuclear state, separated by energy $\hbar\omega_0$, coupled by an oscillating perturbation — is the same physical object as an atom in a laser field, an NMR sample in a coil, a superconducting qubit in a microwave drive, a trapped ion in a Raman beam, an electron spin in an ESR apparatus. Every quantum control experiment of the last eighty years is Rabi's 1938 setup, written in different molecular handwriting. So the calculation we develop for Rabi's problem will work for all of them.
+
+The question: what is the probability of finding the system in the "wrong" state at time $t$? And — critically — when does perturbation theory give the right answer, and when does it break?
 
 ---
 
 ## The interaction picture
 
-Chapter 9 handled perturbations that sit still. The strategy there was to correct the energy levels. Here the perturbation $\hat{H}'(t)$ oscillates or switches on, and the question is not about levels but about *transitions*: given that we start in $|i\rangle$, how does probability leak into $|f\rangle$?
+The Schrödinger equation for a system with $\hat{H} = \hat{H}_0 + \hat{H}'(t)$ mixes something we understand — the eigenstates of $\hat{H}_0$ — with something we are treating as small. The interaction picture separates them cleanly.
 
-The Schrödinger equation for the full Hamiltonian $\hat{H}_0 + \hat{H}'(t)$ mixes something we understand (the $\hat{H}_0$ eigenstates) with something we are treating as small ($\hat{H}'$). The trick is to remove the trivial part. Define the **interaction picture** state vector by stripping out the $\hat{H}_0$ evolution:
+Define a new state vector by stripping out the trivial $\hat{H}_0$ evolution:
 
 $$|\tilde\psi(t)\rangle = e^{i\hat{H}_0 t/\hbar}\,|\psi(t)\rangle.$$
 
-Substitute into the Schrödinger equation and the $\hat{H}_0$ terms cancel exactly. What remains:
+Substituting into the Schrödinger equation, the $\hat{H}_0$ terms cancel exactly, leaving:
 
 $$i\hbar\,\partial_t|\tilde\psi(t)\rangle = \tilde{H}'(t)\,|\tilde\psi(t)\rangle,$$
 
-where $\tilde{H}'(t) = e^{i\hat{H}_0 t/\hbar}\hat{H}'(t)e^{-i\hat{H}_0 t/\hbar}$. The interaction picture state evolves *only* under the perturbation. When $\hat{H}'(t) = 0$, $|\tilde\psi\rangle$ freezes. All the dynamics is in the perturbation — which is exactly where we want to look.
+where $\tilde{H}'(t) = e^{i\hat{H}_0 t/\hbar}\hat{H}'(t)e^{-i\hat{H}_0 t/\hbar}$. The interaction picture state evolves only under the perturbation. When $\hat{H}'(t) = 0$, it freezes. All the interesting dynamics is in the perturbation — which is where we want to look.
 
-Expand in the unperturbed eigenstates: $|\tilde\psi(t)\rangle = \sum_n c_n(t)\,|n\rangle$, with initial conditions $c_n(0) = \delta_{ni}$ (start in $|i\rangle$). Project onto $|f\rangle$:
+Now expand in the unperturbed eigenstates $|\tilde\psi(t)\rangle = \sum_n c_n(t)|n\rangle$, with initial condition $c_n(0) = \delta_{ni}$ (start in $|i\rangle$). Project onto the final state $|f\rangle$:
 
-$$i\hbar\,\dot{c}_f(t) = \sum_n c_n(t)\,\langle f|\hat{H}'(t)|n\rangle\,e^{i\omega_{fn} t},$$
+$$i\hbar\,\dot{c}_f = \sum_n c_n(t)\,\langle f|\hat{H}'(t)|n\rangle\,e^{i\omega_{fn}t},$$
 
-where $\omega_{fn} = (E_f - E_n)/\hbar$. This is exact and coupled — every $c_f$ depends on every $c_n$.
+where $\omega_{fn} = (E_f - E_n)/\hbar$. This is exact and coupled — every $c_f$ depends on every other $c_n$. To first order in $\hat{H}'$, replace $c_n(t)$ by its initial value $\delta_{ni}$ and integrate:
 
-Perturbation theory cuts the coupling. If $\hat{H}'$ is small, the coefficients move slowly. Replace $c_n(t)$ on the right-hand side by its initial value $\delta_{ni}$ and integrate:
+$$\boxed{c_f^{(1)}(t) = \frac{1}{i\hbar}\int_0^t \langle f|\hat{H}'(t')|i\rangle\,e^{i\omega_{fi}t'}\,dt'.}$$
 
-$$\boxed{c_f^{(1)}(t) = \frac{1}{i\hbar}\int_0^t \langle f|\hat{H}'(t')|i\rangle\,e^{i\omega_{fi} t'}\,dt'.}$$
-
-Read this carefully. The transition amplitude is the **Fourier component of the matrix element** $\langle f|\hat{H}'(t)|i\rangle$ evaluated at the Bohr frequency $\omega_{fi} = (E_f - E_i)/\hbar$. That is the whole content of first-order perturbation theory. Resonance is Fourier resonance: the system responds when the perturbation oscillates at the frequency of the gap.
+The transition amplitude is the Fourier transform of the matrix element $\langle f|\hat{H}'(t)|i\rangle$, evaluated at the Bohr frequency $\omega_{fi}$. Resonance is Fourier resonance. Everything else follows from this.
 
 ---
 
 ## The resonance lineshape
 
-Now specialize to a monochromatic perturbation: $\hat{H}'(t) = \hat{V}\cos(\omega t) = (\hat{V}/2)(e^{i\omega t} + e^{-i\omega t})$. Substituting into the first-order amplitude produces two terms — one with $e^{i(\omega_{fi}+\omega)t}$ and one with $e^{i(\omega_{fi}-\omega)t}$. Near resonance, where $\omega \approx \omega_{fi}$, the second term has a nearly vanishing denominator and dominates. The first oscillates rapidly and averages away. Dropping it is the **rotating-wave approximation** (RWA), valid when $V_{fi}/\hbar\omega_0 \ll 1$ — the coupling is much smaller than the transition frequency.
+Take $\hat{H}'(t) = \hat{V}\cos(\omega t)$. Near resonance $\omega \approx \omega_{fi}$, one term in the cosine — the counter-rotating term — oscillates rapidly and averages away. Keeping only the resonant term (the rotating-wave approximation, valid when $|V_{fi}|/\hbar\omega_0 \ll 1$) and squaring the amplitude:
 
-Keeping only the resonant term and squaring:
+$$\boxed{P_{i\to f}(t) = \frac{|V_{fi}|^2}{\hbar^2}\cdot\frac{\sin^2[(\omega_{fi}-\omega)t/2]}{(\omega_{fi}-\omega)^2}.}$$
 
-$$\boxed{P_{i\to f}(t) = \frac{|V_{fi}|^2}{\hbar^2}\cdot\frac{\sin^2[(\omega_{fi} - \omega)t/2]}{(\omega_{fi} - \omega)^2}.}$$
+At resonance ($\omega = \omega_{fi}$), the peak height grows as $t^2$. The width to the first zero shrinks as $2\pi/t$. The area under the central peak grows as $t$. Everything is consistent with a delta function emerging as $t\to\infty$ — which is the input to Fermi's golden rule.
 
-This is the canonical resonance lineshape. Look at what it says as a function of $\Delta = \omega - \omega_{fi}$ at fixed $t$: the peak sits at $\Delta = 0$ with height $|V_{fi}|^2 t^2/(4\hbar^2)$, the width to the first zero is $\Delta = 2\pi/t$, and the area under the central peak grows as $|V_{fi}|^2 t/\hbar^2$. Peak height grows as $t^2$; width shrinks as $1/t$; area grows as $t$. The $\sin^2/\Delta^2$ profile is narrowing and sharpening, preserving area — it is a proto-delta-function.
-
-One feature of this lineshape must be flagged immediately. The peak height grows as $t^2$ without bound. But a probability cannot exceed 1. The $\sin^2/\Delta^2$ formula will eventually predict $P > 1$ at resonance — which is nonsense. This is not a minor technical failure; it is the signal that first-order perturbation theory has exited its regime of validity. What is missing is the back-action: as probability flows into $|f\rangle$, it must stop coming from $|i\rangle$, and the first-order calculation ignores that coupling. The exact Rabi solution corrects it.
+But notice what the formula also says on-resonance: $P_{i\to f}(t) = |V_{fi}|^2t^2/(4\hbar^2)$. At long enough times this exceeds 1. A probability greater than 1 is nonsense. This is not a numerical inconvenience — it is the diagnostic that first-order perturbation theory has broken. The cause: PT ignores the back-action. Once probability flows into $|f\rangle$, it must stop coming from $|i\rangle$, but the first-order equations keep drawing from $|i\rangle$ as if nothing has changed. The exact Rabi solution accounts for the feedback. PT does not.
 
 ---
 
-## Fermi's golden rule, which is Dirac's
+## The exact Rabi solution — and where PT fails
 
-When the final state is part of a continuum — an electron ionizing into free-particle states, an atom emitting into the infinite bath of electromagnetic modes, a nucleus decaying into a phase-space continuum of daughter products — the right question changes. Instead of "what is the probability of landing in a specific state $|f\rangle$?", we ask "what is the total rate of transition into any state in the continuum near energy $E_f$?"
+The two-level problem has an exact solution. Two states $|g\rangle$ and $|e\rangle$, energies $0$ and $\hbar\omega_0$, drive $\hat{H}'(t) = \hbar\Omega\cos(\omega t)(|e\rangle\langle g| + |g\rangle\langle e|)$. Here $\Omega = |V_{fi}|/\hbar$ is the Rabi frequency — it sets the coupling strength and, at resonance, the rate at which population cycles between the two states.
 
-Sum the $\sin^2/\Delta^2$ profile over the continuum. The density of final states is $\rho(E_f)$ — states per unit energy near $E_f$. Integrate over energy, using the mathematical identity that for large $t$:
+In the rotating-wave approximation, the Schrödinger equation reduces to two coupled first-order ODEs in $c_g$ and $c_e$. They can be solved exactly. With $c_g(0) = 1$, $c_e(0) = 0$:
 
-$$\frac{\sin^2(\alpha t/2)}{\alpha^2} \longrightarrow \frac{\pi t}{2}\,\delta(\alpha).$$
+$$\boxed{P_{g\to e}(t) = \frac{\Omega^2}{\Omega^2+\Delta^2}\,\sin^2\!\left(\frac{\sqrt{\Omega^2+\Delta^2}}{2}\,t\right),}$$
 
-The integral collapses. The probability grows linearly in $t$, which means the *transition rate* — probability per unit time — is constant:
+where $\Delta = \omega - \omega_0$ is the detuning. No perturbative approximation. This is the Rabi formula.
+
+At resonance ($\Delta = 0$): $P_{g\to e}(t) = \sin^2(\Omega t/2)$. The population oscillates between 0 and 1. At $t = \pi/\Omega$ — a $\pi$-pulse — the entire population is in $|e\rangle$. At $t = 2\pi/\Omega$ it is back in $|g\rangle$. This is the coherent Rabi oscillation that Rabi's molecular beam showed in 1938, and that every qubit readout protocol relies on today.
+
+Off-resonance ($\Delta \neq 0$): the maximum probability achievable is $\Omega^2/(\Omega^2+\Delta^2) < 1$. Full population transfer is impossible away from resonance. The oscillation frequency is the *generalized Rabi frequency* $\sqrt{\Omega^2+\Delta^2}$ — faster than $\Omega$ but smaller in amplitude. The further you detune the drive, the shallower and faster the oscillation.
+
+Now compare to first-order PT at resonance. PT gives $P_{g\to e}^{\text{PT}}(t) = (\Omega t/2)^2$ — a parabola. The exact formula gives $\sin^2(\Omega t/2)$ — a bounded oscillation. For $\Omega t \ll 1$, Taylor-expand: $\sin^2 x \approx x^2$. The two agree. For $\Omega t \sim 1$, they diverge. At $\Omega t = \pi$, the exact answer is $P = 1$ and the PT answer is $(\pi/2)^2 \approx 2.47$. PT has predicted a probability of 247%. The simulation below will let you slide time out from zero and watch the moment of failure happen.
+
+The failure is not a numerical accident. PT treats the amplitude in $|i\rangle$ as constant — $c_i(t) \approx 1$ — even as probability drains out of it. The exact solution feeds the depleted $|i\rangle$ population back in, which is what produces the return half of the Rabi cycle. PT misses the return entirely. The regime of validity is $\Omega t \ll 1$ — small coupling times short time. Outside that regime you need the exact solution or a resummation.
+
+This is the lesson Rabi's experiment teaches. The precision of the resonance signal comes from running the drive long enough for the population to complete a $\pi$-pulse. At that point PT has failed by a factor of 2.47. The physics is right; the approximation is wrong.
+
+---
+
+## Fermi's golden rule (which is Dirac's)
+
+When the final state is not a single discrete level but a continuum — an electron ionizing, an atom emitting a photon into the infinite continuum of electromagnetic modes, a nucleus decaying — the Rabi oscillation disappears. There is no single $|f\rangle$ to bounce back from. The population leaks irreversibly into the continuum and the question becomes a *rate*: how many transitions per second?
+
+Sum the $\sin^2/\Delta\omega^2$ lineshape over the continuum, with density of states $\rho(E_f)$. For large $t$, the $\sin^2(\alpha t/2)/\alpha^2$ factor becomes $(\pi t/2)\delta(\alpha)$ — the proto-delta-function of the lineshape completes its sharpening. The probability grows linearly in $t$, giving a constant rate:
 
 $$\boxed{W_{i\to f} = \frac{2\pi}{\hbar}\,|\langle f|\hat{H}'|i\rangle|^2\,\rho(E_f).}$$
 
-This is **Fermi's golden rule**. One of the most used formulas in atomic, molecular, condensed-matter, and nuclear physics.
+This is Fermi's golden rule — the most used formula in atomic, molecular, condensed-matter, and nuclear physics.
 
-It is also Dirac's formula. P.A.M. Dirac derived it in 1927, in "The Quantum Theory of the Emission and Absorption of Radiation," *Proc. R. Soc. London A* 114, 243. Dirac was 25. The paper is the foundational document of quantum electrodynamics. The rate formula — the $2\pi/\hbar$ prefactor, the matrix element squared, the density of states — is in it explicitly.
+It is also Dirac's formula. P.A.M. Dirac derived it in 1927, in "The Quantum Theory of the Emission and Absorption of Radiation," *Proc. R. Soc. London A* 114, 243. The paper is the foundational document of quantum electrodynamics and the $2\pi/\hbar$ prefactor, the matrix element squared, and the density of states appear in it explicitly. Fermi called it "Golden Rule No. 2" in 1950 Chicago lecture notes because it was useful in nuclear physics — not because he derived it. The name stuck. This chapter calls it Fermi's golden rule because no one will understand you if you call it anything else. But you should know that Dirac got there first, by twenty-three years.
 
-Fermi did not derive it. Fermi applied it to nuclear beta decay in 1934 and called it "Golden Rule No. 2" in Chicago lecture notes compiled in 1950. The name stuck. Naming the result after himself was not theft; it was a teaching shorthand that propagated through generations of nuclear physics textbooks until the misattribution had calcified.
-
-This chapter calls it Fermi's golden rule because no one will know what you mean if you call it anything else. But you should know what happened. When a community names a formula after the popularizer rather than the discoverer, it flattens the historical record in a way that is almost impossible to reverse. Dirac's 1927 paper deserves the credit. Read it — it is short, clear, and available.
-
-Three conditions must hold for the golden rule to apply. First, a true continuum of final states — or enough closely spaced discrete states that the sum looks like an integral. Second, long enough time that the $\sin^2/\Delta^2$ has sharpened into something indistinguishable from a delta function: $t \gg 1/\Delta\omega$. Third, short enough time that the total probability $W_{i\to f}\cdot t$ is still small compared to 1, so that perturbation theory is valid. All three conditions fail in different experiments. When the final states are discrete, the exact Rabi formula applies. When times are long enough that the rate prediction saturates, neither formula applies without modification. The golden rule is for the wedge in between — and in that wedge it is extraordinarily accurate.
-
----
-
-## Exact Rabi oscillations, and where perturbation theory breaks
-
-The two-level problem has an exact solution. Take two states $|g\rangle$ and $|e\rangle$ with energies $0$ and $\hbar\omega_0$, coupled by a drive $\hat{H}'(t) = \hbar\Omega\cos(\omega t)(|e\rangle\langle g| + |g\rangle\langle e|)$. The Rabi frequency $\Omega = |V_{fi}|/\hbar$ measures the coupling strength. In the RWA, the Schrödinger equation reduces to two coupled first-order ODEs that can be solved exactly. With initial conditions $c_g(0) = 1$, $c_e(0) = 0$:
-
-$$\boxed{P_{g\to e}(t) = \frac{\Omega^2}{\Omega^2 + \Delta^2}\,\sin^2\!\left(\frac{\sqrt{\Omega^2 + \Delta^2}}{2}\,t\right),}$$
-
-where $\Delta = \omega - \omega_0$ is the detuning. This formula is exact within the RWA — no perturbation approximation.
-
-At resonance ($\Delta = 0$): $P_{g\to e}(t) = \sin^2(\Omega t/2)$. The population oscillates between 0 and 1. At $t = \pi/\Omega$, called a $\pi$-pulse, every atom is in the excited state. At $t = 2\pi/\Omega$, every atom is back in the ground state. The energy sloshes between drive and atom indefinitely, without loss or decay. This is a coherent oscillation, not a rate process.
-
-Off-resonance ($\Delta \neq 0$): two things change. The maximum population is $\Omega^2/(\Omega^2 + \Delta^2) < 1$ — full inversion is impossible. And the oscillation frequency is $\sqrt{\Omega^2 + \Delta^2}$, the generalized Rabi frequency — faster than $\Omega$ but capped in amplitude. The atom flickers between ground and excited but never fully transfers.
-
-Now compare to the first-order PT prediction for the same problem at resonance. The PT formula gives $P_{g\to e}^{\text{PT}}(t) = (\Omega t/2)^2$ — a parabola growing without bound. The exact formula gives $\sin^2(\Omega t/2)$ — bounded by 1 and periodically returning to zero. For small $\Omega t$, Taylor-expand $\sin^2 x \approx x^2$: the two agree. For $\Omega t \sim 1$, they diverge. At $\Omega t = \pi$, the exact formula says $P = 1$ and the PT formula says $P = (\pi/2)^2 \approx 2.47$. PT has predicted a probability greater than 1 — the unambiguous signal that the approximation has failed.
-
-The failure is not a numerical inconvenience. It tells you something physical. First-order PT treats the population of $|f\rangle$ as negligible in computing the rate of change of $c_f$ — it never feeds the depleted $|i\rangle$ population back into the equation. The exact solution includes that feedback. When enough probability has moved into $|e\rangle$ that the reverse drive — emission stimulated by the perturbation — pushes it back, the exact solution captures the Rabi oscillation. PT misses the whole second half of the cycle.
-
-The simulation you build below will let you slide time out from zero and watch the PT prediction cross 1. That crossing is a diagnostic: at that moment you know you need either the exact solution or a higher-order resummation.
+The golden rule applies in a specific window. The continuum must be dense enough that the $\sin^2/\Delta\omega^2$ sum looks like an integral. The time must be long enough that the lineshape has sharpened ($t \gg 1/\Delta\omega$). And the time must be short enough that $W\cdot t \ll 1$ — the total probability transferred is still small, so PT is still valid. For an atom emitting into the electromagnetic vacuum, this window is enormous — nanoseconds to microseconds, while the Bohr oscillation period is femtoseconds. For a two-level atom driven on resonance, the window is $1/\omega_0 \ll t \ll 1/\Omega$ — it exists, but it is narrower, and it vanishes entirely at strong coupling. That is when you need the Rabi formula instead.
 
 ---
 
 ## Selection rules and dipole transitions
 
-Not every transition can be driven by an oscillating electric field. The rate is proportional to $|\langle f|\hat{H}'|i\rangle|^2$. For an atom in a monochromatic optical field $\vec{\mathcal{E}}_0\cos(\omega t)$, the perturbation is the electric dipole term $\hat{H}'(t) = e\hat{\vec{r}}\cdot\vec{\mathcal{E}}_0\cos(\omega t)$. The matrix element is $\langle f|e\hat{\vec{r}}|i\rangle$. When this matrix element is zero by symmetry, the transition is electric-dipole forbidden.
+For an atom in an optical field, the perturbation is $\hat{H}'(t) = e\hat{\vec{r}}\cdot\vec{\mathcal{E}}_0\cos(\omega t)$. The transition matrix element is $\langle f|e\hat{\vec{r}}|i\rangle$. When it vanishes by symmetry, the transition is electric-dipole forbidden.
 
-For hydrogen states $|n\ell m\rangle$, the angular integrals impose three constraints. The operator $\hat{\vec{r}}$ has odd parity. A matrix element of an odd-parity operator between two states of the same parity is zero — the integrand is odd, and the integral over all space vanishes. Since parity under $\vec{r} \to -\vec{r}$ takes $Y_\ell^m \to (-1)^\ell Y_\ell^m$, states with the same $\ell$ have the same parity. So $\Delta\ell = 0$ is forbidden. The algebra of spherical harmonics then shows that the angular integral is also zero unless $|\Delta\ell| = 1$, and that the $m$ quantum number satisfies $\Delta m = 0$ for light polarized along $\hat{z}$ and $\Delta m = \pm 1$ for circularly polarized light.
+For hydrogen states $|n\ell m\rangle$, the symmetry constraints are: the operator $\hat{\vec{r}}$ has odd parity. A matrix element of an odd-parity operator between two states of the same parity is zero — the integrand is odd over all space. Since parity under $\vec{r}\to-\vec{r}$ takes $Y_\ell^m \to (-1)^\ell Y_\ell^m$, same $\ell$ means same parity, so $\Delta\ell = 0$ is forbidden. The algebra of spherical harmonics forces $|\Delta\ell| = 1$, and the azimuthal integral forces $\Delta m = 0$ for $\hat{z}$-polarized light and $\Delta m = \pm 1$ for circularly polarized light. Spin is invisible to the electric dipole operator, so $\Delta s = 0$.
 
-The selection rules for electric dipole transitions are therefore: $\Delta\ell = \pm 1$ and $\Delta m = 0, \pm 1$. Spin does not enter the electric dipole operator, so $\Delta s = 0$ — the electron's spin does not flip in an electric dipole transition.
+The selection rules $\Delta\ell = \pm 1$, $\Delta m = 0, \pm 1$, $\Delta s = 0$ are calculations that return zero, not memorized recipes. The $1s\to 2s$ transition is forbidden because both states are spherically symmetric — parity even — and $\hat{z}$ is parity odd. The integral of an odd function over all space is zero. That is the argument, not a rule about quantum numbers.
 
-These are not memorized rules; they are calculations that return zero. The $1s \to 2s$ transition is forbidden because both states are spherically symmetric — parity-even. The operator $\hat{z}$ is parity-odd. The integral of a parity-odd function over all of $\mathbb{R}^3$ is zero. That is the whole argument. The $1s \to 2p$ transition is allowed because $|2p\rangle$ has odd parity ($\ell = 1$); the product $\langle 2p|\hat{z}|1s\rangle$ integrates a parity-even function and gives a nonzero result.
-
-What about forbidden transitions? They still occur — just slowly. The $2s \to 1s$ transition in hydrogen is electric-dipole forbidden with $\Delta\ell = 0$. It proceeds via two-photon emission, with a lifetime of about 0.12 s compared to nanosecond lifetimes for allowed transitions. The 21-cm hyperfine transition in hydrogen is magnetic dipole, with a lifetime of about $10^7$ years — which is why it illuminates the interstellar medium: the gas has enough time to emit even at cosmic densities. Forbidden does not mean impossible. It means suppressed by factors of $\alpha^2$ or more, where $\alpha \approx 1/137$ is the fine-structure constant.
+Forbidden means slow, not impossible. The $2s\to 1s$ hydrogen transition has $\Delta\ell = 0$ and proceeds via two-photon emission with a lifetime of 0.12 seconds — eight orders of magnitude slower than an allowed transition. The 21-cm hyperfine transition is a magnetic dipole transition with a lifetime of roughly $10^7$ years. Because the interstellar medium gives it that much time, it illuminates the structure of galaxies. Long lifetimes are useful.
 
 ---
 
 ## The spontaneous emission wall
 
-This chapter hands you the spontaneous emission rate via Einstein's thermodynamic argument, not via quantum electrodynamics. The $A$-coefficient for hydrogen $2p \to 1s$, computed from the dipole matrix element and the transition frequency, gives a lifetime of about 1.6 ns. That number is correct.
+Chapter 9's perturbation theory, and the framework of this chapter, treats the electromagnetic field as an external classical driver. An atom in its excited eigenstate, with no classical field present, has no time-dependent perturbation and should sit there forever. Yet excited atoms decay.
 
-But the reasoning has a gap. The framework of this chapter — time-dependent perturbation theory applied to an atom in a classical oscillating field — treats the electromagnetic field as an external driver. An atom in its excited state, with no classical field present, has no perturbation. By this framework it should sit in $|e\rangle$ forever.
+They decay because the electromagnetic field is itself quantum. Even in its vacuum state — no photons anywhere — the field fluctuates. Coupling the atom to the *quantized* field gives a non-trivial perturbation even with zero applied drive, and it is this vacuum coupling that drives spontaneous emission. The correct derivation of the $A$-coefficient requires quantizing the field — which is exactly what Dirac did in 1927 in the same paper that contains the golden rule. Einstein extracted the ratio $A_{21}/B_{21}$ from thermodynamics in 1917 without quantizing the field, a remarkable tour de force. But the mechanism — why $A$ is nonzero at all — requires quantum electrodynamics.
 
-It doesn't. Excited atoms decay. The reason is that the electromagnetic field is itself a quantum system with its own vacuum fluctuations. Even in the ground state of the field — no photons anywhere — there are fluctuations. Coupling the atom to the *quantized* field gives a non-trivial perturbation even with zero photons, and it is this coupling that drives spontaneous emission. The correct derivation of the $A$-coefficient requires quantizing the field. That is Dirac's 1927 paper again — the same paper that contains Fermi's golden rule. Einstein got the ratio $A/B$ from thermodynamics in 1917 without quantizing the field, which is a remarkable feat. But the mechanism — why $A$ is nonzero in the first place — requires quantum field theory.
-
-The current framework is semiclassical: atomic states are quantum, the field is classical. Spontaneous emission marks the boundary. The chapter shows you where the wall is and points at the gate.
+For hydrogen $2p \to 1s$, computing the dipole matrix element $|\langle 1s|\hat{\vec{r}}|2p\rangle|^2 \approx 0.555\,a_0^2$ and plugging into the Einstein $A$-coefficient formula gives a lifetime of about 1.6 ns, matching the measured value. The number is right. The semiclassical derivation of that number is technically incomplete. This chapter shows you where the wall is and points at the gate: Dirac 1927, quantum field theory, a later course.
 
 ---
 
 ## Still puzzling
 
-There is a self-consistency condition buried in the derivation of Fermi's golden rule that I find I cannot make feel inevitable. The long-time limit that turns the $\sin^2/\Delta\omega^2$ profile into a delta function requires $t \to \infty$. But the derivation also requires $W_{i\to f}\cdot t \ll 1$ — small total probability transferred — for first-order perturbation theory to be valid. Both conditions cannot hold simultaneously at arbitrarily long times. The golden rule is derived from a limit that violates its own condition of applicability.
+The derivation of Fermi's golden rule requires taking $t\to\infty$ to sharpen the $\sin^2/\Delta\omega^2$ into a delta function. But the derivation also requires $W\cdot t \ll 1$ for first-order perturbation theory to be valid. Both conditions cannot hold simultaneously at arbitrarily long times.
 
-The resolution is that the golden rule applies in an intermediate regime: long enough for the delta function to be a good approximation ($t \gg 1/\Delta\omega$), short enough for $P_{\text{total}} \ll 1$ ($t \ll \hbar/|V_{fi}|^2\rho$). For a typical atomic transition into the electromagnetic continuum, this window is enormous — many orders of magnitude wide in time. So the formula works, and works well, in virtually every application we care about. But the derivation technically requires a limit that the formula's validity condition forbids. I can state the resolution; I am not sure I can make the foundations feel completely clean.
+The resolution is that there is a wide intermediate window — $t$ large enough for the delta function to be a good approximation, small enough for PT to hold — and in that window the golden rule is accurate. For atomic emission into the vacuum, the window spans many orders of magnitude in time, so the formula is extraordinarily well-tested. But the derivation technically invokes a limit that the validity condition forbids. The physics is right; the logical structure of the derivation has a seam. I can state this cleanly. I cannot make it feel fully resolved.
 
 ---
 
 ## LLM Exercise — the Rabi resonance simulator
 
-You are going to build a single-file D3 simulation showing time-dependent perturbation theory at work and at its breaking point. Three nested panels: population vs. time at fixed detuning, transition probability vs. detuning at fixed time, and a continuum-to-golden-rule toggle. The deliverable is `10-rabi-resonance.html` in your working directory.
+You are going to build a single-file D3 simulation showing the exact Rabi formula and first-order perturbation theory side by side, with a continuum mode where the Rabi oscillation collapses into Fermi's linear growth. The deliverable is `10-rabi-resonance.html` in your working directory.
 
 ### Part 1 — Update `PROJECT.md`
 
@@ -347,4 +335,4 @@ method — WKB — handles a different regime).
 
 ---
 
-**Chapter 11** takes up the other classical regime: large quantum numbers, short wavelengths, and the approximation that turns the wave equation back into something that looks like ray optics. Where this chapter handled small perturbations in time, Chapter 11 handles small wavelengths in space — the WKB approximation, tunneling, and the connection between quantum and classical mechanics at large quantum numbers.
+**Chapter 11** moves from perturbations in time to approximations in space. Where this chapter handled small coupling between levels, Chapter 11 handles large quantum numbers and short wavelengths — the WKB approximation, tunneling, and the connection formula that bridges classical and quantum mechanics at a turning point.
