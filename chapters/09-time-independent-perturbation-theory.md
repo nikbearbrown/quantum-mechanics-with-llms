@@ -1,336 +1,198 @@
 # Chapter 9 — Time-Independent Perturbation Theory
+*The art of squeezing answers from problems you cannot solve.*
 
-> Almost no realistic quantum system is exactly solvable. Perturbation theory is the workhorse that takes a problem you can solve and squeezes useful answers out of a problem you cannot.
+Johannes Stark, working in Aachen in the fall of 1913, took a canal-ray tube, applied an electric field up to about $10^5$ V/cm to a hydrogen discharge, and watched the Balmer lines split. What he found was specific and strange: the $n = 2$ level, which is fourfold degenerate in the unperturbed atom — $2s$, $2p_0$, $2p_{+1}$, $2p_{-1}$, all at the same energy — split into exactly three lines. Not four. Three. One shifted up, one shifted down by the same amount, and one that did not shift at all. And the ground state barely moved.
+
+Why three lines from four states? Why does the ground state shift so little while the $n = 2$ level splits dramatically? And why is the splitting symmetric — exactly equal distances up and down — rather than some lopsided mess?
+
+These questions have clean answers, and the machinery that gives them is perturbation theory. That machinery is what this chapter builds.
 
 ---
 
-## 1. What this chapter is doing
+## The setup
 
-You can solve the harmonic oscillator. You can solve the hydrogen atom. After that, the list of exactly solvable bound-state problems in three dimensions is roughly empty. The square well, the Coulomb potential, the harmonic well, a handful of toy models with hidden symmetries — that is the inventory. Everything else in physics, from helium upward, requires approximation.
+You can solve the harmonic oscillator. You can solve the hydrogen atom. After that, the list of exactly solvable three-dimensional bound-state problems is essentially empty. The square well, the Coulomb potential, the harmonic well, a handful of toy models with hidden symmetries — that is the inventory. Everything else in physics, from helium upward, requires approximation.
 
-Perturbation theory is the most important of those approximations. The setup is simple. You have a Hamiltonian $\hat{H}_0$ whose eigenstates $|n^{(0)}\rangle$ and eigenvalues $E_n^{(0)}$ you know exactly. Reality gives you $\hat{H} = \hat{H}_0 + \lambda \hat{H}'$ where $\hat{H}'$ is something else and $\lambda$ is a small dimensionless number you can think of as a knob. The question: how much do the energies and states *move* as $\lambda$ turns up from zero?
-
-The chapter delivers two answers. First, a machine for computing the corrections order by order. Second, an honest accounting of where the machine breaks: when two unperturbed states share an energy (degenerate perturbation theory), and when $\lambda$ is not small enough for the series to converge (which, as Dyson noticed in 1952, is almost always — the series is usually asymptotic, not convergent). You are going to build a simulation that lets you *see* both failures happen in real time.
-
-This is the opening chapter of Act Three. Up to now you have solved problems where the Hamiltonian was given and the solution was exact. From here on, you are doing what working physicists do — taking an exactly solvable nearby problem and pushing on it.
-
-## 2. Learning objectives
-
-By the end of this chapter you should be able to:
-
-- Write the perturbation expansion $E_n = E_n^{(0)} + \lambda E_n^{(1)} + \lambda^2 E_n^{(2)} + \cdots$ and derive the first- and second-order corrections by substitution into the Schrödinger equation.
-- Compute first-order energy corrections as expectation values: $E_n^{(1)} = \langle n^{(0)}|\hat{H}'|n^{(0)}\rangle$.
-- Compute first-order state corrections and recognize when the formula diverges (degeneracy).
-- Apply degenerate perturbation theory: diagonalize $\hat{H}'$ in the degenerate subspace.
-- Work the hydrogen Stark effect on $n=2$ as the canonical degenerate-PT calculation.
-- Sketch the fine-structure correction to hydrogen — relativistic kinetic, spin-orbit, Darwin — and identify which good quantum numbers emerge after the perturbation lifts the degeneracy.
-- Build a D3 simulation that watches energy levels split and shift as a perturbation slider turns up, and that flags when perturbation theory has failed.
-
-## 3. Motivating problem
-
-A hydrogen atom sits in a uniform electric field of strength $\mathcal{E}$. Classically, the proton-electron system is a dipole that polarizes — the electron cloud shifts slightly opposite to the field. Quantum mechanically, the levels should shift too. The question is by how much, and in what pattern.
-
-Johannes Stark, working with a modified canal-ray tube in Aachen in the fall of 1913, applied fields up to about $10^5$ V/cm to hydrogen and watched the Balmer lines *split* into multiple components ([Stark 1914, *Annalen der Physik* 348, 965](https://doi.org/10.1002/andp.19143480702)). Within days of Stark's submission, Antonino Lo Surdo in Italy reported the same effect from a different experimental setup; the simultaneous discovery is documented by Leone, Paoletti & Robotti, "[A simultaneous discovery: the case of Johannes Stark and Antonino Lo Surdo](https://link.springer.com/article/10.1007/s00016-003-0203-x)" (*Physics in Perspective* 6, 271, 2004) [verify]. Stark won the Nobel in 1919. Lo Surdo did not.
-
-Here is the puzzle. The ground state of hydrogen, $|1s\rangle$, is non-degenerate. The first excited level at $n=2$ is fourfold degenerate (ignoring spin) — $2s$, $2p_{-1}$, $2p_0$, $2p_{+1}$ all sit at the same energy in the unperturbed problem. When you turn on the electric field, the $n=2$ level splits into *three* lines, not four — two of the four states do not shift at all. The ground state shifts only at *second* order in $\mathcal{E}$ (quadratic, very small). And the splitting pattern is exactly symmetric: one component up by $3 e a_0 \mathcal{E}$, one down by the same amount, one (a doubly degenerate pair) flat.
-
-Why three lines from four states? Why a quadratic shift for the ground state but a linear shift for the excited? The answers will come from the machinery this chapter builds. We need a way to take a problem we cannot solve in closed form ($\hat{H}_{\text{hydrogen}} + e\mathcal{E}\hat{z}$) and squeeze quantitative predictions out of it using only the spectrum and the wave functions of a problem we *can* solve.
-
-## 4. Concept block — the perturbation expansion
-
-### 4.1 The setup
-
-Write the full Hamiltonian as
+Perturbation theory is the most important of those approximations. The idea is simple. You have a Hamiltonian $\hat{H}_0$ whose eigenstates $|n^{(0)}\rangle$ and eigenvalues $E_n^{(0)}$ you know exactly. Reality gives you something else:
 
 $$\hat{H} = \hat{H}_0 + \lambda \hat{H}'$$
 
-where $\lambda$ is a dimensionless bookkeeping parameter — small in practice, formally treated as a Taylor expansion variable. At the end you can set $\lambda = 1$ and read off corrections in powers of whatever physical small quantity $\hat{H}'$ contains (the electric field, the perturbation strength, $v/c$, whatever).
+where $\hat{H}'$ is some additional term and $\lambda$ is a small dimensionless parameter — a knob you can think of as being slowly turned up from zero. The question: how do the energies and states change as $\lambda$ increases?
 
-Expand the eigenstate and eigenvalue of the perturbed problem in powers of $\lambda$:
+The strategy is to expand the answer as a power series in $\lambda$:
 
 $$|n\rangle = |n^{(0)}\rangle + \lambda|n^{(1)}\rangle + \lambda^2|n^{(2)}\rangle + \cdots$$
 $$E_n = E_n^{(0)} + \lambda E_n^{(1)} + \lambda^2 E_n^{(2)} + \cdots$$
 
-Substitute into $\hat{H}|n\rangle = E_n|n\rangle$:
+Substitute into $\hat{H}|n\rangle = E_n|n\rangle$, expand both sides, and collect terms at each power of $\lambda$. The whole machine lives in that one move.
 
-$$(\hat{H}_0 + \lambda \hat{H}')(|n^{(0)}\rangle + \lambda|n^{(1)}\rangle + \lambda^2|n^{(2)}\rangle + \cdots) = (E_n^{(0)} + \lambda E_n^{(1)} + \lambda^2 E_n^{(2)} + \cdots)(|n^{(0)}\rangle + \lambda|n^{(1)}\rangle + \cdots)$$
+---
 
-Expand both sides and demand equality at each order of $\lambda$. The whole machine is in that one move. (Griffiths §7.1; Liboff §13.1.)
+## What the machine gives you
 
-### 4.2 Order zero — the unperturbed problem
+At zeroth order in $\lambda$ you recover the unperturbed problem. No news.
 
-Collecting the $\lambda^0$ terms:
-
-$$\hat{H}_0 |n^{(0)}\rangle = E_n^{(0)}|n^{(0)}\rangle$$
-
-This is just the problem you already solved. No new content. The unperturbed Hamiltonian has its eigenstates, you know them, move on.
-
-### 4.3 Order one — energy correction
-
-Collecting $\lambda^1$ terms:
-
-$$\hat{H}_0|n^{(1)}\rangle + \hat{H}'|n^{(0)}\rangle = E_n^{(0)}|n^{(1)}\rangle + E_n^{(1)}|n^{(0)}\rangle$$
-
-Take the inner product with $\langle n^{(0)}|$:
-
-$$\langle n^{(0)}|\hat{H}_0|n^{(1)}\rangle + \langle n^{(0)}|\hat{H}'|n^{(0)}\rangle = E_n^{(0)}\langle n^{(0)}|n^{(1)}\rangle + E_n^{(1)}\langle n^{(0)}|n^{(0)}\rangle$$
-
-The first term on the left equals the first term on the right because $\hat{H}_0$ is Hermitian: $\langle n^{(0)}|\hat{H}_0|n^{(1)}\rangle = E_n^{(0)}\langle n^{(0)}|n^{(1)}\rangle$. They cancel. The last factor $\langle n^{(0)}|n^{(0)}\rangle = 1$. What is left:
+At first order, take the inner product of the first-order equation with $\langle n^{(0)}|$. The $\hat{H}_0$ terms cancel because $\hat{H}_0$ is Hermitian — the same trick that appeared in Chapter 4 whenever we wanted to extract information from an eigenvalue equation. What is left is remarkably clean:
 
 $$\boxed{E_n^{(1)} = \langle n^{(0)}|\hat{H}'|n^{(0)}\rangle}$$
 
-This is the single most useful equation in the chapter. *The first-order shift of an energy level is the expectation value of the perturbation in the unperturbed state.* If you can compute that integral, you have the leading correction. No new diagonalization required.
+The first-order shift in the energy is the expectation value of the perturbation in the unperturbed state. That is all. If you can compute that integral, you have the leading correction without any new diagonalization.
 
-### 4.4 Order one — state correction
+The correction to the state comes from taking the inner product with a *different* unperturbed state $\langle m^{(0)}|$, $m \neq n$. Working through the same algebra:
 
-Now take the inner product with $\langle m^{(0)}|$ for $m \neq n$:
+$$|n^{(1)}\rangle = \sum_{m \neq n} \frac{\langle m^{(0)}|\hat{H}'|n^{(0)}\rangle}{E_n^{(0)} - E_m^{(0)}}\,|m^{(0)}\rangle$$
 
-$$\langle m^{(0)}|\hat{H}_0|n^{(1)}\rangle + \langle m^{(0)}|\hat{H}'|n^{(0)}\rangle = E_n^{(0)}\langle m^{(0)}|n^{(1)}\rangle$$
+Read this carefully. The perturbation mixes neighboring states into each other. The amount of mixing depends on two things: how large the matrix element $\langle m|\hat{H}'|n\rangle$ is — how strongly the perturbation connects the two states — and how large the energy gap $E_n^{(0)} - E_m^{(0)}$ is. Small gap means large mixing. That is not surprising: a tiny perturbation can have a large effect on states that are nearly degenerate in energy.
 
-Using $\hat{H}_0|m^{(0)}\rangle = E_m^{(0)}|m^{(0)}\rangle$ on the first term (Hermitian, acts to the left):
+And there it is — the denominator that will cause trouble. When $E_m^{(0)} \to E_n^{(0)}$, the formula blows up. The machine has broken. But it is not perturbation theory that failed; it is the *basis*. You started with the wrong zeroth-order states for this problem.
 
-$$E_m^{(0)}\langle m^{(0)}|n^{(1)}\rangle + \langle m^{(0)}|\hat{H}'|n^{(0)}\rangle = E_n^{(0)}\langle m^{(0)}|n^{(1)}\rangle$$
+At second order, the energy correction is:
 
-Solve for $\langle m^{(0)}|n^{(1)}\rangle$:
+$$E_n^{(2)} = \sum_{m \neq n}\frac{|\langle m^{(0)}|\hat{H}'|n^{(0)}\rangle|^2}{E_n^{(0)} - E_m^{(0)}}$$
 
-$$\langle m^{(0)}|n^{(1)}\rangle = \frac{\langle m^{(0)}|\hat{H}'|n^{(0)}\rangle}{E_n^{(0)} - E_m^{(0)}}$$
+The numerator is a squared absolute value — always non-negative. The denominator changes sign: states above $n$ make it negative; states below make it positive. For the ground state, every other state sits above it. Every denominator is negative. Every term in the sum is negative. This gives us a small theorem: **the second-order correction to the ground-state energy is always negative**. Whatever the perturbation, the ground state always gets pushed down at second order. It is a consequence of one sign, and it is exact.
 
-Sum over $m \neq n$ (the $m = n$ component is fixed by normalization to be zero at first order):
+<!-- → [INFOGRAPHIC: schematic diagram of the three perturbation corrections — three horizontal panels stacked vertically, each showing an energy level E_n with arrows indicating the correction at that order; panel 1: "zeroth order — the level you started with, no shift"; panel 2: "first order — shifts by ⟨n|H'|n⟩, the expectation value, shown as a single upward or downward arrow"; panel 3: "second order — a sum over all other states m, each contributing a term proportional to |⟨m|H'|n⟩|²/(E_n−E_m), ground state always goes down"; caption: "The machine in three steps. Each order squeezes one more digit of accuracy from the perturbation"] -->
 
-$$\boxed{|n^{(1)}\rangle = \sum_{m \neq n} \frac{\langle m^{(0)}|\hat{H}'|n^{(0)}\rangle}{E_n^{(0)} - E_m^{(0)}}\,|m^{(0)}\rangle}$$
+---
 
-Read the formula. *The first-order correction to a state is a sum over every other unperturbed state, weighted by the matrix element of $\hat{H}'$ connecting them and divided by the energy gap between them.* States nearby in energy contribute more; states with large matrix elements contribute more.
+## When the denominator vanishes: degenerate perturbation theory
 
-Notice the energy denominator. When $E_m^{(0)} \to E_n^{(0)}$, the formula explodes. That is the signal: the basis you started with is the wrong one for this problem, and you must move to degenerate perturbation theory before the formula will work.
+Suppose two unperturbed states share an energy: $E_a^{(0)} = E_b^{(0)}$. The first-order state correction has a zero in the denominator — the formula is undefined. Something has gone wrong, but it is not that perturbation theory itself fails. It is that the *basis choice within the degenerate subspace* was wrong.
 
-### 4.5 Order two — energy correction
+Here is what I mean. If $\hat{H}_0|a\rangle = E^{(0)}|a\rangle$ and $\hat{H}_0|b\rangle = E^{(0)}|b\rangle$, then any linear combination $\alpha|a\rangle + \beta|b\rangle$ is also an eigenstate of $\hat{H}_0$ at the same energy. The unperturbed Hamiltonian cannot distinguish between bases in the degenerate subspace — all are equally good at zeroth order. The perturbation $\hat{H}'$ breaks this symmetry and picks out a preferred basis: the one in which states connect smoothly to the perturbed eigenstates as $\lambda \to 0$.
 
-Collect $\lambda^2$ terms from the Schrödinger equation:
+The fix is direct. Restrict $\hat{H}'$ to the degenerate subspace and write it as a matrix:
 
-$$\hat{H}_0|n^{(2)}\rangle + \hat{H}'|n^{(1)}\rangle = E_n^{(0)}|n^{(2)}\rangle + E_n^{(1)}|n^{(1)}\rangle + E_n^{(2)}|n^{(0)}\rangle$$
+$$W_{ij} = \langle i|\hat{H}'|j\rangle$$
 
-Inner product with $\langle n^{(0)}|$. The $|n^{(2)}\rangle$ terms cancel by the same Hermitian trick as before. The middle term on the right vanishes because $\langle n^{(0)}|n^{(1)}\rangle = 0$ at the chosen normalization. What remains:
+Diagonalize $W$. The eigenvalues are the first-order energy corrections. The eigenvectors are the "good" zeroth-order states — the unique linear combinations that perturbation theory needs as its starting point.
 
-$$E_n^{(2)} = \langle n^{(0)}|\hat{H}'|n^{(1)}\rangle$$
+Non-degenerate perturbation theory is not the general case. It is what you get when the degenerate subspace is one-dimensional, so the diagonalization is trivial. Whenever there is symmetry — and hydrogen has it in spades — you should reach for the degenerate version first.
 
-Substitute the formula for $|n^{(1)}\rangle$ from §4.4:
+---
 
-$$\boxed{E_n^{(2)} = \sum_{m \neq n}\frac{|\langle m^{(0)}|\hat{H}'|n^{(0)}\rangle|^2}{E_n^{(0)} - E_m^{(0)}}}$$
+## The Stark effect: three lines from four states
 
-Two features of this formula are worth pausing on.
+Now we have the tools to answer Stark's puzzle.
 
-*The numerator is non-negative.* It is the modulus squared of a matrix element.
+Apply a uniform electric field along $\hat{z}$ to a hydrogen atom. The perturbation is $\hat{H}' = e\mathcal{E}\hat{z}$. For the ground state $|1s\rangle$, the first-order shift is:
 
-*The denominator changes sign depending on whether $E_n^{(0)}$ is above or below $E_m^{(0)}$.* For the ground state, every other state is above, so every denominator is negative. Every term in $E_0^{(2)}$ is therefore negative. **The second-order correction to the ground-state energy is always negative.** The ground state is always pushed *down* by a perturbation. This is a small theorem that follows from one sign analysis.
+$$E_1^{(1)} = \langle 1s|e\mathcal{E}\hat{z}|1s\rangle = 0$$
 
-### 4.6 What the formulas say, in words
+It vanishes by parity. The $|1s\rangle$ wave function is parity-even, $\hat{z}$ is parity-odd, so the integrand is parity-odd and integrates to zero over all space. There is no first-order shift. The ground state shifts only at second order — quadratically in $\mathcal{E}$, very small for ordinary lab fields.
 
-Three sentences carry the chapter.
+For the $n = 2$ level we have four degenerate states: $|2s\rangle$, $|2p_0\rangle$, $|2p_{+1}\rangle$, $|2p_{-1}\rangle$. We need the $4\times 4$ matrix of $\hat{H}' = e\mathcal{E}\hat{z}$ in this subspace, then we diagonalize it.
 
-1. Energies at first order: take the expectation value of the perturbation in the unperturbed state. Done.
-2. States at first order: mix in every other state, weighted by matrix element over energy gap. Watch for vanishing gaps.
-3. Energies at second order: sum the squared matrix elements over the same energy gap. Ground state always goes down.
+Selection rules eliminate most entries before we compute anything. The operator $\hat{z}$ commutes with $\hat{L}_z$ — it cannot change the $z$-component of angular momentum — so matrix elements with $\Delta m \neq 0$ vanish. That zeroes out everything involving $|2p_{\pm 1}\rangle$ coupling to $|2s\rangle$ or $|2p_0\rangle$. Parity kills the remaining diagonal entries: $\langle 2s|\hat{z}|2s\rangle = 0$ (parity-even times parity-odd), and $\langle 2p_0|\hat{z}|2p_0\rangle = 0$ similarly.
 
-Everything else is bookkeeping.
+The only surviving entry is $\langle 2s|\hat{z}|2p_0\rangle$. Compute it directly from the radial and angular integrals:
 
-## 5. Concept block — degenerate perturbation theory
+$$\langle 2s|\hat{z}|2p_0\rangle = -3a_0$$
 
-### 5.1 Where the basis is wrong
-
-Suppose two unperturbed states $|a\rangle$ and $|b\rangle$ share an energy: $E_a^{(0)} = E_b^{(0)} = E^{(0)}$. The first-order state formula has a zero in the denominator. Something has gone wrong, but it is not the perturbation theory — it is the *basis*. Any linear combination $\alpha|a\rangle + \beta|b\rangle$ is still an eigenstate of $\hat{H}_0$ with the same energy. The choice of basis within the degenerate subspace is arbitrary at zeroth order. The perturbation breaks that arbitrariness.
-
-### 5.2 The fix
-
-Restrict $\hat{H}'$ to the degenerate subspace and write it as a matrix:
-
-$$W = \begin{pmatrix} W_{aa} & W_{ab} \\ W_{ba} & W_{bb} \end{pmatrix}, \quad W_{ij} = \langle i|\hat{H}'|j\rangle$$
-
-Diagonalize $W$. The eigenvalues are the first-order energy corrections; the eigenvectors are the "good" zeroth-order states — the unique linear combinations that connect smoothly to the perturbed eigenstates as $\lambda \to 0$.
-
-This is not a "special case." It is the general case. *Non-degenerate perturbation theory is what you get when the degenerate subspace is one-dimensional and the diagonalization is trivial.* For any system with symmetry — hydrogen, the 2D harmonic oscillator, spin systems — the unperturbed Hamiltonian is degenerate by construction, and degenerate perturbation theory is the first move.
-
-### 5.3 Worked example — Stark effect on the $n=2$ manifold
-
-This is the cleanest application in the chapter. Apply a uniform electric field along $\hat{z}$ to a hydrogen atom; the perturbation is
-
-$$\hat{H}' = e\mathcal{E}\hat{z}$$
-
-(The electron has charge $-e$; the field is along $+\hat{z}$. Signs convention: see Griffiths §7.4 / Liboff §13.4.)
-
-For the ground state, $\langle 1s|\hat{z}|1s\rangle = 0$ because $|1s\rangle$ is parity-even and $\hat{z}$ is parity-odd. So $E_1^{(1)} = 0$ — the ground state does not shift at first order. The leading correction is $E_1^{(2)} = -\tfrac{1}{2}\alpha_{\text{pol}}\mathcal{E}^2$, where $\alpha_{\text{pol}}$ is the polarizability. Quadratic in $\mathcal{E}$. Tiny.
-
-For the $n=2$ level, you have four degenerate states: $|2s\rangle$, $|2p_0\rangle$, $|2p_{+1}\rangle$, $|2p_{-1}\rangle$. Build the $4 \times 4$ matrix of $\hat{H}' = e\mathcal{E}\hat{z}$ in this subspace.
-
-Selection rules kill most entries:
-
-- $\hat{z}$ is parity-odd, so $\langle 2s|\hat{z}|2s\rangle = 0$ and $\langle 2p_m|\hat{z}|2p_{m'}\rangle = 0$ (both parities are odd; the product is even, but actually all four $\hat{z}$-matrix-elements among the $2p$ states vanish; see Griffiths Example 7.4 [verify]).
-- $\hat{z}$ commutes with $\hat{L}_z$, so $\langle\ell, m|\hat{z}|\ell', m'\rangle \propto \delta_{mm'}$ — only $\Delta m = 0$ contributes.
-
-The only nonzero matrix element is $\langle 2s|\hat{z}|2p_0\rangle$. Computing it directly (Griffiths §7.4):
-
-$$\langle 2s|\hat{z}|2p_0\rangle = -3 a_0$$
-
-where $a_0 = \hbar^2/(m_e e^2/4\pi\epsilon_0)$ is the Bohr radius. So the matrix $W$, with the basis order $\{|2s\rangle, |2p_0\rangle, |2p_{+1}\rangle, |2p_{-1}\rangle\}$:
+So the full $4\times 4$ matrix, with rows and columns ordered $\{|2s\rangle, |2p_0\rangle, |2p_{+1}\rangle, |2p_{-1}\rangle\}$:
 
 $$W = e\mathcal{E}\begin{pmatrix} 0 & -3a_0 & 0 & 0 \\ -3a_0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \end{pmatrix}$$
 
-This block-diagonalizes. The bottom $2 \times 2$ block is already diagonal — $|2p_{+1}\rangle$ and $|2p_{-1}\rangle$ have zero first-order shift. The top $2 \times 2$ block
+This block-diagonalizes immediately. The bottom $2\times 2$ block is the zero matrix — $|2p_{+1}\rangle$ and $|2p_{-1}\rangle$ are already good states and they do not shift. The top $2\times 2$ block:
 
 $$\begin{pmatrix} 0 & -3a_0 e\mathcal{E} \\ -3a_0 e\mathcal{E} & 0 \end{pmatrix}$$
 
-has eigenvalues $\pm 3 a_0 e\mathcal{E}$ and eigenvectors $(|2s\rangle \mp |2p_0\rangle)/\sqrt{2}$.
+has eigenvalues $\pm 3a_0 e\mathcal{E}$ and eigenvectors $(|2s\rangle \mp |2p_0\rangle)/\sqrt{2}$.
 
-The $n=2$ level splits into three lines: one shifted up by $3 a_0 e\mathcal{E}$, one shifted down by the same amount, and a doubly degenerate pair (the $m = \pm 1$ states) that does not shift at all. *Three lines from four states.* The "good" zeroth-order eigenstates are the $(|2s\rangle \pm |2p_0\rangle)/\sqrt{2}$ hybrids — polarized states with the electron cloud asymmetric along $\hat{z}$. That asymmetry is what couples to the electric field. The $|2p_{\pm 1}\rangle$ states have $m = \pm 1$, their probability density is azimuthally symmetric about $\hat{z}$, and they cannot polarize along $\hat{z}$ at first order. So they sit still.
+The $n=2$ level splits into three lines: one up by $3a_0 e\mathcal{E}$, one down by $3a_0 e\mathcal{E}$, and a doubly degenerate pair that does not shift. Three lines from four states. The "good" zeroth-order eigenstates are the $(|2s\rangle \pm |2p_0\rangle)/\sqrt{2}$ hybrids — probability clouds asymmetric along $\hat{z}$, which is exactly what couples to a field in the $\hat{z}$ direction. The $|2p_{\pm 1}\rangle$ states are azimuthally symmetric about $\hat{z}$ and cannot polarize along it at first order; they sit still.
 
-This is the worked example that anchors the chapter. Stare at the matrix until the answer feels obvious; then build the simulation and watch the three lines emerge from one as you turn the field up.
+The splitting is linear in $\mathcal{E}$ — a linear Stark effect — while the ground state has a quadratic Stark effect. The difference comes from the degeneracy. Degenerate states mix with each other at first order; non-degenerate states can only mix with states at different energies, which costs more and enters at second order.
 
-## 6. Concept block — when perturbation theory breaks
+Stare at the matrix until the answer feels obvious. Then build the simulation and watch the three lines emerge from one as you turn the field up.
 
-### 6.1 The anharmonic oscillator
+<!-- → [INFOGRAPHIC: Stark splitting diagram for the n=2 manifold — left side: four degenerate horizontal lines all at E_2 = −3.4 eV, labeled |2s⟩, |2p₀⟩, |2p₊₁⟩, |2p₋₁⟩; right side: the split levels after applying field ε, showing (|2s⟩−|2p₀⟩)/√2 shifted up by +3a₀eε, (|2s⟩+|2p₀⟩)/√2 shifted down by −3a₀eε, and |2p±1⟩ pair flat; the 4×4 W matrix shown between them with the two off-diagonal −3a₀eε entries highlighted and all other entries zero; caption: "Three lines from four states. Selection rules zero out the matrix everywhere except one entry; that one entry splits the fourfold degeneracy into three distinct levels"] -->
+
+<!-- → [IMAGE: electron probability density cross-sections of the two Stark eigenstates (|2s⟩±|2p₀⟩)/√2 in the xz-plane — left panel: (|2s⟩−|2p₀⟩)/√2 showing density shifted toward +z (polarized up); right panel: (|2s⟩+|2p₀⟩)/√2 showing density shifted toward −z (polarized down); Viridis color scale; caption: "The 'good' zeroth-order states are polarized clouds. One has its electron shifted upward along the field axis, the other downward — exactly what you need to couple to an electric field"] -->
+
+---
+
+## When perturbation theory breaks
+
+So far the story sounds clean: expand in $\lambda$, compute corrections order by order, get increasingly accurate answers. But there is something hiding in the formalism that Dyson noticed in 1952, and it changes everything.
 
 Take the harmonic oscillator and add a quartic perturbation:
 
-$$\hat{H} = \frac{\hat{p}^2}{2m} + \tfrac{1}{2}m\omega^2\hat{x}^2 + \lambda \hat{x}^4$$
+$$\hat{H} = \frac{\hat{p}^2}{2m} + \tfrac{1}{2}m\omega^2\hat{x}^2 + \lambda\hat{x}^4$$
 
-The unperturbed problem is exactly solvable (Chapter 3). Compute the first-order shift using ladder operators. Recall $\hat{x} = \sqrt{\hbar/2m\omega}(\hat{a}_+ + \hat{a}_-)$, so
+The first-order correction uses $\hat{x} = \sqrt{\hbar/2m\omega}(\hat{a}_+ + \hat{a}_-)$, so $\hat{x}^4$ expressed in ladder operators has diagonal matrix elements:
 
-$$\hat{x}^4 = \left(\frac{\hbar}{2m\omega}\right)^2 (\hat{a}_+ + \hat{a}_-)^4$$
+$$\langle n|\hat{x}^4|n\rangle = \left(\frac{\hbar}{2m\omega}\right)^2(6n^2 + 6n + 3)$$
 
-Expanding $(\hat{a}_+ + \hat{a}_-)^4$, only diagonal terms — those that return to $|n\rangle$ after acting — survive in $\langle n|\hat{x}^4|n\rangle$. Counting carefully (six combinations of two raises and two lowers, each weighted by the ladder factors):
+The first-order energy shift is:
 
-$$\langle n|\hat{x}^4|n\rangle = \left(\frac{\hbar}{2m\omega}\right)^2 (6n^2 + 6n + 3)$$
+$$E_n^{(1)} = \lambda\cdot\frac{3\hbar^2}{4m^2\omega^2}(2n^2 + 2n + 1)$$
 
-So
+Notice that this grows as $n^2$. Perturbation theory works worst for highly excited states, where the wave function extends furthest and probes the $\hat{x}^4$ term most strongly. The second-order correction is computable too — matrix elements $\langle m|\hat{x}^4|n\rangle$ are nonzero for $m = n, n\pm 2, n\pm 4$, with energy denominators $\pm 2\hbar\omega$ and $\pm 4\hbar\omega$. Everything looks controlled for small $\lambda$.
 
-$$E_n^{(1)} = \lambda \cdot \frac{3\hbar^2}{4m^2\omega^2}(2n^2 + 2n + 1)$$
-
-[verify exact prefactor against Griffiths Problem 7.2 / Liboff §13.1].
-
-This formula has two features worth noting. First, it grows as $n^2$ — perturbation theory works *worst* for highly excited states, where the wave function spreads farthest and probes the $\hat{x}^4$ term most strongly. Second, it grows linearly in $\lambda$. So far so good.
-
-The problem comes at second order. The matrix elements $\langle m|\hat{x}^4|n\rangle$ are nonzero for $m = n, n\pm 2, n\pm 4$ (four powers of ladder operators). The energy denominators are $\pm 2\hbar\omega$ and $\pm 4\hbar\omega$. Carry out the sum and you get $E_n^{(2)}$ as a specific negative number proportional to $\lambda^2$.
-
-### 6.2 The asymptotic series
-
-What about $E_n^{(3)}, E_n^{(4)}, \ldots$? Bender and Wu, in a beautiful 1969 calculation ([Bender & Wu, *Phys. Rev.* 184, 1231](https://journals.aps.org/pr/abstract/10.1103/PhysRev.184.1231)), showed that the perturbation series for the quartic oscillator has *zero radius of convergence*. The coefficients grow faster than $n!$. The series
+Then Bender and Wu asked, in a 1969 calculation, what happens when you compute all the higher-order corrections. What they found is that the perturbation series for the quartic oscillator has zero radius of convergence. The coefficients $E_n^{(k)}$ grow faster than $k!$ as $k \to \infty$. The series
 
 $$E_n(\lambda) = E_n^{(0)} + E_n^{(1)}\lambda + E_n^{(2)}\lambda^2 + \cdots$$
 
-diverges for any $\lambda \neq 0$. And yet it is *useful*. Truncate at the optimal order (which depends on $\lambda$) and you get an exponentially good approximation to the true energy. Add more terms and you make things worse.
+diverges for every nonzero value of $\lambda$.
 
-This is the canonical example of an *asymptotic series* — one that does not converge but produces accurate answers when truncated at the right place. The argument is delicate but the picture is clean: in physical terms, the quartic oscillator with $\lambda < 0$ has an unbounded-below potential (it is the inverted quartic) and no normalizable ground state. The energy is not analytic at $\lambda = 0$. Any series expansion around $\lambda = 0$ must capture that singularity by diverging.
+And yet the series is *useful*. Truncate at the optimal order — the term where the coefficients bottom out before starting to grow — and you get an answer exponentially close to the true energy. Add more terms past that point and the approximation gets worse. The series is not a convergent sum. It is an asymptotic expansion, and there is a deep reason for it.
 
-Dyson made this argument first, in 1952, for quantum electrodynamics ([Dyson, "Divergence of perturbation theory in quantum electrodynamics," *Phys. Rev.* 85, 631](https://journals.aps.org/pr/abstract/10.1103/PhysRev.85.631)). Flip the sign of the fine-structure constant and electron-positron pairs become attractive, the vacuum is unstable, and the energy is non-analytic at $\alpha = 0$. The same logic — analytic continuation breaks at $\lambda < 0$ — applies to most perturbation series in quantum mechanics and field theory. **Perturbation series almost always diverge.** That they are still useful is one of the deep surprises of the formalism.
+Dyson gave the argument for quantum electrodynamics, but it applies here too. Suppose $\lambda < 0$. The quartic term $\lambda\hat{x}^4$ is now *negative*, which means the potential goes to $-\infty$ as $|x| \to \infty$. The Hamiltonian is unbounded below; there is no normalizable ground state. The energy, as a function of $\lambda$, is not analytic at $\lambda = 0$ — it has a singularity somewhere on the negative real axis, even if the physical value of $\lambda$ is small and positive. Any Taylor series centered at $\lambda = 0$ must capture that singularity somehow, and it does so by diverging. **Perturbation series almost always diverge.** The coupling constant in QED is the fine-structure constant $\alpha \approx 1/137$, and the same argument applies: flip the sign of $\alpha$, the vacuum is unstable, the energy is non-analytic at $\alpha = 0$, the QED perturbation series diverges.
 
-The simulation you build will let you watch this directly. Dial $\lambda$ up; first-order PT diverges from the exact answer at some $\lambda$, second-order PT does better for a while and then also fails. Adding orders is not a free lunch. Past the optimal truncation, every additional term moves you further from the truth.
+This should alarm you. All of the spectacular agreements between QED and experiment — the electron anomalous magnetic moment, computed and measured to thirteen significant figures — rest on a divergent series. That they are still right is one of the genuinely strange things about quantum field theory. The series diverges; the partial sum at optimal truncation is exponentially close to the truth. Why? The answer involves Borel summation and resurgent analysis — techniques that reconstruct the exact answer from the divergent series by analytic continuation in carefully chosen ways. They work. The theoretical understanding is still evolving. The empirical fact is not in doubt.
 
-### 6.3 Two misconceptions to break
+The simulation you will build lets you watch this directly. Turn $\lambda$ up. First-order PT diverges from the exact answer at some value of $\lambda$; second-order PT does better for a while and then also fails. Past the optimal truncation, every additional term moves you further from the truth.
 
-*"Perturbation theory always converges as long as the terms get smaller."* The terms can get smaller, then start to grow. The optimal truncation is the term where they bottom out. Past it, more terms hurt.
+Two misconceptions are worth naming.
 
-*"First-order is always sufficient for small $\lambda$."* Only when there is no near-degeneracy. If two unperturbed states are nearly degenerate, the second-order correction has a tiny denominator and can be enormous even when $\lambda$ is small. Always check the ratio $|\langle m|\hat{H}'|n\rangle|/|E_n^{(0)} - E_m^{(0)}|$ before you trust first-order. If it is not small, you need degenerate or near-degenerate PT.
+*"Perturbation theory always converges as long as the terms get smaller."* The terms can get smaller, then start to grow again. The optimal truncation is the term where they reach their minimum. Past it, more terms hurt.
 
-## 7. Concept block — hydrogen fine structure
+*"First-order is always sufficient for small $\lambda$."* Only when there is no near-degeneracy. If two unperturbed states are nearly degenerate, the second-order correction has a tiny denominator and can be large even when $\lambda$ is small. Always check the ratio $|\langle m|\hat{H}'|n\rangle|/|E_n^{(0)} - E_m^{(0)}|$ before trusting first-order. If it is not small, you need degenerate or near-degenerate perturbation theory.
 
-### 7.1 What "fine structure" means
+<!-- → [CHART: three overlaid curves of E_0(λ) vs. λ for the anharmonic oscillator (natural units ℏ=m=ω=1) — solid black: exact numerical diagonalization; dashed teal: E_0^(0) + λE_0^(1) (first-order PT); dashed orange: E_0^(0) + λE_0^(1) + λ²E_0^(2) (second-order PT); x-axis: λ from 0 to 0.5; curves track closely at small λ then diverge; a shaded region beyond the departure point labeled "PT unreliable"; caption: "First-order and second-order PT both eventually fail. The departure happens earlier for higher n. Adding more orders past the optimal truncation makes things worse, not better"] -->
 
-The hydrogen spectrum, as computed in Chapter 8 using the bare Coulomb Hamiltonian, has energies $E_n^{(0)} = -13.6\,\text{eV}/n^2$ depending only on $n$. The full hydrogen spectrum, measured by high-resolution spectroscopy, has small corrections at the level of $\alpha^2 E_n^{(0)} \sim 10^{-4}\,\text{eV}$ for $n=2$, where $\alpha = e^2/(4\pi\epsilon_0 \hbar c) \approx 1/137$ is the fine-structure constant. These corrections are called *fine structure*, and three perturbations produce them.
+<!-- → [CHART: log-scale plot of |E_0^(N) − E_0^exact| vs. truncation order N for the anharmonic oscillator at λ=0.1 — the curve descends steeply from N=0 to N≈4 (optimal truncation), marked with a vertical dashed line labeled "optimal truncation N*"; then rises as higher orders are added; caption: "The Bender–Wu asymptotic series: truncate at the minimum (N*) for the best answer. Every term added beyond N* moves you further from the truth. This is what a divergent-but-useful series looks like"] -->
 
-### 7.2 The three perturbations
+---
 
-**Relativistic kinetic correction.** The non-relativistic kinetic energy $\hat{p}^2/2m$ is the leading term in the expansion of $\sqrt{p^2 c^2 + m^2 c^4} - mc^2$:
+## Hydrogen fine structure
 
-$$\sqrt{p^2 c^2 + m^2 c^4} - mc^2 = \frac{p^2}{2m} - \frac{p^4}{8m^3 c^2} + \cdots$$
+Hydrogen, as computed in Chapter 7 using the bare Coulomb Hamiltonian, has energies $E_n^{(0)} = -13.6\,\text{eV}/n^2$ depending only on $n$. High-resolution spectroscopy reveals small corrections at the level of $\alpha^2 E_n^{(0)} \sim 10^{-4}\,\text{eV}$ for $n = 2$, where $\alpha = e^2/(4\pi\epsilon_0\hbar c) \approx 1/137$ is the fine-structure constant. These are the fine structure corrections, and three perturbations produce them.
 
-So at the next order:
+The relativistic kinetic term: the non-relativistic kinetic energy $\hat{p}^2/2m$ is the leading term in the expansion of $\sqrt{p^2c^2 + m^2c^4} - mc^2$. At the next order:
 
-$$\hat{H}'_{\text{rel}} = -\frac{\hat{p}^4}{8m^3 c^2}$$
+$$\hat{H}'_\text{rel} = -\frac{\hat{p}^4}{8m^3c^2}$$
 
-This shifts every level. (Griffiths §7.3.1.)
+This shifts every level. Spin-orbit coupling: in the electron's rest frame, the orbiting proton generates a magnetic field that couples to the electron's spin magnetic moment. After the Thomas precession correction of $1/2$:
 
-**Spin-orbit coupling.** In the electron's rest frame, the proton orbits it. A moving charge generates a magnetic field. The electron's spin magnetic moment couples to that field. After the Thomas precession factor of $1/2$:
+$$\hat{H}'_\text{SO} = \frac{1}{2m^2c^2}\frac{1}{r}\frac{dV}{dr}\,\vec{L}\cdot\vec{S}$$
 
-$$\hat{H}'_{\text{SO}} = \frac{1}{2m^2 c^2}\frac{1}{r}\frac{dV}{dr}\,\vec{L}\cdot\vec{S}$$
+For the Coulomb potential this reduces to something proportional to $\vec{L}\cdot\vec{S}/r^3$. The Darwin term: a purely relativistic correction, nonzero only for $\ell = 0$ states where the electron has finite probability at the nucleus:
 
-(Griffiths §7.3.2; Liboff §13.3 [verify]). For the Coulomb potential, $(1/r)(dV/dr) = e^2/(4\pi\epsilon_0 r^3)$.
+$$\hat{H}'_\text{Darwin} = \frac{\pi\hbar^2}{2m^2c^2}\frac{e^2}{4\pi\epsilon_0}\,\delta^3(\vec{r})$$
 
-**Darwin term.** A relativistic correction affecting only $s$-states (zero orbital angular momentum) where the electron has nonzero probability at the origin:
+All three corrections are of order $\alpha^2$ times the Rydberg energy. The unperturbed hydrogen levels at fixed $n$ are $n^2$-fold degenerate — the Coulomb degeneracy discussed in Chapter 7. Apply degenerate perturbation theory: diagonalize the sum of the three perturbations in the degenerate $n$-manifold.
 
-$$\hat{H}'_{\text{Darwin}} = \frac{\pi\hbar^2}{2m^2 c^2}\,\frac{e^2}{4\pi\epsilon_0}\,\delta^3(\vec{r})$$
+The key insight is that $\vec{L}\cdot\vec{S}$ commutes with $\hat{J}^2$ and $\hat{J}_z$ where $\hat{J} = \hat{L} + \hat{S}$ is the total angular momentum. The good quantum numbers that diagonalize the perturbation are $(n, \ell, j, m_j)$ — where $j = \ell \pm 1/2$ — rather than the separate $(n, \ell, m_\ell, m_s)$ pair. After the calculation, the fine-structure energy correction is:
 
-### 7.3 The good quantum numbers
+$$E_n^\text{fs} = \frac{(E_n^{(0)})^2}{2mc^2}\left(\frac{2n}{j + 1/2} - \frac{3}{2}\right)$$
 
-All three perturbations are small relative to the unperturbed Coulomb Hamiltonian and they share a common structure: each is proportional to $\alpha^2$ times the Rydberg energy. The unperturbed $|n\ell m_\ell m_s\rangle$ basis is degenerate at fixed $n$ (the famous $n^2$-fold Coulomb degeneracy). Apply degenerate perturbation theory: diagonalize the sum of the three perturbations in the degenerate $n$-manifold.
+This depends on $n$ and $j$ only — not on $\ell$ separately. So the $2p_{1/2}$ and $2s_{1/2}$ states ($j = 1/2$, different $\ell$) remain degenerate after fine structure. The $2p_{3/2}$ state ($j = 3/2$) sits about $4.5 \times 10^{-5}\,\text{eV}$ above the $j = 1/2$ pair.
 
-The result, after a calculation that exploits the symmetry $[\hat{L}\cdot\hat{S}, \hat{J}^2] = 0$ where $\hat{J} = \hat{L} + \hat{S}$: the good quantum numbers become $(n, \ell, j, m_j)$ rather than $(n, \ell, m_\ell, m_s)$. The total angular momentum $j = \ell \pm 1/2$ replaces the separate $m_\ell, m_s$ pair. The fine-structure energy correction is
+Experimentally, $2s_{1/2}$ and $2p_{1/2}$ are not exactly degenerate. There is a $\sim 4 \times 10^{-6}\,\text{eV}$ splitting called the Lamb shift, first measured by Lamb and Retherford in 1947. It is a QED effect — quantization of the electromagnetic field, vacuum fluctuations — and it lies beyond the semiclassical perturbation theory of this chapter. The chapter cannot derive the Lamb shift. It can only point at it and mark where the chapter's framework ends.
 
-$$E_n^{\text{fs}} = \frac{(E_n^{(0)})^2}{2mc^2}\left(\frac{2n}{j + 1/2} - \frac{3}{2}\right)$$
+<!-- → [IMAGE: hydrogen n=2 fine-structure energy level diagram — starting from the degenerate n=2 level at −3.4 eV on the left; a first split shows 2p_{3/2} (j=3/2) rising by ~4.5×10⁻⁵ eV and 2s_{1/2}, 2p_{1/2} (j=1/2) remaining degenerate; a second split (magnified inset) shows 2s_{1/2} lifted above 2p_{1/2} by the Lamb shift ~4×10⁻⁶ eV; each level labeled with (n, ℓ, j); a bracket labels the fine-structure splitting as "~α² × E_2"; a second bracket labels the Lamb shift as "QED — beyond this chapter"; caption: "Three perturbations, two splittings. Fine structure lifts the j-degeneracy; the Lamb shift requires quantizing the electromagnetic field itself"] -->
 
-depending only on $n$ and $j$, *not* on $\ell$ separately. So the $2p_{1/2}$ and $2s_{1/2}$ states ($j=1/2$, different $\ell$) remain degenerate after fine structure. The $2p_{3/2}$ state ($j=3/2$) sits about $4.5 \times 10^{-5}\,\text{eV}$ above [verify against Griffiths §7.3]. That gap is the *fine structure*.
+---
 
-A subtlety: experimentally, $2s_{1/2}$ and $2p_{1/2}$ are *not* exactly degenerate. There is a $\sim 4 \times 10^{-6}\,\text{eV}$ splitting called the Lamb shift, first measured by Lamb & Retherford in 1947 ([*Phys. Rev.* 72, 241](https://journals.aps.org/pr/abstract/10.1103/PhysRev.72.241)). It is a *QED* effect — quantization of the electromagnetic field, vacuum fluctuations — beyond the semiclassical perturbation theory of this chapter. The chapter cannot derive the Lamb shift; it can only point at it and note where the chapter's framework ends.
-
-## 8. Worked examples and exercises
-
-### Worked example 1 — first-order shift for $\hat{H}' = \lambda \hat{x}^2$
-
-Take the harmonic oscillator and add $\hat{H}' = \lambda\hat{x}^2$. (Yes, this just renormalizes $\omega$; that is the point — we can check our answer against the exact solution.) The first-order shift:
-
-$$E_n^{(1)} = \lambda\langle n|\hat{x}^2|n\rangle = \lambda\cdot\frac{\hbar}{2m\omega}(2n+1) = \frac{\lambda\hbar}{m\omega}(n + \tfrac{1}{2})$$
-
-The exact answer: shift $\omega^2 \to \omega^2 + 2\lambda/m$, so $\omega_{\text{new}} = \omega\sqrt{1 + 2\lambda/(m\omega^2)} \approx \omega + \lambda/(m\omega)$ for small $\lambda$. The new energies are $(n+1/2)\hbar\omega_{\text{new}} \approx (n+1/2)\hbar\omega + (n+1/2)\hbar\lambda/(m\omega)$. Matches the first-order PT result. Good.
-
-### Worked example 2 — second-order shift, ground state of perturbed oscillator
-
-For $\hat{H}' = \lambda\hat{x}$, compute $E_0^{(2)}$. Matrix element: $\langle m|\hat{x}|0\rangle$ is nonzero only for $m=1$, with value $\sqrt{\hbar/2m\omega}$. So
-
-$$E_0^{(2)} = \frac{|\langle 1|\hat{x}|0\rangle|^2 \lambda^2}{E_0^{(0)} - E_1^{(0)}} = \frac{\lambda^2 \hbar/(2m\omega)}{-\hbar\omega} = -\frac{\lambda^2}{2m\omega^2}$$
-
-The ground state moves *down*, as it must. (This is the linear-perturbation case: $\hat{H} = \hat{p}^2/2m + (1/2)m\omega^2\hat{x}^2 + \lambda\hat{x}$ is just a shifted harmonic oscillator, $\hat{x} \to \hat{x} - \lambda/(m\omega^2)$, with the same spectrum displaced by $-\lambda^2/(2m\omega^2)$. PT gets the exact answer at second order. Good check.)
-
-### Exercises
-
-**Warm-up.**
-
-1. Compute $E_0^{(1)}$ for the harmonic oscillator with $\hat{H}' = \lambda\hat{x}^3$. By parity, the answer should be zero. Confirm by ladder-operator algebra.
-
-2. Compute $E_0^{(2)}$ for the perturbation in problem 1. (You will need matrix elements $\langle m|\hat{x}^3|0\rangle$ for $m = 1, 3$.) Show the result is negative.
-
-3. For the infinite square well of width $L$, compute $E_1^{(1)}$ under the perturbation $\hat{H}' = V_0$ (a constant offset). Result should be just $V_0$. Confirm.
-
-**Application.**
-
-4. Hydrogen in a uniform electric field $\mathcal{E}\hat{z}$. Show by parity that $E_n^{(1)} = 0$ for every non-degenerate state. State the regime where the *quadratic* Stark shift ($E^{(2)} \propto \mathcal{E}^2$) is the leading correction.
-
-5. Build the $4\times 4$ Stark matrix for the hydrogen $n=2$ manifold by hand. Diagonalize. Confirm three eigenvalues: $+3a_0 e\mathcal{E}, -3a_0 e\mathcal{E}, 0, 0$.
-
-6. The hydrogen Zeeman effect at moderate field: write the perturbation $\hat{H}' = \mu_B B(L_z + 2S_z)/\hbar$. For the $n=2$ states *without* spin-orbit coupling, what are the first-order shifts? You should find six distinct values for $\{2s, 2p_m\}$ with $m_s = \pm 1/2$.
-
-**Synthesis.**
-
-7. The anharmonic oscillator $\hat{H} = \hat{H}_{\text{HO}} + \lambda\hat{x}^4$. Compute $E_0^{(1)}$ as a function of $\lambda$ using ladder operators. Then numerically diagonalize the Hamiltonian in the first 30 harmonic-oscillator eigenstates for several values of $\lambda$. Plot $E_0^{(0)} + \lambda E_0^{(1)}$ and the exact $E_0(\lambda)$ on the same axes. Identify the $\lambda$ at which first-order PT diverges from the exact answer by 10%.
-
-8. Argue from a sign analysis that *second-order perturbation theory always lowers the ground-state energy*, regardless of the form of $\hat{H}'$, as long as $\hat{H}'$ has some nonzero matrix element to excited states.
-
-**Challenge.**
-
-9. The hydrogen fine-structure correction (relativistic + spin-orbit + Darwin) has the closed form
-
-$$E_n^{\text{fs}} = \frac{(E_n^{(0)})^2}{2mc^2}\left(\frac{2n}{j+1/2} - \tfrac{3}{2}\right)$$
-
-Verify that the $2p_{3/2}$–$2p_{1/2}$ splitting is approximately $\alpha^2$ times the $n=2$ unperturbed energy, divided by a small integer factor. Compute numerically and compare to the experimental value $\sim 4.5 \times 10^{-5}\,\text{eV}$ [verify against NIST atomic spectra database].
-
-10. The asymptotic series for the anharmonic oscillator. Numerically diagonalize $\hat{H}_{\text{HO}} + \lambda\hat{x}^4$ for $\lambda = 0.1$. Compute the first $N$ terms of the perturbation series for $E_0$ and plot the partial sum vs. $N$. Find the optimal truncation order $N^*$ (where the partial sum is closest to the exact value) and identify the regime where adding more terms makes the approximation *worse*. This is the signature of an asymptotic series; you have reproduced Bender & Wu's discovery numerically.
-
-## 9. What would change my mind
-
-The framework rests on a structural claim: that physical Hamiltonians close to exactly solvable ones can be tackled order-by-order in a small parameter, and that the resulting series — even when divergent — gives accurate predictions when truncated near the optimal order. If a clean physical system (no degeneracies, no obvious near-degeneracies, a genuinely small $\lambda$) were found where first- and second-order PT both badly missed the experimental value, the chapter's premise would be in trouble. So far no such case is known in basic atomic physics; the high-precision agreement between QED perturbation theory and the electron $g$-factor (better than ten significant figures) is one of the most stringent tests in all of physics. The framework is in remarkably good shape.
-
-## 10. Still puzzling
+## Still puzzling
 
 It is not obvious why a divergent series should give good answers at all. Borel summation, transseries, resurgent analysis — Écalle, Costin, Mariño — recover information from the divergent tail by analytic continuation in cleverly chosen ways. The arguments work in some cases and fail in others. I do not have a satisfying answer to *why* truncating at the optimal order is exponentially close to the truth in every well-studied case. The empirical fact is that it is. The theoretical understanding is still in progress.
 
-## 11. LLM Exercise — the perturbation explorer
+---
+
+## LLM Exercise — the perturbation explorer
 
 You are going to build a single-file D3 simulation that does two things at once: shows the anharmonic-oscillator energy levels as functions of $\lambda$, with first-order and second-order PT compared against exact numerical diagonalization (so you can watch PT diverge); and shows the hydrogen $n=2$ Stark manifold splitting into three lines as the electric field turns up (so you can watch degenerate PT do its job). The deliverable is `09-perturbation-explorer.html` in your working directory.
 
@@ -492,15 +354,15 @@ for the matrix-element computation and the diagonalization.
 
 Run the simulation and answer the following:
 
-1. Anharmonic mode, $n=0$. Slide $\lambda$ from $0$ to $0.5$. At what value of $\lambda$ does first-order PT depart from the exact curve by more than 10%? At what value of $\lambda$ does *second-order* PT depart by more than 10%? Note the warning text trigger; record the $\lambda$ at which it fires.
+1. Anharmonic mode, $n=0$. Slide $\lambda$ from $0$ to $0.5$. At what value of $\lambda$ does first-order PT depart from the exact curve by more than 10%? At what value does *second-order* PT depart by more than 10%? Note the warning text trigger; record the $\lambda$ at which it fires.
 
 2. Repeat for $n=4$. The departure happens earlier — PT works worst for high-$n$ states. Quantify: what is the ratio of the breakdown $\lambda$ for $n=4$ vs. $n=0$?
 
-3. Stark mode. Set the field strength to $\mathcal{E} = 0.01$ atomic units. Verify by hand that the upper eigenvalue is $+3 a_0 e \mathcal{E} = 0.03$ Hartree, and that the two middle lines do not shift. Increase the field. The simulation should remain accurate up to $\mathcal{E} \sim 0.04$ a.u.; above that, real hydrogen ionizes via the tilted-Coulomb mechanism (Stark ionization), which this simulation does not capture.
+3. Stark mode. Set the field strength to $\mathcal{E} = 0.01$ atomic units. Verify by hand that the upper eigenvalue is $+3a_0 e\mathcal{E} = 0.03$ Hartree, and that the two middle lines do not shift. Increase the field. The simulation should remain accurate up to $\mathcal{E} \sim 0.04$ a.u.; above that, real hydrogen ionizes via the tilted-Coulomb mechanism (Stark ionization), which this simulation does not capture.
 
-4. Toggle off the "show eigenvectors" view in Stark mode. Look at the matrix. The three shifted lines come from diagonalizing a $2\times 2$ block; the two flat lines come from a $2\times 2$ zero block. Confirm this is what you see.
+4. Toggle off the "show eigenvectors" view in Stark mode. Look at the matrix. The two shifted lines come from diagonalizing a $2\times 2$ block; the two flat lines come from a $2\times 2$ zero block. Confirm this is what you see.
 
-5. Back to anharmonic mode. Set $\lambda = 0.3$ and toggle $n$ through 0, 1, 2, 3, 4 quickly. Where do first-order and second-order PT *agree* with the exact result, and where do they not? The pattern — PT works better for the ground state than for excited states — should be visible.
+5. Back to anharmonic mode. Set $\lambda = 0.3$ and toggle $n$ through 0, 1, 2, 3, 4 quickly. Where do first-order and second-order PT agree with the exact result, and where do they not? The pattern — PT works better for the ground state than for excited states — should be visible.
 
 **Extension prompt:**
 
@@ -525,8 +387,36 @@ extends the formalism into the time domain.
 
 ---
 
-*Sources consulted: Griffiths §7.1–7.4 (non-degenerate and degenerate perturbation theory, hydrogen fine structure, Stark effect; Problems 7.2, 7.4); Liboff §13.1–13.4 (Rayleigh-Schrödinger perturbation theory, fine structure, Zeeman effect); Bender & Wu, "[Anharmonic Oscillator](https://journals.aps.org/pr/abstract/10.1103/PhysRev.184.1231)," *Physical Review* 184, 1231 (1969); Dyson, "[Divergence of Perturbation Theory in Quantum Electrodynamics](https://journals.aps.org/pr/abstract/10.1103/PhysRev.85.631)," *Physical Review* 85, 631 (1952); Stark, *Annalen der Physik* 348, 965 (1914) [verify]; Leone, Paoletti & Robotti, *Physics in Perspective* 6, 271 (2004) [verify]; Lamb & Retherford, "[Fine Structure of the Hydrogen Atom by a Microwave Method](https://journals.aps.org/pr/abstract/10.1103/PhysRev.72.241)," *Physical Review* 72, 241 (1947).*
+## Exercises
 
-*Tags: perturbation-theory, stark-effect, fine-structure, asymptotic-series, anharmonic-oscillator, degenerate-perturbation, d3-simulation*
+### Warm-up
 
-*Status: draft for Nik's review. Several `[verify]` flags throughout — see specifically Stark/Lo Surdo simultaneous-discovery citation, exact prefactors on $x^4$ matrix elements, fine-structure splitting numerical value against NIST.*
+**9.1** Take the harmonic oscillator with perturbation $\hat{H}' = \lambda\hat{x}^3$. (a) By a parity argument, explain why $E_n^{(1)} = 0$ for every $n$. (b) Now compute $E_0^{(2)}$ for the cubic perturbation. You need the matrix elements $\langle m|\hat{x}^3|0\rangle$; use $\hat{x} = \sqrt{\hbar/2m\omega}(\hat{a}_+ + \hat{a}_-)$ and ladder algebra to find which $m$ contribute and with what value. Show the result is negative. *(Tests: parity argument for vanishing first-order corrections; second-order calculation from ladder-operator matrix elements; verification that the ground state goes down.)*
+
+**9.2** For the infinite square well of width $L$ with $\psi_n(x) = \sqrt{2/L}\sin(n\pi x/L)$, add a constant perturbation $\hat{H}' = V_0$ over the entire well. (a) Compute $E_n^{(1)}$ for all $n$. The answer should be $V_0$ — explain in one sentence why this is exact and why second-order PT adds nothing. (b) Now perturb with $\hat{H}' = V_0$ over only the left half of the well ($0 < x < L/2$). Compute $E_1^{(1)}$ and $E_2^{(1)}$. Are they equal? *(Tests: first-order expectation-value calculation in a simple basis; recognizing when the perturbation series terminates.)*
+
+**9.3** State the selection rules that kill the off-diagonal entries of the $4\times 4$ Stark matrix for the hydrogen $n = 2$ manifold, *before* computing a single integral. For each of the five independent pairs $\{2s, 2p_0\}$, $\{2s, 2p_{+1}\}$, $\{2s, 2p_{-1}\}$, $\{2p_0, 2p_{+1}\}$, $\{2p_0, 2p_{-1}\}$: state which selection rule — parity or $\Delta m = 0$ — kills the matrix element, or confirm it survives. *(Tests: application of selection rules before calculation; understanding which symmetry kills which entry.)*
+
+### Application
+
+**9.4** The second-order correction to the ground-state energy of hydrogen in a uniform electric field $\mathcal{E}$ is $E_1^{(2)} = -\frac{1}{2}\alpha_\text{pol}\mathcal{E}^2$, where $\alpha_\text{pol}$ is the polarizability. (a) From the formula $E_n^{(2)} = \sum_{m\neq n}|\langle m|\hat{H}'|n\rangle|^2/(E_n^{(0)} - E_m^{(0)})$, explain the sign: why is $E_1^{(2)}$ guaranteed to be negative for the ground state? (b) The dominant contribution to $\alpha_\text{pol}$ comes from the $|2p\rangle$ intermediate state. Estimate $E_1^{(2)}$ by keeping only that term, using $|\langle 2p|\hat{z}|1s\rangle|^2 = 2^{15}a_0^2/3^{10}$ (look this up or quote it). Compare your estimate to the exact value $\alpha_\text{pol} = \frac{9}{2}a_0^3$. *(Tests: second-order formula applied to a physical system; the dominant-intermediate-state approximation; understanding why the ground-state quadratic Stark shift is small.)*
+
+**9.5** The anharmonic oscillator $\hat{H} = \hat{H}_\text{HO} + \lambda\hat{x}^4$ in natural units ($\hbar = m = \omega = 1$). (a) Compute $E_0^{(1)}$ using the formula $\langle n|\hat{x}^4|n\rangle = \frac{3}{4}(2n^2 + 2n + 1)$. (b) The first-order correction to $E_0$ grows as $n^2$ for large $n$. At what $n$ does the first-order correction $\lambda E_n^{(1)}$ become comparable to the unperturbed spacing $\hbar\omega = 1$ for $\lambda = 0.1$? This is the $n$ at which PT first becomes unreliable. (c) Without computing, explain why the second-order correction $E_n^{(2)}$ is negative for the ground state and positive for some excited states. *(Tests: first-order ladder-operator calculation; identifying the breakdown regime; sign analysis of second-order corrections.)*
+
+**9.6** Hydrogen fine structure. The energy formula is $E_n^\text{fs} = \frac{(E_n^{(0)})^2}{2mc^2}\!\left(\frac{2n}{j+1/2} - \frac{3}{2}\right)$. (a) Compute the fine-structure correction for the $n=2$, $j=3/2$ state and the $n=2$, $j=1/2$ state numerically in eV. (b) The splitting between $2p_{3/2}$ and $2p_{1/2}$ is $\Delta E_{FS}$. Express it as a multiple of $\alpha^2|E_2^{(0)}|$ and verify it is approximately $4.5\times 10^{-5}$ eV. (c) The Lamb shift lifts the $2s_{1/2}$–$2p_{1/2}$ degeneracy by $\sim 4\times 10^{-6}$ eV. How does this compare in magnitude to the fine-structure splitting? *(Tests: numerical evaluation of the fine-structure formula; understanding the hierarchy of corrections; locating where QED effects become visible.)*
+
+### Synthesis
+
+**9.7** Degenerate perturbation theory for a two-level system. Two states $|a\rangle$ and $|b\rangle$ share energy $E^{(0)}$. The perturbation matrix in this subspace is $W = \begin{pmatrix} \alpha & \beta \\ \beta^* & \alpha \end{pmatrix}$ where $\alpha$ is real and $\beta$ may be complex. (a) Find the two eigenvalues of $W$. (b) Find the eigenvectors ("good" zeroth-order states). (c) If $\alpha = 0$ and $\beta$ is real, the two eigenvalues are $\pm\beta$ and the good states are $(|a\rangle \pm |b\rangle)/\sqrt{2}$. Identify which case in the Stark matrix this corresponds to. (d) Now suppose $|\beta| \ll |\alpha|$: one diagonal entry dominates. What are the eigenvalues to leading order in $\beta/\alpha$? When does off-diagonal mixing become negligible? *(Tests: diagonalizing the general 2×2 perturbation matrix; recognizing the Stark effect as a special case; the limit where a perturbation barely mixes states.)*
+
+**9.8** The Dyson argument for divergence. Consider a potential $V(x) = \frac{1}{2}m\omega^2x^2 + \lambda x^4$ with $\lambda < 0$. (a) Sketch the potential for $\lambda = -0.1$ and $\lambda = 0$. What happens to the bound states when $\lambda < 0$? (b) Explain in two sentences why the energy $E_0(\lambda)$ cannot be analytic at $\lambda = 0$ — that is, why a convergent Taylor series in $\lambda$ around $\lambda = 0$ cannot exist. (c) Why does this imply that the perturbation series *for positive $\lambda$* must also diverge? (d) The same argument applies to QED with the fine-structure constant $\alpha$. State in one sentence the physical instability that would occur if $\alpha < 0$. *(Tests: understanding the Dyson analyticity argument; connecting the sign of the coupling to the stability of the vacuum; why physical series that look well-behaved must still diverge.)*
+
+### Challenge
+
+**9.9** Prove from a sign analysis that $E_n^{(2)} \leq 0$ for the ground state for *any* perturbation $\hat{H}'$, not just specific examples. Your proof should use only the formula $E_n^{(2)} = \sum_{m\neq n}|\langle m|\hat{H}'|n\rangle|^2/(E_n^{(0)} - E_m^{(0)})$ and the fact that the ground state has lower energy than all other states. Then find a counterexample: construct a state $|k\rangle$ that is *not* the ground state for which $E_k^{(2)}$ can be positive. *(Tests: general proof of a result stated in the chapter; constructing a counterexample to show the result does not extend to excited states.)*
+
+**9.10** The Zeeman effect at moderate field: add $\hat{H}' = \mu_B B(\hat{L}_z + 2\hat{S}_z)/\hbar$ to hydrogen. (a) For the $n=2$ states *ignoring* spin-orbit coupling, enumerate all distinct first-order energy shifts for the set $\{|2s, m_\ell, m_s\rangle, |2p, m_\ell, m_s\rangle\}$. How many distinct values are there? (b) For the $n=2$ states *including* fine structure (using the good quantum numbers $j, m_j$ from this chapter), write the perturbation $\hat{L}_z + 2\hat{S}_z$ in terms of $\hat{J}_z$ and $\hat{L}_z - \hat{S}_z$. The first-order shift of state $|n, \ell, j, m_j\rangle$ in a weak field is $E^{(1)} = g_J \mu_B B m_j$, where $g_J = 1 + \frac{j(j+1) + s(s+1) - \ell(\ell+1)}{2j(j+1)}$ is the Landé g-factor. Compute $g_J$ for the $2p_{1/2}$ and $2p_{3/2}$ states. (c) Sketch the splitting pattern for the $n=2$, $j=3/2$ states as a function of $B$. How many distinct levels are there? *(Tests: Zeeman effect with and without spin-orbit coupling; Landé g-factor computation; recognizing that the "good" quantum numbers change depending on which perturbation dominates.)*
+
+---
+
+*Sources: Griffiths §7.1–7.4; Liboff §13.1–13.4; Bender & Wu, "Anharmonic Oscillator," Physical Review 184, 1231 (1969); Dyson, "Divergence of Perturbation Theory in Quantum Electrodynamics," Physical Review 85, 631 (1952); Stark, Annalen der Physik 348, 965 (1914); Lamb & Retherford, "Fine Structure of the Hydrogen Atom by a Microwave Method," Physical Review 72, 241 (1947).*
